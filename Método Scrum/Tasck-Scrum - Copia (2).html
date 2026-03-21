@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scrum Board | Engenharia & Automação</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com');
+        body { font-family: 'Inter', sans-serif; background-color: #0f172a; color: #f1f5f9; }
+        .mono { font-family: 'Fira Code', monospace; }
+        .scrum-card { background: #1e293b; border-left: 4px solid #3b82f6; transition: 0.3s; }
+        .scrum-card:hover { transform: translateX(5px); background: #334155; }
+        .status-badge { font-size: 0.7rem; padding: 2px 8px; border-radius: 99px; text-transform: uppercase; font-weight: bold; }
+    </style>
+</head>
+<body class="p-6">
+
+    <header class="max-w-4xl mx-auto mb-10 border-b border-slate-700 pb-6">
+        <h1 class="text-3xl font-black tracking-tight">DAILY <span class="text-blue-500">SCRUM</span> BOARD</h1>
+        <p class="text-slate-400 text-sm mono">Sprint: Semestre_01_Base_Fundamentals | Day: 01</p>
+    </header>
+
+    <main class="max-w-4xl mx-auto space-y-8">
+        
+        <!-- 3 PERGUNTAS DA DAILY -->
+        <section class="grid md:grid-cols-3 gap-4 mb-10">
+            <div class="bg-blue-600/10 p-4 rounded-2xl border border-blue-500/20">
+                <h3 class="text-blue-400 font-bold text-xs mb-2">O que fiz ontem?</h3>
+                <p class="text-xs text-slate-300">Finalizei a inscrição no ProUni e conferi a classificação final (3º/12).</p>
+            </div>
+            <div class="bg-emerald-600/10 p-4 rounded-2xl border border-emerald-500/20">
+                <h3 class="text-emerald-400 font-bold text-xs mb-2">O que farei hoje?</h3>
+                <p class="text-xs text-slate-300">Organizar documentação para o Polo de Canoas e revisar lógica de varredura P2P.</p>
+            </div>
+            <div class="bg-amber-600/10 p-4 rounded-2xl border border-amber-500/20">
+                <h3 class="text-amber-400 font-bold text-xs mb-2">Impedimentos?</h3>
+                <p class="text-xs text-slate-300">Acesso limitado a hardware externo devido ao regime da APAC.</p>
+            </div>
+        </section>
+
+        <!-- BACKLOG DE ATIVIDADES -->
+        <section>
+            <h2 class="text-xl font-bold mb-6 flex items-center">
+                <span class="mr-2">📋</span> Sprint Backlog
+            </h2>
+            
+            <div class="space-y-4">
+                <!-- Task 1 -->
+                <div class="scrum-card p-4 rounded-xl flex justify-between items-center">
+                    <div>
+                        <span class="status-badge bg-blue-500/20 text-blue-400">Prouni</span>
+                        <h4 class="font-bold mt-1">Validação de Documentos no Polo Canoas</h4>
+                        <p class="text-xs text-slate-500 mono">Prazo: 13/02/2026</p>
+                    </div>
+                    <input type="checkbox" class="w-6 h-6 rounded border-slate-700 bg-slate-800">
+                </div>
+
+                <!-- Task 2 -->
+                <div class="scrum-card p-4 rounded-xl flex justify-between items-center border-l-emerald-500">
+                    <div>
+                        <span class="status-badge bg-emerald-500/20 text-emerald-400">Estudo</span>
+                        <h4 class="font-bold mt-1">Módulo 01: Lógica de Programação</h4>
+                        <p class="text-xs text-slate-500 mono">Objetivo: Fluxograma de Varredura</p>
+                    </div>
+                    <input type="checkbox" class="w-6 h-6 rounded border-slate-700 bg-slate-800">
+                </div>
+
+                <!-- Task 3 -->
+                <div class="scrum-card p-4 rounded-xl flex justify-between items-center border-l-purple-500">
+                    <div>
+                        <span class="status-badge bg-purple-500/20 text-purple-400">Dev</span>
+                        <h4 class="font-bold mt-1">Refatoração JSON Protocol (Gossip)</h4>
+                        <p class="text-xs text-slate-500 mono">Meta: Reduzir payload para < 1KB</p>
+                    </div>
+                    <input type="checkbox" class="w-6 h-6 rounded border-slate-700 bg-slate-800">
+                </div>
+
+                <!-- Task 4 -->
+                <div class="scrum-card p-4 rounded-xl flex justify-between items-center border-l-amber-500">
+                    <div>
+                        <span class="status-badge bg-amber-500/20 text-amber-400">Burocracia</span>
+                        <h4 class="font-bold mt-1">Registro INPI - Propriedade Intelectual</h4>
+                        <p class="text-xs text-slate-500 mono">Pessoa Física / MEI</p>
+                    </div>
+                    <input type="checkbox" class="w-6 h-6 rounded border-slate-700 bg-slate-800">
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="max-w-4xl mx-auto mt-16 pt-6 border-t border-slate-800 text-center">
+        <p class="text-slate-600 text-[10px] mono uppercase tracking-widest">
+            Definition of Done: Código testado, Documentado e em Conformidade LGPD.
+        </p>
+    </footer>
+
+</body>
+</html>

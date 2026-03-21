@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Scrum Academic Manager | Engenharia</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background-color: #020617; color: #f1f5f9; font-family: 'Inter', sans-serif; }
+        .scrum-input { background: #0f172a; border: 1px solid #1e293b; color: white; padding: 12px; border-radius: 12px; outline: none; }
+        .scrum-input:focus { border-color: #3b82f6; }
+        .btn-grad { background: linear-gradient(90deg, #2563eb, #7c3aed); transition: 0.3s; }
+        .btn-grad:hover { opacity: 0.9; transform: translateY(-2px); }
+    </style>
+</head>
+<body class="p-4 md:p-10">
+
+    <div class="max-w-5xl mx-auto">
+        <header class="mb-10 flex justify-between items-center">
+            <div>
+                <h1 class="text-3xl font-black tracking-tighter">STUDY_SCRUM <span class="text-blue-500">v1.0</span></h1>
+                <p class="text-slate-400 text-xs mono">Registro Local de Sprint Acadêmico - Unopar 2026</p>
+            </div>
+            <div class="text-right">
+                <span class="text-[10px] bg-blue-500/20 text-blue-400 px-3 py-1 rounded-full font-bold uppercase tracking-widest">Prouni: 3º/12 (Canoas)</span>
+            </div>
+        </header>
+
+        <!-- Formulário de Entrada (Task de Estudo) -->
+        <div class="grid md:grid-cols-4 gap-4 mb-8 bg-slate-900/50 p-6 rounded-3xl border border-white/5 shadow-2xl">
+            <input type="text" id="materia" placeholder="Disciplina (ex: Lógica)" class="scrum-input">
+            <input type="text" id="tarefa" placeholder="Task (ex: Teleaula 01)" class="scrum-input">
+            <select id="status" class="scrum-input">
+                <option value="To Do">To Do (A fazer)</option>
+                <option value="Doing">Doing (Em curso)</option>
+                <option value="Done">Done (Concluído)</option>
+            </select>
+            <button onclick="handleSave()" id="btnAction" class="btn-grad text-white font-bold rounded-xl shadow-lg">SALVAR TASK</button>
+        </div>
+
+        <!-- Tabela de Sprints -->
+        <div class="overflow-x-auto bg-slate-900/30 rounded-3xl border border-white/5">
+            <table class="w-full text-left">
+                <thead>
+                    <tr class="text-slate-500 text-[10px] uppercase tracking-widest border-b border-white/5">
+                        <th class="p-6">Prioridade</th>
+                        <th class="p-6">Disciplina</th>
+                        <th class="p-6">Atividade / Sprint Task</th>
+                        <th class="p-6">Status</th>
+                        <th class="p-6">Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="scrumBody" class="divide-y divide-white/5">
+                    <!-- Gerado via JavaScript -->
+                </tbody>
+            </table>
+        </div>
+
+        <div class="mt-8 flex justify-between items-center">
+            <p class="text-slate-500 text-[10px] mono tracking-widest">** Os dados são salvos apenas neste navegador (LocalStorage).</p>
+            <button onclick="exportCSV()" class="bg-white/10 hover:bg-white/20 text-white text-xs font-bold px-6 py-3 rounded-full transition">EXPORTAR RELATÓRIO CSV</button>
+        </div>
+    </div>
+
+    <script>
+        let sprintTasks = JSON.parse(localStorage.getItem('academic_scrum')) || [];
+        let editingIdx = null;
+
+        function updateUI() {
+            const body = document.getElementById('scrumBody');
+            body.innerHTML = '';
+            
+            sprintTasks.forEach((t, i) => {
+                const statusColor = t.status === 'Done' ? 'text-emerald-400 bg-emerald-400/10' : 
+                                   t.status === 'Doing' ? 'text-blue-400 bg-blue-400/10' : 'text-amber-400 bg-amber-400/10';
+                
+                body.innerHTML += `
+                    <tr class="hover:bg-white/[0.02] transition">
+                        <td class="p-6 text-slate-600 font-mono text-xs">#0${i + 1}</td>
+                        <td class="p-6 font-bold text-slate-200">${t.materia}</td>
+                        <td class="p-6 text-slate-400 text-sm">${t.tarefa}</td>
+                        <td class="p-6">
+                            <span class="px-2 py-1 rounded-md text-[9px] font-black uppercase tracking-tighter ${statusColor}">${t.status}</span>
+                        </td>
+                        <td class="p-6 space-x-3">
+                            <button onclick="prepareEdit(${i})" class="text-blue-500 text-[10px] uppercase font-bold hover:underline">Editar</button>
+                            <button onclick="removeTask(${i})" class="text-red-500 text-[10px] uppercase font-bold hover:underline">Remover</button>
+                        </td>
+                    </tr>
+                `;
+            });
+            localStorage.setItem('academic_scrum', JSON.stringify(sprintTasks));
+        }
+
+        function handleSave() {
+            const mat = document.getElementById('materia').value;
+            const tar = document.getElementById('tarefa').value;
+            const sta = document.getElementById('status').value;
+
+            if(!mat || !tar) return;
+
+            if(editingIdx !== null) {
+                sprintTasks[editingIdx] = { materia: mat, tarefa: tar, status: sta };
+                editingIdx = null;
+                document.getElementById('btnAction').innerText = "SALVAR TASK";
+            } else {
+                sprintTasks.push({ materia: mat, tarefa: tar, status: sta });
+            }
+
+            document.getElementById('materia').value = '';
+            document.getElementById('tarefa').value = '';
+            updateUI();
+        }
+
+        function prepareEdit(idx) {
+            document.getElementById('materia').value = sprintTasks[idx].materia;
+            document.getElementById('tarefa').value = sprintTasks[idx].tarefa;
+            document.getElementById('status').value = sprintTasks[idx].status;
+            document.getElementById('btnAction').innerText = "ATUALIZAR";
+            editingIdx = idx;
+        }
+
+        function removeTask(idx) {
+            if(confirm("Confirmar exclusão da Task?")) {
+                sprintTasks.splice(idx, 1);
+                updateUI();
+            }
+        }
+
+        function exportCSV() {
+            if(sprintTasks.length === 0) return;
+            let csv = "ID;Disciplina;Tarefa;Status\n";
+            sprintTasks.forEach((t, i) => {
+                csv += `${i+1};${t.materia};${t.tarefa};${t.status}\n`;
+            });
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.href = url;
+            link.setAttribute("download", "scrum_academico_report.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        updateUI();
+    </script>
+</body>
+</html>

@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Registro de Engenharia - Local Data</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background-color: #0f172a; color: #f1f5f9; }
+        .btn-action { transition: all 0.2s; }
+        .btn-action:hover { opacity: 0.8; transform: scale(1.05); }
+    </style>
+</head>
+<body class="p-6">
+    <div class="max-w-4xl mx-auto bg-slate-800 p-8 rounded-3xl shadow-2xl border border-slate-700">
+        <h1 class="text-2xl font-black mb-6 border-b border-slate-700 pb-4">REGISTRO DE DISPOSITIVOS / TAREFAS</h1>
+        
+        <!-- Formulário de Entrada -->
+        <div class="grid md:grid-cols-3 gap-4 mb-8">
+            <input type="text" id="itemTitle" placeholder="Título (ex: Servidor 01)" class="bg-slate-900 border border-slate-700 p-3 rounded-xl outline-none focus:border-blue-500">
+            <input type="text" id="itemStatus" placeholder="Status (ex: Ativo)" class="bg-slate-900 border border-slate-700 p-3 rounded-xl outline-none focus:border-blue-500">
+            <button onclick="saveData()" id="btnSave" class="bg-blue-600 font-bold rounded-xl btn-action">ADICIONAR</button>
+        </div>
+
+        <!-- Tabela de Dados -->
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="text-slate-500 text-xs uppercase mono border-b border-slate-700">
+                        <th class="py-4">ID</th>
+                        <th class="py-4">Título</th>
+                        <th class="py-4">Status</th>
+                        <th class="py-4">Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody"></tbody>
+            </table>
+        </div>
+
+        <!-- Botão Exportar -->
+        <div class="mt-8 flex justify-end">
+            <button onclick="exportToCSV()" class="bg-emerald-600 text-xs font-bold px-6 py-3 rounded-full btn-action">EXPORTAR CSV</button>
+        </div>
+    </div>
+
+    <script>
+        let dataList = JSON.parse(localStorage.getItem('eng_register')) || [];
+        let editIndex = null;
+
+        function renderTable() {
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '';
+            dataList.forEach((item, index) => {
+                tbody.innerHTML += `
+                    <tr class="border-b border-slate-700/50 hover:bg-white/5 transition">
+                        <td class="py-4 font-mono text-slate-500">${index + 1}</td>
+                        <td class="py-4 font-bold">${item.title}</td>
+                        <td class="py-4"><span class="px-2 py-1 bg-blue-500/10 text-blue-400 text-[10px] rounded-full uppercase font-bold">${item.status}</span></td>
+                        <td class="py-4 space-x-2">
+                            <button onclick="editData(${index})" class="text-amber-500 text-xs font-bold uppercase">Editar</button>
+                            <button onclick="deleteData(${index})" class="text-red-500 text-xs font-bold uppercase">Excluir</button>
+                        </td>
+                    </tr>
+                `;
+            });
+            localStorage.setItem('eng_register', JSON.stringify(dataList));
+        }
+
+        function saveData() {
+            const title = document.getElementById('itemTitle').value;
+            const status = document.getElementById('itemStatus').value;
+            if(!title || !status) return alert("Preencha todos os campos!");
+
+            if(editIndex !== null) {
+                dataList[editIndex] = { title, status };
+                editIndex = null;
+                document.getElementById('btnSave').innerText = "ADICIONAR";
+            } else {
+                dataList.push({ title, status });
+            }
+
+            document.getElementById('itemTitle').value = '';
+            document.getElementById('itemStatus').value = '';
+            renderTable();
+        }
+
+        function editData(index) {
+            document.getElementById('itemTitle').value = dataList[index].title;
+            document.getElementById('itemStatus').value = dataList[index].status;
+            document.getElementById('btnSave').innerText = "ATUALIZAR";
+            editIndex = index;
+        }
+
+        function deleteData(index) {
+            if(confirm("Deseja excluir este registro?")) {
+                dataList.splice(index, 1);
+                renderTable();
+            }
+        }
+
+        function exportToCSV() {
+            if(dataList.length === 0) return alert("Não há dados para exportar!");
+            
+            let csvContent = "ID,Titulo,Status\n";
+            dataList.forEach((item, index) => {
+                csvContent += `${index + 1},${item.title},${item.status}\n`;
+            });
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.setAttribute("href", url);
+            link.setAttribute("download", "registro_engenharia.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        renderTable();
+    </script>
+</body>
+</html>
