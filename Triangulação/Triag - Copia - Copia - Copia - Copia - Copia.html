@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>P2P Neural Mesh - Urban Safety Simulator</title>
+    <link rel="stylesheet" href="https://unpkg.com" />
+    <style>
+        :root { --danger: #ff0044; --safe: #00ff88; --p2p: #00d4ff; }
+        body { margin: 0; background: #050505; color: white; font-family: 'Consolas', monospace; overflow: hidden; }
+        
+        #map { height: 65vh; width: 100%; border-bottom: 2px solid #222; }
+        
+        .ui-container { display: grid; grid-template-columns: 1fr 1fr; height: 35vh; background: #000; padding: 10px; gap: 10px; }
+        .panel { background: #0a0a0a; border: 1px solid #222; padding: 10px; position: relative; overflow: hidden; }
+        
+        .alert-box { 
+            display: flex; flex-direction: column; align-items: center; justify-content: center; 
+            border-top: 4px solid var(--safe); transition: 0.3s;
+        }
+        .danger-mode { border-top-color: var(--danger); background: #1a0005; animation: flash 0.5s infinite; }
+        @keyframes flash { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } }
+
+        .black-box { font-size: 10px; color: #666; overflow-y: auto; height: 100%; }
+        .json-packet { color: var(--p2p); margin-bottom: 4px; border-bottom: 1px solid #111; padding-bottom: 2px; }
+        
+        .car-icon { border: 2px solid white; border-radius: 3px; box-shadow: 0 0 10px rgba(0,0,0,0.5); }
+    </style>
+</head>
+<body>
+
+    <div id="map"></div>
+
+    <div class="ui-container">
+        <div id="alert-panel" class="panel alert-box">
+            <h2 id="status-text" style="color: var(--safe); margin: 0;">TRAFEGO SEGURO</h2>
+            <div id="dist-val" style="font-size: 32px; font-weight: bold;">-- m</div>
+            <small style="color: #444;">DISTÂNCIA P2P ENTRE NODES</small>
+        </div>
+
+        <div class="panel">
+            <div style="font-size: 10px; color: #aaa; margin-bottom: 5px;">HISTÓRICO DE PACOTES (JSON BLACK BOX)</div>
+            <div id="black-box" class="black-box"></div>
+        </div>
+    </div>
+
+<script src="https://unpkg.com"></script>
+<script>
+    // 1. Inicialização do Mapa
+    const map = L.map('map', { zoomControl: false }).setView([-23.5615, -46.656], 18);
+    L.tileLayer('https://{s}://{z}/{x}/{y}{r}.png').addTo(map);
+
+    // 2. Geometria da Via (GeoJSON de referência)
+    const via = [
+        [-23.5630, -46.6580], [-23.5620, -46.6570], [-23.5610, -46.6555],
+        [-23.5600, -46.6540], [-23.5590, -46.6525]
+    ];
+    L.polyline(via, {color: '#111', weight: 15}).addTo(map);
+
+    // 3. Veículos P2P (Nós Móveis)
+    const v1 = { id: "CAR_A", pos: 0, dir: 1, marker: null, color: '#00d4ff' };
+    const v2 = { id: "CAR_B", pos: via.length - 1, dir: -1, marker: null, color: '#ffcc00' };
+
+    [v1, v2].forEach(v => {
+        const icon = L.divIcon({ 
+            className: 'car-icon', 
+            html: `<div id="div-${v.id}" style="background:${v.color}; width:12px; height:12px;"></div>` 
+        });
+        v.marker = L.marker(via[Math.floor(v.pos)], { icon }).addTo(map);
+    });
+
+    // 4. Lógica de Simulação e Rede Neural
+    function render() {
+        [v1, v2].forEach(v => {
+            v.pos += 0.01 * v.dir;
+            if (v.pos >= via.length - 1 || v.pos <= 0) v.dir *= -1;
+
+            const i = Math.floor(v.pos);
+            const j = Math.min(i + 1, via.length - 1);
+            const ratio = v.pos - i;
+            
+            const lat = via[i][0] + (via[j][0] - via[i][0]) * ratio;
+            const lng = via[i][1] + (via[j][1] - via[i][1]) * ratio;
+            v.marker.setLatLng([lat, lng]);
+        });
+
+        // Cálculo de Proximidade (Trilateração em tempo real)
+        const posA = v1.marker.getLatLng();
+        const posB = v2.marker.getLatLng();
+        const dist = map.distance(posA, posB);
+
+        updateUI(dist, posA, posB);
+        requestAnimationFrame(render);
+    }
+
+    function updateUI(dist, pA, pB) {
+        const alertPanel = document.getElementById('alert-panel');
+        const statusText = document.getElementById('status-text');
+        const distVal = document.getElementById('dist-val');
+        const blackBox = document.getElementById('black-box');
+
+        distVal.innerText = `${dist.toFixed(1)}m`;
+
+        // Alerta de Colisão (< 25 metros)
+        if (dist < 25) {
+            alertPanel.classList.add('danger-mode');
+            statusText.innerText = "⚠️ PERIGO DE COLISÃO";
+            statusText.style.color = "white";
+            document.getElementById('div-CAR_A').style.background = "red";
+            document.getElementById('div-CAR_B').style.background = "red";
+        } else {
+            alertPanel.classList.remove('danger-mode');
+            statusText.innerText = "TRAFEGO SEGURO";
+            statusText.style.color = "var(--safe)";
+            document.getElementById('div-CAR_A').style.background = v1.color;
+            document.getElementById('div-CAR_B').style.background = v2.color;
+        }
+
+        // Log de Pacotes JSON (Simulando Tráfego de Rede)
+        if (Math.random() > 0.97) {
+            const packet = {
+                timestamp: Date.now(),
+                nodes: ["CAR_A", "CAR_B"],
+                distance: dist.toFixed(2),
+                action: dist < 25 ? "ALERT_BROADCAST" : "IDLE_MONITOR"
+            };
+            const div = document.createElement('div');
+            div.className = 'json-packet';
+            div.innerText = `>> RX: ${JSON.stringify(packet)}`;
+            blackBox.prepend(div);
+            if (blackBox.childNodes.length > 15) blackBox.removeChild(blackBox.lastChild);
+        }
+    }
+
+    render();
+</script>
+</body>
+</html>

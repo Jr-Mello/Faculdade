@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>P2P Urban Mesh - Simulação Real-Time</title>
+    <link rel="stylesheet" href="https://unpkg.com" />
+    <style>
+        body { margin: 0; background: #050505; color: #00d4ff; font-family: 'Consolas', monospace; }
+        #map { height: 75vh; width: 100%; border-bottom: 2px solid #222; }
+        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); height: 25vh; background: #000; padding: 10px; gap: 10px; }
+        .card { background: #0a0a0a; border: 1px solid #1a1a1a; padding: 8px; border-top: 3px solid #00d4ff; }
+        .card h3 { font-size: 10px; margin: 0; color: #555; text-transform: uppercase; }
+        .card .val { font-size: 1.5rem; font-weight: bold; display: block; margin: 5px 0; }
+        .car-node { width: 14px; height: 14px; background: #00d4ff; border: 2px solid #fff; border-radius: 3px; box-shadow: 0 0 10px #00d4ff; }
+        .fixed-node { width: 10px; height: 10px; background: #ff3333; border-radius: 50%; box-shadow: 0 0 15px #ff3333; }
+        .log-box { font-size: 10px; height: 100px; overflow-y: hidden; color: #444; border-top: 1px solid #1a1a1a; margin-top: 5px; }
+    </style>
+</head>
+<body>
+
+    <div id="map"></div>
+
+    <div class="stats-grid">
+        <div class="card">
+            <h3>P2P Traffic (JSON)</h3>
+            <span id="banda" class="val">0.00</span> <span style="font-size:10px">KB/s</span>
+            <div id="log" class="log-box">SINCRONIZANDO NODES...</div>
+        </div>
+        <div class="card">
+            <h3>Triangulação</h3>
+            <span id="precisao" class="val">99.8</span> <span style="font-size:10px">% CONFIDENCE</span>
+        </div>
+        <div class="card">
+            <h3>Nós na Malha</h3>
+            <span id="nos" class="val">0</span> <span style="font-size:10px">NODES ATIVOS</span>
+        </div>
+        <div class="card" style="border-top-color: #0f0;">
+            <h3>Distância (GPS)</h3>
+            <span id="km" class="val">0.00</span> <span style="font-size:10px">KM PERCORRIDOS</span>
+        </div>
+    </div>
+
+<script src="https://unpkg.com"></script>
+<script>
+    // 1. Configuração do Mapa (Estilo Dark)
+    const map = L.map('map', { zoomControl: false }).setView([-23.5615, -46.656], 17);
+    L.tileLayer('https://{s}://{z}/{x}/{y}{r}.png').addTo(map);
+
+    // 2. Ruas Georreferenciadas (Map Snapping)
+    const rotaVia = [
+        [-23.5630, -46.6580], [-23.5620, -46.6570], [-23.5610, -46.6555],
+        [-23.5600, -46.6540], [-23.5590, -46.6525]
+    ];
+    const ruaLayer = L.polyline(rotaVia, {color: '#1a1a1a', weight: 15, opacity: 0.8}).addTo(map);
+
+    // 3. Nós Fixos (Estabelecimentos / Casas)
+    const casas = [
+        { id: "NODE_FIX_01", coords: [-23.5624, -46.6575], nome: "Café Mesh" },
+        { id: "NODE_FIX_02", coords: [-23.5612, -46.6558], nome: "Smart Home A" },
+        { id: "NODE_FIX_03", coords: [-23.5602, -46.6542], nome: "Hub Urbano" }
+    ];
+
+    casas.forEach(c => {
+        L.marker(c.coords, { icon: L.divIcon({className: 'fixed-node'}) }).addTo(map);
+        L.circle(c.coords, { radius: 90, color: '#ff3333', weight: 1, fillOpacity: 0.03 }).addTo(map);
+    });
+
+    // 4. Carro (Nó Móvel) e Variáveis de Telemetria
+    let carPosIndex = 0;
+    let totalBytes = 0;
+    let totalKm = 0;
+    let triangLine = null;
+    
+    const carMarker = L.marker(rotaVia[0], { icon: L.divIcon({className: 'car-node'}) }).addTo(map);
+
+    function updateSimulation() {
+        // Movimento Suave (Simulação de Interpolação via JSON)
+        if(carPosIndex < rotaVia.length - 1) {
+            const start = rotaVia[carPosIndex];
+            const end = rotaVia[carPosIndex + 1];
+            const novaLat = carMarker.getLatLng().lat + (end[0] - start[0]) * 0.1;
+            const novaLon = carMarker.getLatLng().lng + (end[1] - start[1]) * 0.1;
+            
+            carMarker.setLatLng([novaLat, novaLon]);
+            
+            if(Math.abs(novaLat - end[0]) < 0.0001) carPosIndex++;
+        } else {
+            carPosIndex = 0;
+            carMarker.setLatLng(rotaVia[0]);
+        }
+
+        const atualPos = carMarker.getLatLng();
+        
+        // Simular Tráfego P2P (JSON Packet)
+        const jsonPacket = JSON.stringify({id: "CAR_77", lat: atualPos.lat, lon: atualPos.lng, rssi: -65});
+        totalBytes += jsonPacket.length;
+        
+        // Desenhar Linha de Triangulação com a Casa mais próxima
+        if(triangLine) map.removeLayer(triangLine);
+        let menorDist = 1000;
+        let melhorCasa = null;
+
+        casas.forEach(c => {
+            const dist = map.distance(atualPos, c.coords);
+            if(dist < menorDist) { menorDist = dist; melhorCasa = c; }
+        });
+
+        if(menorDist < 150) { // Alcance Wi-Fi
+            triangLine = L.polyline([[atualPos.lat, atualPos.lng], melhorCasa.coords], 
+                {color: '#ffff00', weight: 1, dashArray: '5, 10', opacity: 0.4}).addTo(map);
+        }
+
+        // Atualizar Dashboard
+        document.getElementById('nos').innerText = casas.length + 1;
+        document.getElementById('banda').innerText = (totalBytes / 1024).toFixed(2);
+        document.getElementById('km').innerText = (totalBytes / 5000).toFixed(2); // Simulação de progresso
+        
+        const log = document.getElementById('log');
+        log.innerHTML = `RX: ${jsonPacket.substring(0, 45)}...<br>` + log.innerHTML;
+    }
+
+    setInterval(updateSimulation, 200); // 5Hz de atualização (Rede Neural Ativa)
+</script>
+</body>
+</html>

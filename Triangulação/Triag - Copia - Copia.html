@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Simulador Rural P2P - GPS & Tráfego</title>
+    <style>
+        body { margin: 0; background: #0a0f0a; color: #4af50b; font-family: 'Courier New', monospace; display: flex; flex-direction: column; align-items: center; overflow: hidden; }
+        canvas { background: #111; border: 1px solid #1a331a; cursor: crosshair; }
+        .ui-panel { position: absolute; top: 10px; right: 10px; width: 250px; background: rgba(0,20,0,0.9); padding: 15px; border: 1px solid #4caf50; font-size: 12px; pointer-events: none; }
+        #gps-display { width: 100%; background: #000; padding: 10px; text-align: center; border-top: 2px solid #4caf50; font-weight: bold; }
+        .log-box { position: absolute; bottom: 60px; left: 10px; height: 100px; width: 300px; font-size: 10px; overflow: hidden; color: #888; }
+    </style>
+</head>
+<body>
+
+    <div class="ui-panel">
+        <strong>SISTEMA DE RASTREAMENTO P2P</strong><br><hr>
+        Nós Ativos: <span id="nodes">0</span><br>
+        Status: <span style="color:white">SINCRONIZADO</span><br>
+        Fator de Erro: ± 2.4m
+    </div>
+
+    <canvas id="ruralCanvas"></canvas>
+
+    <div class="log-box" id="log">Aguardando pacotes JSON...</div>
+    <div id="gps-display">MOUSE SOBRE O TERRENO: <span id="coords">Lat: --- | Lon: ---</span></div>
+
+<script>
+const canvas = document.getElementById('ruralCanvas');
+const ctx = canvas.getContext('2d');
+const log = document.getElementById('log');
+
+// Configurações Geográficas (Limites da Fazenda)
+const GEO_LIMITS = { top: -23.5100, bottom: -23.5250, left: -46.6100, right: -46.5900 };
+
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight - 100;
+
+// Estrutura de Dados
+const torres = [
+    { id: 'Torre_01', x: canvas.width * 0.2, y: canvas.height * 0.3, lat: -23.513, lon: -46.606 },
+    { id: 'Torre_02', x: canvas.width * 0.8, y: canvas.height * 0.7, lat: -23.522, lon: -46.594 }
+];
+
+let dispositivos = [
+    { id: 'TRATOR_JOHN', x: 100, y: 100, xDest: 150, yDest: 150, rastro: [], cor: '#00ccff' },
+    { id: 'DRONE_COLHEITA', x: 500, y: 300, xDest: 520, yDest: 310, rastro: [], cor: '#ff00ff' }
+];
+
+// Conversão Pixel -> GPS
+function getGPS(x, y) {
+    const lat = GEO_LIMITS.top - (y / canvas.height) * (GEO_LIMITS.top - GEO_LIMITS.bottom);
+    const lon = GEO_LIMITS.left + (x / canvas.width) * (GEO_LIMITS.right - GEO_LIMITS.left);
+    return { lat: lat.toFixed(6), lon: lon.toFixed(6) };
+}
+
+// Registro de Log Simulado
+function addLog(msg) {
+    const p = document.createElement('div');
+    p.innerText = `[${new Date().toLocaleTimeString()}] ${msg}`;
+    log.prepend(p);
+    if(log.childNodes.length > 5) log.removeChild(log.lastChild);
+}
+
+function draw() {
+    ctx.fillStyle = "rgba(10, 15, 10, 0.2)"; // Efeito motion blur
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Desenhar Grade de Hectares
+    ctx.strokeStyle = "#1a251a";
+    ctx.lineWidth = 1;
+    for(let i=0; i<canvas.width; i+=100) { ctx.beginPath(); ctx.moveTo(i,0); ctx.lineTo(i, canvas.height); ctx.stroke(); }
+
+    // Renderizar Torres
+    torres.forEach(t => {
+        ctx.fillStyle = "#ff3333";
+        ctx.shadowBlur = 15; ctx.shadowColor = "red";
+        ctx.fillRect(t.x-5, t.y-5, 10, 10);
+        ctx.shadowBlur = 0;
+        ctx.fillText(t.id, t.x - 20, t.y - 15);
+    });
+
+    // Renderizar Dispositivos Móveis e Rastros
+    dispositivos.forEach(d => {
+        // Interpolação Suave
+        d.x += (d.xDest - d.x) * 0.03;
+        d.y += (d.yDest - d.y) * 0.03;
+
+        // Salvar Histórico (Rastro) a cada X frames
+        if(Math.random() > 0.95) d.rastro.push({x: d.x, y: d.y});
+        if(d.rastro.length > 50) d.rastro.shift();
+
+        // Desenhar Rastro
+        ctx.beginPath();
+        ctx.strokeStyle = d.cor;
+        ctx.lineWidth = 2;
+        d.rastro.forEach((p, i) => {
+            ctx.lineTo(p.x, p.y);
+        });
+        ctx.stroke();
+
+        // Desenhar Link com a Torre mais próxima (Simulando P2P)
+        torres.forEach(t => {
+            const dist = Math.hypot(t.x - d.x, t.y - d.y);
+            if(dist < 300) {
+                ctx.beginPath();
+                ctx.strokeStyle = "rgba(255,255,0,0.2)";
+                ctx.moveTo(d.x, d.y); ctx.lineTo(t.x, t.y);
+                ctx.stroke();
+            }
+        });
+
+        // Ícone do Veículo
+        ctx.fillStyle = d.cor;
+        ctx.beginPath(); ctx.arc(d.x, d.y, 6, 0, Math.PI*2); ctx.fill();
+        ctx.fillText(d.id, d.x + 10, d.y + 5);
+    });
+
+    requestAnimationFrame(draw);
+}
+
+// Simulação de Dados via WebSocket/P2P
+setInterval(() => {
+    dispositivos.forEach(d => {
+        d.xDest = Math.random() * canvas.width;
+        d.yDest = Math.random() * canvas.height;
+        const gps = getGPS(d.xDest, d.yDest);
+        addLog(`JSON: ${d.id} moveu para ${gps.lat}`);
+    });
+}, 4000);
+
+// Mouse Interaction
+canvas.addEventListener('mousemove', (e) => {
+    const gps = getGPS(e.clientX, e.clientY);
+    document.getElementById('coords').innerText = `Lat: ${gps.lat} | Lon: ${gps.lon}`;
+});
+
+document.getElementById('nodes').innerText = torres.length + dispositivos.length;
+draw();
+</script>
+</body>
+</html>

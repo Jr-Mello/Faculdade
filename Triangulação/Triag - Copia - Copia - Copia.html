@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Predição de Trajetória P2P Urbana</title>
+    <style>
+        body { margin: 0; background: #050505; color: #00ff41; font-family: monospace; display: flex; flex-direction: column; align-items: center; }
+        canvas { background: #111; border-bottom: 2px solid #00ff41; cursor: crosshair; }
+        .hud { position: absolute; top: 10px; left: 10px; background: rgba(0,0,0,0.8); padding: 10px; border: 1px solid #00ff41; font-size: 11px; width: 220px; }
+        .status-blink { animation: blink 1s infinite; color: #ff3333; }
+        @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.1; } 100% { opacity: 1; } }
+    </style>
+</head>
+<body>
+
+    <div class="hud">
+        <strong>REDE NEURAL URBANA</strong><hr>
+        ID: <span id="node-id">CAR_77_ALPHA</span><br>
+        SINAL: <span id="signal-text">ESTÁVEL</span><br>
+        POSIÇÃO: <span id="pos-text">0, 0</span><br>
+        <div id="shadow-warn" class="status-blink" style="display:none;">⚠️ ZONA DE SOMBRA: PREDICÃO ATIVA</div>
+    </div>
+
+    <canvas id="cityCanvas"></canvas>
+
+<script>
+const canvas = document.getElementById('cityCanvas');
+const ctx = canvas.getContext('2d');
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+// Configuração do Veículo
+let veiculo = {
+    x: 100, y: 300,
+    vx: 2, vy: 0,          // Velocidade vetorial (pixels/frame)
+    ax: 0, ay: 0,          // Aceleração
+    lastSignalTime: 0,
+    inShadow: false,
+    history: []
+};
+
+// Prédios (Zonas de Sombra de sinal Wi-Fi)
+const zonasSombra = [
+    { x: 400, y: 0, w: 200, h: 800 }
+];
+
+function drawCity() {
+    ctx.fillStyle = "#050505";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Desenhar Edifícios (Zonas de Sombra)
+    zonasSombra.forEach(z => {
+        ctx.fillStyle = "#1a1a1a";
+        ctx.fillRect(z.x, z.y, z.w, z.h);
+        ctx.strokeStyle = "#333";
+        ctx.strokeRect(z.x, z.y, z.w, z.h);
+        ctx.fillStyle = "#222";
+        ctx.fillText("ZONA DE SOMBRA (PÉSSIMO SINAL)", z.x + 10, 50);
+    });
+
+    // Lógica de Sinal vs Predição
+    veiculo.inShadow = zonasSombra.some(z => veiculo.x > z.x && veiculo.x < z.x + z.w);
+    
+    if (veiculo.inShadow) {
+        // PREDICÃO: Mantém a velocidade constante (Inércia)
+        veiculo.x += veiculo.vx;
+        veiculo.y += veiculo.vy;
+        document.getElementById('shadow-warn').style.display = 'block';
+        document.getElementById('signal-text').innerText = "LOST (DEAD RECKONING)";
+        document.getElementById('signal-text').style.color = "red";
+    } else {
+        // REALIDADE: Atualiza baseado no "JSON simulado" do servidor
+        veiculo.vx = 3; // Velocidade de cruzeiro
+        veiculo.vy = Math.sin(Date.now() / 500) * 1; // Leve oscilação de faixa
+        veiculo.x += veiculo.vx;
+        veiculo.y += veiculo.vy;
+        document.getElementById('shadow-warn').style.display = 'none';
+        document.getElementById('signal-text').innerText = "ESTÁVEL (WI-FI MESH)";
+        document.getElementById('signal-text').style.color = "#0f0";
+    }
+
+    // Desenhar Rastro
+    veiculo.history.push({x: veiculo.x, y: veiculo.y, shadow: veiculo.inShadow});
+    if(veiculo.history.length > 100) veiculo.history.shift();
+
+    ctx.lineWidth = 2;
+    for(let i = 1; i < veiculo.history.length; i++) {
+        ctx.beginPath();
+        ctx.strokeStyle = veiculo.history[i].shadow ? "#ff3333" : "#00ff41";
+        ctx.setLineDash(veiculo.history[i].shadow ? [5, 5] : []);
+        ctx.moveTo(veiculo.history[i-1].x, veiculo.history[i-1].y);
+        ctx.lineTo(veiculo.history[i].x, veiculo.history[i].y);
+        ctx.stroke();
+    }
+
+    // Ícone do Carro
+    ctx.setLineDash([]);
+    ctx.fillStyle = veiculo.inShadow ? "#ff3333" : "#00ff41";
+    ctx.shadowBlur = 15;
+    ctx.shadowColor = ctx.fillStyle;
+    ctx.fillRect(veiculo.x - 10, veiculo.y - 5, 20, 10);
+    ctx.shadowBlur = 0;
+
+    // HUD Update
+    document.getElementById('pos-text').innerText = `${Math.round(veiculo.x)}, ${Math.round(veiculo.y)}`;
+
+    // Reset loop
+    if(veiculo.x > canvas.width) { veiculo.x = 0; veiculo.history = []; }
+
+    requestAnimationFrame(drawCity);
+}
+
+drawCity();
+</script>
+</body>
+</html>

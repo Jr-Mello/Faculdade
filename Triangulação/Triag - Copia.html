@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Monitoramento Rural P2P</title>
+    <style>
+        body { margin: 0; background: #0d1a0d; color: #e0e0e0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; display: flex; flex-direction: column; align-items: center; }
+        canvas { background: #1a2e1a; border: 3px solid #2d4a2d; border-radius: 4px; cursor: crosshair; box-shadow: 0 0 50px rgba(0,0,0,0.8); }
+        .dashboard { position: absolute; top: 20px; left: 20px; background: rgba(0,0,0,0.7); padding: 15px; border-radius: 8px; border: 1px solid #4caf50; pointer-events: none; }
+        .legend { margin-top: 15px; display: flex; gap: 20px; font-size: 14px; }
+        .dot { width: 12px; height: 12px; display: inline-block; border-radius: 50%; margin-right: 5px; }
+        h2 { color: #4caf50; text-transform: uppercase; letter-spacing: 2px; }
+    </style>
+</head>
+<body>
+
+    <h2>Painel de Gestão Rural - Rede Mesh P2P</h2>
+    
+    <div class="dashboard">
+        <strong>Status da Rede:</strong> <span id="status" style="color: #4caf50;">ONLINE</span><br>
+        <strong>Nós Conectados:</strong> <span id="nodeCount">0</span><br>
+        <strong>Escala:</strong> 1 quad = 100 metros
+    </div>
+
+    <canvas id="mapaRural" width="1000" height="600"></canvas>
+
+    <div class="legend">
+        <div><span class="dot" style="background: #ff3e3e;"></span> Torre Fixa (Backbone)</div>
+        <div><span class="dot" style="background: #4db8ff;"></span> Maquinário (Nó Móvel)</div>
+        <div><span class="dot" style="background: #ffff00;"></span> Link P2P Ativo</div>
+    </div>
+
+<script>
+const canvas = document.getElementById('mapaRural');
+const ctx = canvas.getContext('2d');
+
+// Configuração de Escala (1 metro = 0.5 pixel para caber 2km no canvas)
+const ESCALA = 0.5; 
+
+// Estrutura de dados das Torres Fixas (Instalações permanentes)
+const torres = [
+    { id: 'Torre_Norte', x: 200, y: 100, alcance: 800 },
+    { id: 'Torre_Sul', x: 800, y: 500, alcance: 800 },
+    { id: 'Sede_Central', x: 500, y: 300, alcance: 600 }
+];
+
+// Simulando Nós Móveis (Tratores/Equipes)
+let dispositivos = [
+    { id: 'Trator_01', x: 250, y: 150, xDest: 250, yDest: 150, tipo: 'maquina' },
+    { id: 'Colheitadeira_A', x: 700, y: 400, xDest: 700, yDest: 400, tipo: 'maquina' },
+    { id: 'Equipe_Solo', x: 100, y: 500, xDest: 100, yDest: 500, tipo: 'pessoa' }
+];
+
+// Função de desenho da grade (hectares)
+function drawGrid() {
+    ctx.strokeStyle = '#2d4a2d';
+    ctx.lineWidth = 1;
+    for(let i=0; i<canvas.width; i+=50) {
+        ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, canvas.height); ctx.stroke();
+    }
+    for(let j=0; j<canvas.height; j+=50) {
+        ctx.beginPath(); ctx.moveTo(0, j); ctx.lineTo(canvas.width, j); ctx.stroke();
+    }
+}
+
+function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    drawGrid();
+
+    // 1. Desenhar Torres e Raios de Cobertura
+    torres.forEach(t => {
+        // Círculo de Alcance
+        ctx.beginPath();
+        ctx.arc(t.x, t.y, t.alcance * ESCALA, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(76, 175, 80, 0.05)';
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(76, 175, 80, 0.2)';
+        ctx.stroke();
+
+        // Ícone da Torre
+        ctx.fillStyle = '#ff3e3e';
+        ctx.shadowBlur = 10; ctx.shadowColor = '#ff3e3e';
+        ctx.fillRect(t.x-5, t.y-5, 10, 10);
+        ctx.shadowBlur = 0;
+        ctx.font = '10px Arial';
+        ctx.fillText(t.id, t.x - 20, t.y - 15);
+    });
+
+    // 2. Atualizar e Desenhar Dispositivos Móveis
+    dispositivos.forEach(d => {
+        // Interpolação suave (movimento)
+        d.x += (d.xDest - d.x) * 0.02;
+        d.y += (d.yDest - d.y) * 0.02;
+
+        // Desenhar links P2P se estiverem perto de torres ou outros nós
+        torres.forEach(t => {
+            const dist = Math.hypot(t.x - d.x, t.y - d.y);
+            if(dist < t.alcance * ESCALA) {
+                ctx.beginPath();
+                ctx.moveTo(d.x, d.y);
+                ctx.lineTo(t.x, t.y);
+                ctx.strokeStyle = 'rgba(255, 255, 0, 0.3)';
+                ctx.setLineDash([5, 5]);
+                ctx.stroke();
+                ctx.setLineDash([]);
+            }
+        });
+
+        // Ícone do Dispositivo
+        ctx.fillStyle = '#4db8ff';
+        ctx.shadowBlur = 8; ctx.shadowColor = '#4db8ff';
+        ctx.beginPath();
+        ctx.arc(d.x, d.y, 6, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+        ctx.fillText(d.id, d.x - 25, d.y + 20);
+    });
+
+    document.getElementById('nodeCount').innerText = torres.length + dispositivos.length;
+    requestAnimationFrame(draw);
+}
+
+// SIMULAÇÃO: Recebimento de coordenadas via sua Intranet P2P
+function atualizarPosicoesSimuladas() {
+    dispositivos.forEach(d => {
+        // Simula movimento errático de trabalho no campo
+        d.xDest += (Math.random() - 0.5) * 100;
+        d.yDest += (Math.random() - 0.5) * 100;
+
+        // Limites do terreno
+        d.xDest = Math.max(50, Math.min(950, d.xDest));
+        d.yDest = Math.max(50, Math.min(550, d.yDest));
+    });
+}
+
+setInterval(atualizarPosicoesSimuladas, 3000);
+draw();
+</script>
+</body>
+</html>
