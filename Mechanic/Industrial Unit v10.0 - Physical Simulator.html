@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<!-- saved from url=(0062)file:///C:/Users/APAC/Desktop/Salvio/Faculdade/Mechanic/a.html -->
+<html lang="pt-br"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    
+    <title>Industrial Unit v10.0 - Physical Simulator</title>
+    <style>
+        :root { --bg: #0d1117; --p1: #58a6ff; --accent: #3fb950; --warn: #f2a600; --crit: #ff4444; --panel: #161b22; --border: #30363d; }
+        body { background: var(--bg); color: #f0f6fc; font-family: 'Segoe UI', system-ui, sans-serif; margin: 0; overflow: hidden; }
+        
+        .header { display: flex; justify-content: space-between; padding: 12px 25px; border-bottom: 1px solid var(--border); background: var(--panel); font-size: 12px; font-weight: 600; letter-spacing: 0.5px; }
+        .main-layout { display: flex; height: calc(100vh - 180px); }
+        
+        .side-panel { width: 300px; border-right: 1px solid var(--border); padding: 20px; background: #0d1117; z-index: 10; }
+        .panel { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 15px; margin-bottom: 20px; }
+        .panel label { font-size: 10px; color: #8b949e; text-transform: uppercase; display: block; margin-bottom: 10px; font-weight: bold; }
+        
+        .tank-container { height: 10px; background: #000; border-radius: 5px; margin: 12px 0; overflow: hidden; border: 1px solid #30363d; }
+        #tank-bar { height: 100%; width: 100%; background: var(--accent); transition: background 0.3s; }
+        
+        input[type=range] { width: 100%; margin: 10px 0; cursor: pointer; accent-color: var(--p1); }
+        
+        .btn-action { width: 100%; background: var(--accent); border: none; color: #0d1117; padding: 12px; border-radius: 6px; font-weight: 800; cursor: pointer; transition: 0.2s; }
+        .btn-action:hover { filter: brightness(1.2); }
+        .btn-action:active { transform: scale(0.98); }
+
+        .canvas-container { flex: 1; position: relative; background: radial-gradient(circle at center, #1c2128 0%, #0d1117 100%); display: flex; align-items: center; justify-content: center; }
+        #telemetryCanvas { position: absolute; top: 20px; right: 20px; border: 1px solid var(--border); border-radius: 6px; background: rgba(0,0,0,0.4); }
+
+        .dashboard { display: grid; grid-template-columns: repeat(4, 1fr); height: 110px; border-top: 1px solid var(--border); background: var(--panel); }
+        .card { border-right: 1px solid var(--border); padding: 20px; display: flex; flex-direction: column; justify-content: center; }
+        .card label { font-size: 10px; color: #8b949e; margin-bottom: 5px; }
+        .card .value { font-size: 22px; font-family: 'Consolas', monospace; color: var(--p1); font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div><span style="color:var(--p1)">●</span> INDUSTRIAL UNIT v10.0 | SISTEMA PNEUMÁTICO</div>
+        <div id="tank-text" style="color: var(--accent)">RESERVATÓRIO: 90.3%</div>
+    </div>
+
+    <div class="main-layout">
+        <div class="side-panel">
+            <div class="panel">
+                <label>Status do Reservatório</label>
+                <div class="tank-container"><div id="tank-bar" style="width: 90.349%; background: var(--accent);"></div></div>
+                <div style="font-size: 11px; display: flex; justify-content: space-between;">
+                    <span id="tank-press-display" style="color: var(--accent);">9.0 bar</span>
+                    <span id="air-flow" style="color:var(--p1)">269.3 L/min</span>
+                </div>
+                <button class="btn-action" onclick="recharge()">RECARREGAR SISTEMA</button>
+            </div>
+
+            <div class="panel">
+                <label>Parâmetros de Operação</label>
+                <div style="font-size: 12px;">Pressão de Trabalho: <b id="p-val" style="color:var(--p1)">7.0</b> bar</div>
+                <input type="range" id="pressao" min="1" max="10" step="0.1" value="7">
+                
+                <div style="font-size: 12px; margin-top: 10px;">Cadência (CPM): <b id="cpm-val" style="color:var(--p1)">45</b></div>
+                <input type="range" id="vel-cpm" min="10" max="120" value="45">
+
+                <div style="font-size: 12px; margin-top: 10px;">Carga Inercial: <b id="ine-val" style="color:var(--p1)">85</b>%</div>
+                <input type="range" id="inercia" min="20" max="98" value="85">
+            </div>
+
+            <div class="panel" style="background: rgba(255,68,68,0.05); border-color: rgba(255,68,68,0.2);">
+                <label>Eficiência Energética</label>
+                <div class="value" id="cost-val" style="color:var(--warn); font-size: 18px; font-weight: bold;">R$ 0.01</div>
+                <div style="font-size: 10px; color:#8b949e; margin-top: 5px;">Custo estimado por volume real</div>
+            </div>
+        </div>
+
+        <div class="canvas-container">
+            <canvas id="mainCanvas" width="870" height="520"></canvas>
+            <canvas id="telemetryCanvas" width="240" height="110"></canvas>
+        </div>
+    </div>
+
+    <div class="dashboard">
+        <div class="card"><label>Consumo Acumulado</label><div class="value" id="cons-total">19.3</div><span style="font-size:9px; color:#58a6ff">LITROS REAIS</span></div>
+        <div class="card"><label>Torque de Saída</label><div class="value" id="t-avg">37.4</div><span style="font-size:9px; color:#58a6ff">NEWTON-METRO (N.m)</span></div>
+        <div class="card"><label>Velocidade Final</label><div class="value" id="rpm-out">35</div><span style="font-size:9px; color:#58a6ff">RPM (REDUÇÃO 1:9)</span></div>
+        <div class="card"><label>Potência Pneumática</label><div class="value" id="p-hp">0.182</div><span style="font-size:9px; color:#58a6ff">HORSEPOWER (HP)</span></div>
+    </div>
+
+<script>
+const canvas = document.getElementById('mainCanvas');
+const ctx = canvas.getContext('2d');
+const tctx = document.getElementById('telemetryCanvas').getContext('2d');
+
+// State inicial
+let state = {
+    tankLiters: 200,    // Volume de ar (L)
+    consumed: 0,
+    time: 0,
+    gearVel: 0,
+    gearAng: 0,
+    torqueHistory: new Array(240).fill(0)
+};
+
+// Configurações Técnicas
+const CFG = {
+    tankMax: 200,
+    cylDiam: 63,        // mm
+    stroke: 0.12,       // m
+    pMax: 10,           // bar (Pressão máx do reservatório)
+    costKwh: 0.75,      // R$/kWh
+    eff: 0.85           // kWh/m3
+};
+
+const ui = {
+    p: document.getElementById('pressao'),
+    c: document.getElementById('vel-cpm'),
+    i: document.getElementById('inercia'),
+    tankBar: document.getElementById('tank-bar'),
+    tankTxt: document.getElementById('tank-text'),
+    tankPress: document.getElementById('tank-press-display'),
+    flow: document.getElementById('air-flow')
+};
+
+function recharge() { state.tankLiters = CFG.tankMax; }
+
+function animate() {
+    // 1. CÁLCULO DE PRESSÃO E PERDA DE COMPRESSÃO
+    const pSet = parseFloat(ui.p.value);
+    const cpm = parseInt(ui.c.value);
+    const friction = 0.94 + (parseFloat(ui.i.value) / 2000);
+    
+    // Pressão atual disponível no tanque
+    const tankPress = (state.tankLiters / CFG.tankMax) * CFG.pMax;
+    
+    // Pressão efetiva que chega ao pistão (limitada pelo tanque)
+    let effectivePress = Math.min(pSet, tankPress);
+    
+    // FATOR DE COMPRESSÃO: Se a pressão do tanque cai abaixo do setpoint, a força degrada.
+    // Se tankPress < pSet, o sistema opera em sub-pressão.
+    const compressionFactor = tankPress < 0.5 ? 0 : Math.min(1, tankPress / pSet);
+    
+    // 2. DINÂMICA DE CONSUMO
+    const area = Math.PI * Math.pow((CFG.cylDiam/2)/1000, 2);
+    const volStroke = area * CFG.stroke * 1000;
+    // Consumo baseado na pressão EFETIVA (P+1 para absoluta)
+    const flowLmin = volStroke * 2 * cpm * (effectivePress + 1) * compressionFactor;
+
+    let dt = (cpm / 60) * 0.08 * compressionFactor; // Desaceleração visual por falta de ar
+    
+    if (state.tankLiters > 0.01 && compressionFactor > 0) {
+        let consFrame = flowLmin / 3600;
+        state.tankLiters -= consFrame;
+        state.consumed += consFrame;
+        state.time += dt;
+    } else {
+        effectivePress = 0;
+    }
+
+    // 3. FÍSICA MECÂNICA
+    const forceMax = (effectivePress * 100000) * area * compressionFactor;
+    
+    let pushA = Math.cos(state.time), pushB = Math.cos(state.time + Math.PI);
+    let vArmA = (Math.sin(state.time) - Math.sin(state.time-dt)) * 0.45 / (dt || 0.01);
+    let vArmB = (Math.sin(state.time + Math.PI) - Math.sin(state.time+Math.PI-dt)) * 0.45 / (dt || 0.01);
+
+    // Aplicação de Torque nas Catracas
+    let tA = (pushA > 0 && effectivePress > 0) ? (forceMax * pushA * 0.18 / 9) : 0;
+    let tB = (pushB > 0 && effectivePress > 0) ? (forceMax * pushB * 0.18 / 9) : 0;
+    let totalT = (tA + tB) * 0.88;
+
+    // Acoplamento Inercial
+    if (pushA > 0 && vArmA > state.gearVel) state.gearVel += (vArmA - state.gearVel) * 0.4 * compressionFactor;
+    if (pushB > 0 && vArmB > state.gearVel) state.gearVel += (vArmB - state.gearVel) * 0.4 * compressionFactor;
+    
+    state.gearVel *= friction;
+    state.gearAng += state.gearVel * 0.5;
+
+    // 4. ATUALIZAÇÃO DA INTERFACE
+    const tankPerc = (state.tankLiters / CFG.tankMax) * 100;
+    ui.tankBar.style.width = `${tankPerc}%`;
+    ui.tankBar.style.background = tankPerc < 20 ? 'var(--crit)' : (tankPress < pSet ? 'var(--warn)' : 'var(--accent)');
+    
+    ui.tankTxt.innerText = `RESERVATÓRIO: ${Math.max(0, tankPerc).toFixed(1)}%`;
+    ui.tankPress.innerText = `${tankPress.toFixed(1)} bar`;
+    ui.tankPress.style.color = tankPress < pSet ? 'var(--warn)' : 'var(--accent)';
+    ui.flow.innerText = `${(flowLmin * compressionFactor).toFixed(1)} L/min`;
+    
+    document.getElementById('p-val').innerText = pSet.toFixed(1);
+    document.getElementById('cpm-val').innerText = cpm;
+    document.getElementById('ine-val').innerText = ui.i.value;
+    
+    document.getElementById('cons-total').innerText = state.consumed.toFixed(1);
+    document.getElementById('t-avg').innerText = totalT.toFixed(1);
+    document.getElementById('rpm-out').innerText = Math.round((state.gearVel * 60 / (Math.PI*2)) * 9);
+    document.getElementById('p-hp').innerText = (totalT * state.gearVel * 9 / 745.7).toFixed(3);
+    document.getElementById('cost-val').innerText = `R$ ${(state.consumed/1000 * CFG.eff * CFG.costKwh).toFixed(2)}`;
+
+    // 5. RENDERIZAÇÃO
+    ctx.clearRect(0,0,canvas.width, canvas.height);
+    renderMachine(435, 220, state.time, pushA > 0 && effectivePress > 0, pushB > 0 && effectivePress > 0);
+
+    // Telemetria
+    state.torqueHistory.push(totalT); state.torqueHistory.shift();
+    tctx.clearRect(0,0,240,110);
+    tctx.beginPath(); tctx.strokeStyle = "#3fb950"; tctx.lineWidth = 2;
+    state.torqueHistory.forEach((v, i) => tctx.lineTo(i, 105 - (v * 0.8)));
+    tctx.stroke();
+
+    requestAnimationFrame(animate);
+}
+
+function renderMachine(cx, cy, t, actA, actB) {
+    // Engrenagem Central (Catraca)
+    drawRatchet(cx, cy, 80, state.gearAng, "#161b22");
+    
+    // Módulos de Pistão
+    drawPiston(cx, cy, Math.sin(t)*0.45, actA, 160, 380, "#00f2ff");
+    drawPiston(cx, cy, Math.sin(t+Math.PI)*0.45, actB, 710, 380, "#ff00f2");
+    
+    // Saída Final
+    drawGear(cx, cy+165, 35, state.gearAng * 9, 14, "#f0f6fc", "EIXO DE CARGA");
+}
+
+function drawPiston(cx, cy, armAng, active, px, py, color) {
+    let lx = cx + 180 * Math.cos(armAng + Math.PI/2);
+    let ly = cy + 180 * Math.sin(armAng + Math.PI/2);
+    
+    // Braço de conexão
+    ctx.strokeStyle = active ? color : "#30363d"; ctx.lineWidth = 12; ctx.lineCap = "round";
+    ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(lx, ly); ctx.stroke();
+    
+    // Corpo do Cilindro
+    let ang = Math.atan2(ly-py, lx-px);
+    let dist = Math.hypot(lx-px, ly-py);
+    ctx.save(); ctx.translate(px, py); ctx.rotate(ang);
+    ctx.fillStyle = "#0d1117"; ctx.beginPath(); ctx.roundRect(0, -22, 190, 44, 5); ctx.fill();
+    ctx.strokeStyle = active ? color : "#444"; ctx.lineWidth = 2; ctx.stroke();
+    // Haste
+    ctx.strokeStyle = "#8b949e"; ctx.lineWidth = 8; ctx.beginPath(); ctx.moveTo(150, 0); ctx.lineTo(dist, 0); ctx.stroke();
+    ctx.restore();
+}
+
+function drawRatchet(x, y, r, ang, col) {
+    ctx.save(); ctx.translate(x, y); ctx.rotate(ang);
+    ctx.fillStyle = col; ctx.beginPath();
+    for(let i=0; i<16; i++){
+        let a = (i/16) * Math.PI * 2;
+        ctx.lineTo(Math.cos(a)*r, Math.sin(a)*r);
+        ctx.lineTo(Math.cos(a+0.1)*(r+15), Math.sin(a+0.1)*(r+15));
+    }
+    ctx.closePath(); ctx.fill(); ctx.strokeStyle = "#30363d"; ctx.stroke();
+    ctx.restore();
+}
+
+function drawGear(x, y, r, ang, teeth, col, label) {
+    ctx.save(); ctx.translate(x, y); ctx.rotate(ang);
+    ctx.fillStyle = col; ctx.beginPath();
+    for(let i=0; i<teeth*2; i++){
+        let a = (i/teeth)*Math.PI; let d = i%2==0 ? r : r+8;
+        ctx.lineTo(Math.cos(a)*d, Math.sin(a)*d);
+    }
+    ctx.closePath(); ctx.fill(); ctx.restore();
+    ctx.fillStyle = "#8b949e"; ctx.font = "bold 9px monospace"; ctx.textAlign = "center";
+    ctx.fillText(label, x, y + 60);
+}
+
+// Polyfill roundRect
+if (!CanvasRenderingContext2D.prototype.roundRect) {
+    CanvasRenderingContext2D.prototype.roundRect = function (x, y, w, h, r) {
+        this.beginPath(); this.moveTo(x+r, y); this.arcTo(x+w, y, x+w, y+h, r);
+        this.arcTo(x+w, y+h, x, y+h, r); this.arcTo(x, y+h, x, y, r);
+        this.arcTo(x, y, x+w, y, r); this.closePath(); return this;
+    };
+}
+
+animate();
+</script>
+
+
+</body></html>

@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<!-- saved from url=(0085)file:///C:/Users/APAC/Desktop/Salvio/Faculdade/Mechanic/Simu-Mecanic%20-%20Copia.html -->
+<html lang="pt-br"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    
+    <title>Transmissão de Alta Rotação v8.0</title>
+    <style>
+        :root { --accent: #38bdf8; --bg: #020617; --panel: #0f172a; --success: #22c55e; }
+        body { display: flex; background: var(--bg); color: #f1f5f9; font-family: 'Inter', sans-serif; margin: 0; height: 100vh; overflow: hidden; }
+        #sidebar { width: 320px; background: var(--panel); padding: 25px; border-right: 1px solid #1e293b; display: flex; flex-direction: column; gap: 15px; z-index: 10; overflow-y: auto; }
+        #main { flex-grow: 1; display: flex; align-items: center; justify-content: center; }
+        canvas { background: radial-gradient(circle, #1e293b 0%, #020617 100%); border-radius: 20px; }
+        .control-group { display: flex; flex-direction: column; gap: 4px; }
+        label { font-size: 0.65rem; color: #94a3b8; text-transform: uppercase; font-weight: 800; }
+        input[type="range"] { cursor: pointer; accent-color: var(--accent); width: 100%; }
+        .val-display { color: var(--accent); font-family: monospace; font-size: 0.9rem; float: right; }
+        .stats { margin-top: 10px; padding: 12px; background: #1e293b; border-radius: 12px; border-left: 4px solid var(--accent); font-size: 0.8rem; }
+        .stat-line { display: flex; justify-content: space-between; padding: 3px 0; border-bottom: 1px solid #ffffff05; }
+        .highlight { color: var(--success); font-weight: bold; }
+        .warning { color: #facc15; font-size: 0.65rem; margin-top: 5px; line-height: 1.2; }
+        h2 { margin: 0 0 5px 0; font-size: 1rem; color: var(--accent); text-align: center; border-bottom: 1px solid #334155; padding-bottom: 8px; }
+    </style>
+</head>
+<body>
+
+    <div id="sidebar">
+        <h2>ALTA ROTAÇÃO (OVERDRIVE)</h2>
+        
+        <div class="control-group">
+            <label>Escala Global: <span class="val-display" id="val-scale">0.8x</span></label>
+            <input type="range" id="scale" min="0.5" max="1.5" step="0.1" value="0.8">
+        </div>
+
+        <div class="control-group">
+            <label>Módulo (m): <span class="val-display" id="val-mod">5.0</span></label>
+            <input type="range" id="mod" min="3" max="10" step="0.5" value="5">
+        </div>
+
+        <div class="control-group">
+            <label>Raio Catraca (R1 - Entrada): <span class="val-display" id="val-raio-c">120</span></label>
+            <input type="range" id="raio-c" min="50" max="120" value="120">
+        </div>
+
+        <div class="control-group">
+            <label>Raio Interm. (R2): <span class="val-display" id="val-raio-p">30</span></label>
+            <input type="range" id="raio-p" min="20" max="80" value="30">
+        </div>
+
+        <div class="control-group">
+            <label>Raio Saída (R3 - Veloz): <span class="val-display" id="val-raio-s">25</span></label>
+            <input type="range" id="raio-s" min="20" max="80" value="25">
+        </div>
+
+        <div class="control-group">
+            <label>Pressão: <span class="val-display" id="val-press">6.0 bar</span></label>
+            <input type="range" id="press" min="1" max="10" step="0.5" value="6">
+        </div>
+
+        <div class="stats">
+            <div class="stat-line"><span>Multiplicação:</span> <b class="highlight" id="res-ratio">1:4.80</b></div>
+            <div class="stat-line"><span>Dentes Saída (Z3):</span> <b id="z3-val">10</b></div>
+            <div class="stat-line"><span>Torque Final:</span> <b id="res-torque">29.45 Nm</b></div>
+            <div class="warning">Nota: Em altas relações, o torque de saída cai drasticamente para favorecer a velocidade.</div>
+        </div>
+    </div>
+
+    <div id="main">
+        <canvas id="canvas" width="1000" height="600"></canvas>
+    </div>
+
+<script>
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+
+const cfg = {
+    scale: 0.8, mod: 5, raioC: 120, raioP: 30, raioS: 25, press: 6,
+    angleC: 0, armAngle: 0, lastArmPos: 0, time: 0,
+    z1: 0, z2: 0, z3: 0, ratioTotal: 1
+};
+
+function updateCalculations() {
+    cfg.z1 = Math.floor((cfg.raioC * 2) / cfg.mod);
+    cfg.z2 = Math.floor((cfg.raioP * 2) / cfg.mod);
+    cfg.z3 = Math.floor((cfg.raioS * 2) / cfg.mod);
+    cfg.ratioTotal = cfg.z1 / cfg.z3;
+
+    const area = Math.PI * Math.pow(0.025, 2); 
+    const forcaN = (cfg.press * 100000) * area;
+    const torqueEntrada = forcaN * (cfg.raioC / 1000);
+    const torqueFinal = torqueEntrada / cfg.ratioTotal;
+
+    document.getElementById('val-scale').innerText = cfg.scale.toFixed(1) + "x";
+    document.getElementById('val-mod').innerText = cfg.mod.toFixed(1);
+    document.getElementById('val-raio-c').innerText = cfg.raioC;
+    document.getElementById('val-raio-p').innerText = cfg.raioP;
+    document.getElementById('val-raio-s').innerText = cfg.raioS;
+    document.getElementById('val-press').innerText = cfg.press.toFixed(1) + " bar";
+    
+    document.getElementById('z3-val').innerText = cfg.z3;
+    document.getElementById('res-ratio').innerText = `1:${cfg.ratioTotal.toFixed(2)}`;
+    document.getElementById('res-torque').innerText = torqueFinal.toFixed(2) + " Nm";
+}
+
+document.querySelectorAll('input').forEach(input => {
+    input.oninput = (e) => {
+        const id = e.target.id;
+        const val = parseFloat(e.target.value);
+        cfg[id === 'raio-c' ? 'raioC' : id === 'raio-p' ? 'raioP' : id === 'raio-s' ? 'raioS' : id === 'press' ? 'press' : id === 'mod' ? 'mod' : 'scale'] = val;
+        updateCalculations();
+    };
+});
+
+function drawGear(x, y, r, ang, teeth, color, isOutput = false) {
+    const sR = r * cfg.scale;
+    const sMod = cfg.mod * cfg.scale;
+    
+    ctx.save(); ctx.translate(x, y); ctx.rotate(ang);
+    ctx.fillStyle = color; 
+    if(isOutput) { // Brilho visual na engrenagem de alta rotação
+        ctx.shadowBlur = 15; ctx.shadowColor = color;
+    }
+    ctx.beginPath();
+    for(let i=0; i<teeth*2; i++) {
+        let a = (i/teeth)*Math.PI;
+        let d = i%2==0 ? sR : sR + (sMod * 1.5);
+        ctx.lineTo(Math.cos(a)*d, Math.sin(a)*d);
+    }
+    ctx.closePath(); ctx.fill();
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = "#020617"; ctx.beginPath(); ctx.arc(0,0, sR/3, 0, Math.PI*2); ctx.fill();
+    ctx.restore();
+}
+
+function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    cfg.time += 0.04;
+
+    let cycle = (Math.sin(cfg.time) + 1) / 2;
+    let isPushing = Math.cos(cfg.time) > 0;
+    cfg.armAngle = (cycle * 0.5) - 0.25;
+
+    if (isPushing) {
+        let delta = cfg.armAngle - cfg.lastArmPos;
+        if (delta > 0) cfg.angleC += delta;
+    }
+    cfg.lastArmPos = cfg.armAngle;
+
+    const startX = 180 * cfg.scale; 
+    const CX = startX + (100 * cfg.scale);
+    const CY = 300;
+
+    // --- CILINDRO ---
+    const cilX = 50, cilW = 35 * cfg.scale, cilH = 220 * cfg.scale;
+    ctx.strokeStyle = "#475569"; ctx.lineWidth = 2;
+    ctx.strokeRect(cilX, CY - cilH/2, cilW, cilH);
+    if(isPushing) {
+        ctx.fillStyle = `rgba(34, 197, 94, ${cfg.press/15})`;
+        ctx.fillRect(cilX, CY - cilH/2 + (cycle * cilH), cilW, cilH * (1 - cycle));
+    }
+
+    // --- 1. CATRACA (Grande) ---
+    const sRaioC = cfg.raioC * cfg.scale;
+    const sMod = cfg.mod * cfg.scale;
+    ctx.save();
+    ctx.translate(CX, CY); ctx.rotate(cfg.angleC);
+    ctx.fillStyle = "#1e293b"; ctx.beginPath(); ctx.arc(0,0, sRaioC, 0, Math.PI*2); ctx.fill();
+    ctx.strokeStyle = "#334155"; ctx.stroke();
+    ctx.fillStyle = "#94a3b8";
+    const step = (Math.PI * 2) / cfg.z1;
+    for(let i=0; i<cfg.z1; i++) {
+        let a = i * step;
+        ctx.beginPath();
+        ctx.moveTo(Math.cos(a)*sRaioC, Math.sin(a)*sRaioC);
+        ctx.lineTo(Math.cos(a+0.08)*(sRaioC + sMod*2), Math.sin(a+0.08)*(sRaioC + sMod*2));
+        ctx.lineTo(Math.cos(a+0.12)*sRaioC, Math.sin(a+0.12)*sRaioC);
+        ctx.fill();
+    }
+    ctx.restore();
+
+    // --- 2. INTERMEDIÁRIA ---
+    const gap = sMod * 1.2;
+    const x2 = CX + sRaioC + (cfg.raioP * cfg.scale) + gap;
+    const angleP = -cfg.angleC * (cfg.z1 / cfg.z2);
+    drawGear(x2, CY, cfg.raioP, angleP, cfg.z2, "#64748b");
+
+    // --- 3. SAÍDA (Pequena - Alta Velocidade) ---
+    const x3 = x2 + (cfg.raioP * cfg.scale) + (cfg.raioS * cfg.scale) + gap;
+    const angleS = cfg.angleC * (cfg.z1 / cfg.z3);
+    drawGear(x3, CY, cfg.raioS, angleS, cfg.z3, "#38bdf8", true);
+
+    // --- BRAÇO ---
+    ctx.save();
+    ctx.translate(CX, CY); ctx.rotate(cfg.armAngle);
+    ctx.strokeStyle = "#3b82f6"; ctx.lineWidth = 10 * cfg.scale; ctx.beginPath();
+    ctx.moveTo(0,0); ctx.lineTo(0, -sRaioC - 10); ctx.stroke();
+    ctx.fillStyle = isPushing ? "#22c55e" : "#ef4444";
+    ctx.fillRect(-8, -sRaioC - 20, 16, 20);
+    ctx.restore();
+
+    requestAnimationFrame(draw);
+}
+
+updateCalculations();
+draw();
+</script>
+
+
+</body></html>

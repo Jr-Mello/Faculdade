@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<!-- saved from url=(0115)file:///C:/Users/APAC/Desktop/Salvio/Faculdade/Mechanic/Simu-Mecanic%20-%20Copia%20(2)%20-%20Copia%20-%20Copia.html -->
+<html lang="pt-br"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    
+    <title>Torque Dynamics - Continuous Precision v13.0</title>
+    <style>
+        :root { --p1: #00f2ff; --p2: #ff00f2; --bg: #010409; --panel: #0d1117; --accent: #3fb950; --danger: #f85149; }
+        body { background: var(--bg); color: #c9d1d9; font-family: 'Segoe UI', system-ui; margin: 0; padding: 15px; display: flex; flex-direction: column; align-items: center; overflow: hidden; }
+        
+        .header { width: 100%; max-width: 1200px; display: flex; justify-content: space-between; border-bottom: 1px solid #30363d; margin-bottom: 15px; padding-bottom: 8px; font-family: monospace; font-size: 0.8rem; }
+        .main-layout { display: flex; gap: 20px; max-width: 1200px; width: 100%; }
+        
+        .side-panel { width: 320px; display: flex; flex-direction: column; gap: 12px; }
+        .panel { background: var(--panel); border: 1px solid #30363d; padding: 15px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        
+        canvas#mainCanvas { background: radial-gradient(circle, #161b22 0%, #010409 100%); border: 2px solid #30363d; border-radius: 16px; }
+        .canvas-container { position: relative; flex-grow: 1; }
+        #telemetryCanvas { position: absolute; top: 15px; right: 15px; background: rgba(0,0,0,0.9); border: 1px solid #484f58; border-radius: 8px; }
+        
+        .dashboard { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; width: 100%; max-width: 1200px; margin-top: 15px; }
+        .card { background: var(--panel); padding: 12px; border-radius: 10px; border: 1px solid #30363d; }
+        .value { font-size: 1.3rem; font-weight: 800; font-family: monospace; color: #f0f6fc; }
+        label { font-size: 0.6rem; color: #8b949e; text-transform: uppercase; font-weight: bold; display: block; }
+
+        input[type=range] { width: 100%; accent-color: var(--p1); cursor: pointer; margin: 6px 0; }
+        .btn-eng { background: #21262d; color: #c9d1d9; border: 1px solid #484f58; padding: 8px; border-radius: 6px; width: 100%; font-weight: bold; cursor: pointer; font-size: 0.7rem; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div>CORRECTED KINEMATICS <span style="color:var(--p1)">V13.0</span> | CONTINUOUS INERTIA</div>
+        <div id="tank-status" style="color: var(--accent)">SISTEMA EM OPERAÇÃO</div>
+    </div>
+
+    <div class="main-layout">
+        <div class="side-panel">
+            <div class="panel">
+                <label>Parâmetros de Rede</label>
+                <div style="font-size: 0.75rem;">Pressão: <b id="p-val">7</b> bar</div>
+                <input type="range" id="p-range" min="0" max="12" step="0.1" value="7">
+                
+                <div style="font-size: 0.75rem; margin-top:10px;">Velocidade: <b id="c-val">45</b> CPM</div>
+                <input type="range" id="c-range" min="5" max="180" value="45">
+
+                <div style="font-size: 0.75rem; margin-top:10px;">Inércia Volante: <b id="i-val">80</b>%</div>
+                <input type="range" id="i-range" min="10" max="99" value="80">
+            </div>
+
+            <div class="panel">
+                <label>Telemetria de Saída</label>
+                <div style="font-size: 0.7rem; color: #8b949e; line-height: 1.6; margin-top: 5px;">
+                    RPM Entrada: <span id="rpm-in" style="color:var(--p1)">1</span><br>
+                    RPM Saída (1:9): <span id="rpm-out" style="color:var(--accent)">9</span><br>
+                    Consumo: <span id="flow-l" style="color:var(--p2)">269.3 L/min</span>
+                </div>
+            </div>
+            <button class="btn-eng" onclick="location.reload()">RESET SIMULATOR</button>
+        </div>
+
+        <div class="canvas-container">
+            <canvas id="mainCanvas" width="860" height="500"></canvas>
+            <canvas id="telemetryCanvas" width="220" height="100"></canvas>
+        </div>
+    </div>
+
+    <div class="dashboard">
+        <div class="card"><label>Torque Combinado</label><div class="value" id="t-real">17.5 Nm</div></div>
+        <div class="card"><label>Velocidade Angular</label><div class="value" id="v-ang">0.10 rad/s</div></div>
+        <div class="card"><label>Consumo Total</label><div class="value" id="c-total">45.64 L</div></div>
+        <div class="card"><label>Status de Fase</label><div class="value" id="phase-val" style="font-size:1rem; color:var(--p1)">SINCRONIZADO</div></div>
+    </div>
+
+<script>
+const canvas = document.getElementById('mainCanvas');
+const ctx = canvas.getContext('2d');
+const telCanvas = document.getElementById('telemetryCanvas');
+const tctx = telCanvas.getContext('2d');
+
+let cfg = { p: 7, cpm: 45, d: 63, friction: 0.98, ratio: 9 };
+let time = 0, omega = 0, angle = 0, torqueHist = new Array(220).fill(0);
+let totalConsumed = 0;
+
+// Inputs
+const inP = document.getElementById('p-range'), inC = document.getElementById('c-range'), inI = document.getElementById('i-range');
+
+function animate() {
+    // 1. SINCRONIA E FÍSICA
+    cfg.p = parseFloat(inP.p = inP.value);
+    cfg.cpm = parseInt(inC.value);
+    cfg.friction = parseFloat(inI.value) / 100;
+    
+    document.getElementById('p-val').innerText = cfg.p;
+    document.getElementById('c-val').innerText = cfg.cpm;
+    document.getElementById('i-val').innerText = inI.value;
+
+    let dt = (cfg.cpm / 60) * 0.08;
+    time += dt;
+
+    // Movimento orbital dos braços (180° de defasagem)
+    let armA = Math.sin(time) * 0.45;
+    let armB = Math.sin(time + Math.PI) * 0.45;
+    
+    // Velocidade instantânea dos braços (para catraca)
+    let velA = (armA - Math.sin(time - dt) * 0.45) / dt;
+    let velB = (armB - Math.sin(time + Math.PI - dt) * 0.45) / dt;
+
+    // Força e Torque
+    let pushA = Math.cos(time), pushB = Math.cos(time + Math.PI);
+    const area = Math.PI * Math.pow(cfg.d/2000, 2);
+    const forceMax = (cfg.p * 100000) * area;
+    
+    let tA = (pushA > 0) ? (forceMax * pushA * 0.18 / cfg.ratio) : 0;
+    let tB = (pushB > 0) ? (forceMax * pushB * 0.18 / cfg.ratio) : 0;
+    let torqueTotal = (tA + tB) * 0.88;
+
+    // Lógica de Inércia (Engate da Catraca)
+    if (pushA > 0 && velA > omega) omega += (velA - omega) * 0.4;
+    if (pushB > 0 && velB > omega) omega += (velB - omega) * 0.4;
+    
+    omega *= cfg.friction; // Perda gradual
+    angle += omega * 0.5;
+
+    // Consumo (L/min)
+    let flow = (pushA > 0 || pushB > 0) ? (area * 0.12 * 1000 * 2 * cfg.cpm * (cfg.p+1)) : 0;
+    totalConsumed += (flow / 3600);
+
+    // Dashboard
+    document.getElementById('t-real').innerText = torqueTotal.toFixed(1) + " Nm";
+    document.getElementById('v-ang').innerText = omega.toFixed(2) + " rad/s";
+    document.getElementById('rpm-in').innerText = (omega * 60 / 6.28).toFixed(0);
+    document.getElementById('rpm-out').innerText = (omega * 60 / 6.28 * cfg.ratio).toFixed(0);
+    document.getElementById('flow-l').innerText = flow.toFixed(1) + " L/min";
+    document.getElementById('c-total').innerText = totalConsumed.toFixed(2) + " L";
+
+    // 2. RENDERIZAÇÃO
+    ctx.clearRect(0,0,canvas.width, canvas.height);
+    const CX = 430, CY = 200;
+
+    // Eixo de Saída
+    ctx.strokeStyle = "#161b22"; ctx.lineWidth = 15;
+    ctx.beginPath(); ctx.moveTo(CX, CY); ctx.lineTo(CX, CY+160); ctx.stroke();
+    drawGear(CX, CY+160, 32, angle * cfg.ratio, 12, "#fff", "DRIVE 1:9");
+
+    // Catraca Central
+    drawRatchet(CX, CY, 75, angle);
+
+    // Braços e Cilindros (Correção Cinética: LX/LY seguem o movimento angular exato)
+    drawModule(CX, CY, armA, pushA > 0, 160, 380, "A", "#00f2ff");
+    drawModule(CX, CY, armB, pushB > 0, 700, 380, "B", "#ff00f2");
+
+    // Gráfico
+    torqueHist.push(torqueTotal); torqueHist.shift();
+    tctx.clearRect(0,0,220,100);
+    tctx.beginPath(); tctx.strokeStyle = "#4ade80";
+    torqueHist.forEach((v, i) => tctx.lineTo(i, 100 - (v * 1.5)));
+    tctx.stroke();
+
+    requestAnimationFrame(animate);
+}
+
+function drawModule(cx, cy, armAng, pushing, px, py, label, col) {
+    // O ponto LX/LY é a extremidade da alavanca girando no eixo central
+    let lx = cx + 180 * Math.cos(armAng + Math.PI/2);
+    let ly = cy + 180 * Math.sin(armAng + Math.PI/2);
+    
+    // Alavanca
+    ctx.strokeStyle = pushing ? col : "#334155";
+    ctx.lineWidth = 14; ctx.lineCap = "round";
+    ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(lx, ly); ctx.stroke();
+
+    // Cinemática do Cilindro: O pistão aponta sempre para o LX/LY da alavanca
+    let ang = Math.atan2(ly-py, lx-px);
+    let dist = Math.hypot(lx-px, ly-py);
+    ctx.save(); ctx.translate(px, py); ctx.rotate(ang);
+    ctx.fillStyle = "#0d1117"; ctx.beginPath(); 
+    // Corpo do cilindro
+    ctx.rect(0, -25, 200, 50); ctx.fill();
+    ctx.strokeStyle = pushing ? col : "#30363d"; ctx.lineWidth = 2; ctx.stroke();
+    // Haste do pistão (Sempre encostada no LX/LY)
+    ctx.strokeStyle = "#94a3b8"; ctx.lineWidth = 10;
+    ctx.beginPath(); ctx.moveTo(160, 0); ctx.lineTo(dist, 0); ctx.stroke();
+    ctx.restore();
+}
+
+function drawGear(x, y, r, ang, t, col, label) {
+    ctx.save(); ctx.translate(x, y); ctx.rotate(ang);
+    ctx.fillStyle = col; ctx.beginPath();
+    for(let i=0; i<t*2; i++){ let a=(i/t)*Math.PI; let d=i%2==0?r:r+10; ctx.lineTo(Math.cos(a)*d, Math.sin(a)*d); }
+    ctx.fill(); ctx.restore();
+    ctx.fillStyle = "#8b949e"; ctx.font = "10px monospace"; ctx.fillText(label, x-30, y+55);
+}
+
+function drawRatchet(x, y, r, ang) {
+    ctx.save(); ctx.translate(x, y); ctx.rotate(ang);
+    ctx.fillStyle = "#1e293b"; ctx.beginPath();
+    for(let i=0; i<14; i++){ let a=(i/14)*Math.PI*2; ctx.lineTo(Math.cos(a)*r, Math.sin(a)*r); ctx.lineTo(Math.cos(a+0.1)*(r+18), Math.sin(a+0.1)*(r+18)); }
+    ctx.fill(); ctx.restore();
+}
+
+animate();
+</script>
+
+
+</body></html>

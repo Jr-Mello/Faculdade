@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<!-- saved from url=(0091)file:///C:/Users/APAC/Desktop/Salvio/Faculdade/Mechanic/Simu-Mecanic%20-%20Copia%20(2).html -->
+<html lang="pt-br"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    
+    <title>Torque Dynamics - VFM Edition v6.0</title>
+    <style>
+        :root { --primary: #00f2ff; --accent: #7000ff; --bg: #050505; --panel: #0f172a; --danger: #ff004c; }
+        body { background: var(--bg); color: #fff; font-family: 'Segoe UI', system-ui; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+        
+        .header { width: 100%; max-width: 1300px; display: flex; justify-content: space-between; border-bottom: 1px solid #1e293b; margin-bottom: 20px; padding-bottom: 10px; font-family: 'Share Tech Mono', monospace; }
+        .main-layout { display: flex; gap: 20px; max-width: 1300px; width: 100%; }
+        
+        .side-panel { width: 340px; display: flex; flex-direction: column; gap: 15px; }
+        .panel { background: var(--panel); border: 1px solid #1e293b; padding: 20px; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.5); }
+        
+        canvas#mainCanvas { background: radial-gradient(circle, #0f172a 0%, #020617 100%); border: 1px solid #334155; border-radius: 8px; }
+        .canvas-container { position: relative; flex-grow: 1; }
+        
+        #telemetryCanvas { position: absolute; top: 15px; right: 15px; background: rgba(0,0,0,0.85); border: 1px solid #1e293b; border-radius: 4px; }
+        
+        .dashboard { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; width: 100%; max-width: 1300px; margin-top: 20px; }
+        .card { background: var(--panel); padding: 20px; border-top: 2px solid #334155; transition: 0.3s; }
+        .card.active { border-top-color: var(--primary); box-shadow: 0 0 15px rgba(0,242,255,0.1); }
+        
+        .value { font-size: 1.8rem; font-weight: bold; color: var(--primary); font-family: 'Share Tech Mono', monospace; }
+        label { font-size: 0.7rem; color: #64748b; text-transform: uppercase; letter-spacing: 2px; font-weight: bold; }
+        
+        #log-list { height: 160px; overflow-y: auto; background: #020617; padding: 10px; font-size: 0.75rem; color: #38bdf8; border: 1px solid #1e293b; font-family: 'Courier New', monospace; border-radius: 4px; }
+        .log-entry { border-bottom: 1px solid #0f172a; padding: 5px 0; display: flex; justify-content: space-between; }
+        
+        input[type=range] { width: 100%; accent-color: var(--primary); margin: 10px 0; cursor: pointer; }
+        .slider-label { display: flex; justify-content: space-between; font-size: 0.8rem; color: #94a3b8; }
+    </style>
+    <link href="./Torque Dynamics - VFM Edition v6.0_files/saved_resource" rel="stylesheet">
+</head>
+<body>
+
+    <div class="header">
+        <div><span style="color:var(--primary)">VFM</span> ENGINE DYNAMICS v6.0</div>
+        <div id="sys-load" style="color: #4ade80">CARGA: 52%</div>
+    </div>
+
+    <div class="main-layout">
+        <div class="side-panel">
+            <div class="panel">
+                <div class="slider-label"><span>VELOCIDADE (CPM)</span> <b id="cpm-val" style="color:var(--primary)">45</b></div>
+                <input type="range" id="vel-cpm" min="5" max="120" step="1" value="45">
+                
+                <div class="slider-label" style="margin-top:15px"><span>PRESSÃO (BAR)</span> <b id="p-val" style="color:var(--primary)">7.0</b></div>
+                <input type="range" id="pressao" min="1" max="15" step="0.1" value="7">
+                
+                <div class="slider-label" style="margin-top:15px"><span>DIÂMETRO (mm)</span> <b id="d-val" style="color:var(--primary)">63</b></div>
+                <input type="range" id="diametro" min="30" max="150" step="1" value="63">
+            </div>
+
+            <div class="panel">
+                <label>Telemetria de Picos</label>
+                <div id="log-list"><div class="log-entry"><span>57:15</span><span style="color:var(--primary)">39.28 Nm</span></div><div class="log-entry"><span>57:14</span><span style="color:var(--primary)">39.28 Nm</span></div><div class="log-entry"><span>57:12</span><span style="color:var(--primary)">39.27 Nm</span></div><div class="log-entry"><span>57:11</span><span style="color:var(--primary)">39.26 Nm</span></div><div class="log-entry"><span>57:10</span><span style="color:var(--primary)">39.27 Nm</span></div><div class="log-entry"><span>57:08</span><span style="color:var(--primary)">39.17 Nm</span></div></div>
+                <button onclick="clearLog()" style="width:100%; background:transparent; border:1px solid #334155; color:#64748b; font-size:10px; margin-top:10px; cursor:pointer">RESET LOG</button>
+            </div>
+        </div>
+
+        <div class="canvas-container">
+            <canvas id="mainCanvas" width="940" height="500"></canvas>
+            <canvas id="telemetryCanvas" width="240" height="100"></canvas>
+        </div>
+    </div>
+
+    <div class="dashboard">
+        <div class="card"><label>Empuxo (F1)</label><div class="value" id="f-linear">1439</div></div>
+        <div class="card"><label>Torque T1</label><div class="value" id="t-eixo">259.0</div></div>
+        <div class="card active"><label>Torque Saída T2</label><div class="value" id="t-saida">25.90</div></div>
+        <div class="card"><label>Pico Máximo</label><div class="value" id="peak-val" style="color:#f0f">39.26</div></div>
+    </div>
+
+<script>
+/** @type {HTMLCanvasElement} */
+const canvas = document.getElementById('mainCanvas');
+const ctx = canvas.getContext('2d');
+const telCanvas = document.getElementById('telemetryCanvas');
+const tctx = telCanvas.getContext('2d');
+
+let config = { p: 7, d: 63, cpm: 45, ratio: 9, eff: 0.9 };
+let time = 0, gAngle = 0, aAngle = 0, lastA = 0;
+let cyclePeak = 0, lastPush = false, logData = [];
+let tHistory = new Array(240).fill(0);
+
+// Mapeamento de UI
+const inputs = {
+    cpm: document.getElementById('vel-cpm'),
+    p: document.getElementById('pressao'),
+    d: document.getElementById('diametro')
+};
+
+function updateValues() {
+    config.cpm = parseInt(inputs.cpm.value);
+    config.p = parseFloat(inputs.p.value);
+    config.d = parseInt(inputs.d.value);
+    
+    document.getElementById('cpm-val').innerText = config.cpm;
+    document.getElementById('p-val').innerText = config.p.toFixed(1);
+    document.getElementById('d-val').innerText = config.d;
+}
+
+Object.values(inputs).forEach(i => i.oninput = updateValues);
+
+function updateLog(val) {
+    if(val < 0.2) return;
+    const now = new Date().toLocaleTimeString('pt-BR', {hour12:false, minute:'2-digit', second:'2-digit'});
+    logData.unshift({ t: now, v: val.toFixed(2) });
+    if(logData.length > 20) logData.pop();
+    document.getElementById('log-list').innerHTML = logData.map(e => 
+        `<div class="log-entry"><span>${e.t}</span><span style="color:var(--primary)">${e.v} Nm</span></div>`
+    ).join('');
+}
+
+function clearLog() { logData = []; document.getElementById('log-list').innerHTML = ''; }
+
+function animate() {
+    // Cálculo de Velocidade (Conversão CPM para incremento angular)
+    // 60 FPS aprox -> increment = (CPM * PI * 2) / (60 * 60)
+    let speedMult = (config.cpm / 60) * 0.1;
+    time += speedMult;
+
+    let pushFactor = Math.cos(time);
+    let isPushing = pushFactor > 0;
+    
+    // Suavização do braço (Senoide de amplitude 0.8 rad)
+    aAngle = (Math.sin(time) * 0.4); 
+
+    // Física
+    const area = Math.PI * Math.pow((config.d/2)/1000, 2);
+    const force = isPushing ? (config.p * 100000) * area * pushFactor : 0;
+    const t1 = force * 0.18;
+    const t2 = (t1 / config.ratio) * config.eff;
+
+    // Log de Pico
+    if(isPushing) {
+        if(t2 > cyclePeak) cyclePeak = t2;
+    } else if(lastPush) {
+        updateLog(cyclePeak);
+        cyclePeak = 0;
+    }
+    lastPush = isPushing;
+
+    // UI Dash
+    document.getElementById('f-linear').innerText = Math.round(force);
+    document.getElementById('t-eixo').innerText = t1.toFixed(1);
+    document.getElementById('t-saida').innerText = t2.toFixed(2);
+    document.getElementById('peak-val').innerText = cyclePeak.toFixed(2);
+    document.getElementById('sys-load').innerText = `CARGA: ${Math.min(100, (t2*2)).toFixed(0)}%`;
+
+    if(isPushing) {
+        let diff = aAngle - lastA;
+        if(diff > 0) gAngle += diff;
+    }
+    lastA = aAngle;
+
+    // --- RENDERIZAÇÃO ---
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    // Eixos Visuais
+    ctx.strokeStyle = "#1e293b"; ctx.lineWidth = 20;
+    ctx.beginPath(); ctx.moveTo(400, 250); ctx.lineTo(150, 250); ctx.stroke();
+
+    // Engrenagem Saída
+    drawGear(150, 250, 28, gAngle * config.ratio, 10, "#00f2ff");
+    
+    // Catraca Central
+    drawRatchet(400, 250, 70, gAngle);
+
+    // Braço Cinético
+    let lx = 400 + 190 * Math.cos(aAngle + Math.PI/2);
+    let ly = 250 + 190 * Math.sin(aAngle + Math.PI/2);
+    
+    // Efeito de Stress Visual
+    ctx.shadowBlur = isPushing ? t2/2 : 0;
+    ctx.shadowColor = t2 > 50 ? "#ff004c" : "#00f2ff";
+    ctx.strokeStyle = isPushing ? (t2 > 50 ? "#ff004c" : "#00f2ff") : "#334155";
+    ctx.lineWidth = 15; ctx.lineCap = "round";
+    ctx.beginPath(); ctx.moveTo(400, 250); ctx.lineTo(lx, ly); ctx.stroke();
+    ctx.shadowBlur = 0;
+
+    // Pistão com balanço (Pivô dinâmico)
+    drawCylinder(750, 420, lx, ly, isPushing);
+
+    // Telemetria
+    tHistory.push(t2); tHistory.shift();
+    tctx.clearRect(0,0,240,100);
+    tctx.beginPath(); tctx.strokeStyle = "#00f2ff"; tctx.lineWidth = 2;
+    tHistory.forEach((v, i) => tctx.lineTo(i, 100 - (v * 1.2)));
+    tctx.stroke();
+
+    requestAnimationFrame(animate);
+}
+
+function drawGear(x, y, r, ang, t, col) {
+    ctx.save(); ctx.translate(x, y); ctx.rotate(ang);
+    ctx.fillStyle = col; ctx.beginPath();
+    for(let i=0; i<t*2; i++){
+        let a = (i/t)*Math.PI; let d = i%2==0?r:r+10;
+        ctx.lineTo(Math.cos(a)*d, Math.sin(a)*d);
+    }
+    ctx.fill(); ctx.restore();
+}
+
+function drawRatchet(x, y, r, ang) {
+    ctx.save(); ctx.translate(x, y); ctx.rotate(ang);
+    ctx.fillStyle = "#1e293b"; ctx.beginPath();
+    for(let i=0; i<12; i++){
+        let a = (i/12)*Math.PI*2;
+        ctx.lineTo(Math.cos(a)*r, Math.sin(a)*r);
+        ctx.lineTo(Math.cos(a+0.1)*(r+20), Math.sin(a+0.1)*(r+20));
+    }
+    ctx.fill(); 
+    ctx.fillStyle = "#00f2ff22"; ctx.beginPath(); ctx.arc(0,0,r-10,0,7); ctx.fill();
+    ctx.restore();
+}
+
+function drawCylinder(px, py, lx, ly, push) {
+    let ang = Math.atan2(ly-py, lx-px);
+    let dist = Math.hypot(lx-px, ly-py);
+    ctx.save(); ctx.translate(px, py); ctx.rotate(ang);
+    
+    // Corpo
+    ctx.fillStyle = "#0f172a";
+    ctx.roundRect(0, -25, 200, 50, 5); ctx.fill();
+    ctx.strokeStyle = push ? "#00f2ff" : "#1e293b";
+    ctx.lineWidth = 2; ctx.stroke();
+    
+    // Haste
+    ctx.strokeStyle = "#94a3b8"; ctx.lineWidth = 12;
+    ctx.beginPath(); ctx.moveTo(180, 0); ctx.lineTo(dist, 0); ctx.stroke();
+    ctx.restore();
+}
+
+// Polyfill roundRect
+if (!Path2D.prototype.roundRect) {
+  CanvasRenderingContext2D.prototype.roundRect = function (x, y, w, h, r) {
+    this.beginPath(); this.moveTo(x+r, y); this.arcTo(x+w, y, x+w, y+h, r); this.arcTo(x+w, y+h, x, y+h, r); this.arcTo(x, y+h, x, y, r); this.arcTo(x, y, x+w, y, r); this.closePath(); return this;
+  };
+}
+
+animate();
+</script>
+
+
+</body></html>

@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<!-- saved from url=(0103)file:///C:/Users/APAC/Desktop/Salvio/Faculdade/Mechanic/Simu-Mecanic%20-%20Copia%20(2)%20-%20Copia.html -->
+<html lang="pt-br"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    
+    <title>Torque Dynamics - Full Industrial Suite v10.0</title>
+    <style>
+        :root { --p1: #00f2ff; --p2: #ff00f2; --bg: #010409; --panel: #0d1117; --accent: #3fb950; --danger: #f85149; }
+        body { background: var(--bg); color: #c9d1d9; font-family: 'Segoe UI', system-ui; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+        
+        .header { width: 100%; max-width: 1250px; display: flex; justify-content: space-between; border-bottom: 1px solid #30363d; margin-bottom: 20px; padding-bottom: 10px; font-family: monospace; }
+        .main-layout { display: flex; gap: 20px; max-width: 1250px; width: 100%; }
+        
+        .side-panel { width: 340px; display: flex; flex-direction: column; gap: 15px; }
+        .panel { background: var(--panel); border: 1px solid #30363d; padding: 18px; border-radius: 12px; }
+        
+        .tank-container { width: 100%; height: 25px; background: #21262d; border-radius: 50px; overflow: hidden; margin: 10px 0; border: 1px solid #484f58; position: relative; }
+        #tank-bar { height: 100%; width: 100%; background: linear-gradient(90deg, var(--danger), var(--accent)); transition: 0.3s; }
+        
+        canvas#mainCanvas { background: radial-gradient(circle, #161b22 0%, #010409 100%); border: 2px solid #30363d; border-radius: 16px; }
+        .canvas-container { position: relative; flex-grow: 1; }
+        
+        #telemetryCanvas { position: absolute; top: 20px; right: 20px; background: rgba(0,0,0,0.85); border: 1px solid #484f58; border-radius: 8px; }
+        
+        .dashboard { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; width: 100%; max-width: 1250px; margin-top: 20px; }
+        .card { background: var(--panel); padding: 15px; border-radius: 12px; border: 1px solid #30363d; }
+        
+        .value { font-size: 1.4rem; font-weight: 800; font-family: 'JetBrains Mono', monospace; color: #f0f6fc; }
+        label { font-size: 0.65rem; color: #8b949e; text-transform: uppercase; font-weight: bold; }
+
+        input[type=range] { width: 100%; accent-color: var(--p1); cursor: pointer; margin: 8px 0; }
+        .btn-action { background: #238636; color: white; border: none; padding: 8px; border-radius: 6px; width: 100%; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .btn-action:hover { background: #2ea043; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div>INDUSTRIAL UNIT <span style="color:var(--p1)">v10.0</span> | AIR CONSUMPTION MONITOR</div>
+        <div id="tank-text" style="color: var(--accent)">RESERVATÓRIO: 84.3%</div>
+    </div>
+
+    <div class="main-layout">
+        <div class="side-panel">
+            <div class="panel">
+                <label>Gestão de Ar</label>
+                <div class="tank-container"><div id="tank-bar" style="width: 84.3265%;"></div></div>
+                <div style="font-size: 0.75rem; display: flex; justify-content: space-between;">
+                    <span>Capacidade: 200L</span>
+                    <span id="air-flow" style="color:var(--p1)">269.3 L/min</span>
+                </div>
+                <button class="btn-action" onclick="rechargeTank()">LIGAR COMPRESSOR</button>
+            </div>
+
+            <div class="panel">
+                <label>Parâmetros de Carga</label>
+                <div style="font-size: 0.75rem; margin-top: 10px;">Pressão: <b id="p-val">7.0</b> bar</div>
+                <input type="range" id="pressao" min="0" max="15" step="0.1" value="7">
+                
+                <div style="font-size: 0.75rem;">Ciclos (CPM): <b id="cpm-val">45</b></div>
+                <input type="range" id="vel-cpm" min="5" max="150" value="45">
+
+                <div style="font-size: 0.75rem;">Inércia Volante: <b id="ine-val">85</b>%</div>
+                <input type="range" id="inercia" min="20" max="99" value="85">
+            </div>
+
+            <div class="panel" style="background: #1a1f26;">
+                <label>Custo Estimado (R$/h)</label>
+                <div class="value" id="cost-val" style="color:var(--accent)">R$ 0.02</div>
+                <div style="font-size: 0.6rem; color:#8b949e">Base: 0.85 kWh/m³ ar comprimido</div>
+            </div>
+        </div>
+
+        <div class="canvas-container">
+            <canvas id="mainCanvas" width="870" height="520"></canvas>
+            <canvas id="telemetryCanvas" width="240" height="110"></canvas>
+        </div>
+    </div>
+
+    <div class="dashboard">
+        <div class="card"><label>Consumo Total</label><div class="value" id="cons-total">31.3</div><span style="font-size:10px; color:#8b949e">LITROS CONSUMIDOS</span></div>
+        <div class="card"><label>Torque Médio</label><div class="value" id="t-avg">38.4</div><span style="font-size:10px; color:#8b949e">N.m</span></div>
+        <div class="card"><label>RPM Saída (1:9)</label><div class="value" id="rpm-out">37</div><span style="font-size:10px; color:#8b949e">ROTAÇÕES/MIN</span></div>
+        <div class="card"><label>Potência Pneumática</label><div class="value" id="p-hp">0.198</div><span style="font-size:10px; color:#8b949e">HORSEPOWER (HP)</span></div>
+    </div>
+
+<script>
+const canvas = document.getElementById('mainCanvas');
+const ctx = canvas.getContext('2d');
+const telCanvas = document.getElementById('telemetryCanvas');
+const tctx = telCanvas.getContext('2d');
+
+let cfg = { p: 7, d: 63, stroke: 0.12, cpm: 45, friction: 0.985, tank: 200, consumed: 0 };
+let time = 0, gearVel = 0, gearAng = 0, torqueHistory = new Array(240).fill(0);
+let tankLevel = 200; // Litros em 10 bar
+
+const ui = {
+    p: document.getElementById('pressao'),
+    c: document.getElementById('vel-cpm'),
+    i: document.getElementById('inercia'),
+    tankBar: document.getElementById('tank-bar'),
+    tankTxt: document.getElementById('tank-text'),
+    flow: document.getElementById('air-flow')
+};
+
+function rechargeTank() { tankLevel = 200; }
+function update() {
+    cfg.p = parseFloat(ui.p.value);
+    cfg.cpm = parseInt(ui.c.value);
+    cfg.friction = 0.95 + (parseFloat(ui.i.value) / 2000);
+    document.getElementById('p-val').innerText = cfg.p.toFixed(1);
+    document.getElementById('cpm-val').innerText = cfg.cpm;
+    document.getElementById('ine-val').innerText = ui.i.value;
+}
+ui.p.oninput = ui.c.oninput = ui.i.oninput = update;
+
+function animate() {
+    let dt = (cfg.cpm / 60) * 0.08;
+    time += dt;
+
+    // 1. CÁLCULO DE CONSUMO (L/min)
+    // Volume cilindro: Area * Curso. Consumo = Vol * 2 (dual) * CPM * (Pressão + 1)
+    const area = Math.PI * Math.pow((cfg.d/2)/1000, 2);
+    const volStroke = area * cfg.stroke * 1000; // Litros por curso
+    const flowLmin = volStroke * 2 * cfg.cpm * (cfg.p + 1);
+    
+    // Atualiza tanque (consumo por frame aprox 60fps)
+    if (tankLevel > 0 && cfg.p > 0) {
+        let consumptionFrame = (flowLmin / 60) / 60;
+        tankLevel -= consumptionFrame;
+        cfg.consumed += consumptionFrame;
+    } else {
+        cfg.p = 0; // Para o sistema se acabar o ar
+    }
+
+    // 2. FÍSICA E INÉRCIA
+    let pushA = Math.cos(time), pushB = Math.cos(time + Math.PI);
+    let vArmA = (Math.sin(time) - Math.sin(time-dt)) * 0.45 / dt;
+    let vArmB = (Math.sin(time + Math.PI) - Math.sin(time+Math.PI-dt)) * 0.45 / dt;
+
+    const forceMax = (cfg.p * 100000) * area;
+    let tA = pushA > 0 ? (forceMax * pushA * 0.18 / 9) : 0;
+    let tB = pushB > 0 ? (forceMax * pushB * 0.18 / 9) : 0;
+    let totalT = (tA + tB) * 0.88;
+
+    if (pushA > 0 && vArmA > gearVel) gearVel += (vArmA - gearVel) * 0.4;
+    if (pushB > 0 && vArmB > gearVel) gearVel += (vArmB - gearVel) * 0.4;
+    gearVel *= cfg.friction;
+    gearAng += gearVel * 0.5;
+
+    // 3. UI UPDATES
+    let tankPerc = (tankLevel / 200) * 100;
+    ui.tankBar.style.width = tankPerc + "%";
+    ui.tankTxt.innerText = `RESERVATÓRIO: ${Math.max(0, tankPerc).toFixed(1)}%`;
+    ui.flow.innerText = `${flowLmin.toFixed(1)} L/min`;
+    
+    document.getElementById('cons-total').innerText = cfg.consumed.toFixed(1);
+    document.getElementById('t-avg').innerText = totalT.toFixed(1);
+    document.getElementById('rpm-out').innerText = ((gearVel * 60 / (Math.PI*2)) * 9).toFixed(0);
+    document.getElementById('p-hp').innerText = (totalT * gearVel * 9 / 745.7).toFixed(3);
+    document.getElementById('cost-val').innerText = `R$ ${(cfg.consumed/1000 * 0.85 * 0.75).toFixed(2)}`; // Estimativa custo
+
+    // 4. RENDER
+    ctx.clearRect(0,0,canvas.width, canvas.height);
+    const CX = 435, CY = 220;
+    
+    drawRatchet(CX, CY, 80, gearAng);
+    renderModule(CX, CY, Math.sin(time)*0.45, pushA>0, 160, 380, "A", "#00f2ff");
+    renderModule(CX, CY, Math.sin(time+Math.PI)*0.45, pushB>0, 710, 380, "B", "#ff00f2");
+    drawGear(CX, CY+165, 32, gearAng * 9, 12, "#f0f6fc", "OUTPUT 1:9");
+
+    // Telemetria
+    torqueHistory.push(totalT); torqueHistory.shift();
+    tctx.clearRect(0,0,240,110);
+    tctx.beginPath(); tctx.strokeStyle = "#3fb950"; tctx.lineWidth = 2;
+    torqueHistory.forEach((v, i) => tctx.lineTo(i, 110 - (v * 1.5)));
+    tctx.stroke();
+
+    requestAnimationFrame(animate);
+}
+
+function renderModule(cx, cy, armAng, pushing, px, py, label, col) {
+    let lx = cx + 180 * Math.cos(armAng + Math.PI/2);
+    let ly = cy + 180 * Math.sin(armAng + Math.PI/2);
+    ctx.strokeStyle = pushing ? col : "#30363d"; ctx.lineWidth = 14; ctx.lineCap = "round";
+    ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(lx, ly); ctx.stroke();
+    
+    let ang = Math.atan2(ly-py, lx-px); let dist = Math.hypot(lx-px, ly-py);
+    ctx.save(); ctx.translate(px, py); ctx.rotate(ang);
+    ctx.fillStyle = "#0d1117"; ctx.roundRect(0, -25, 200, 50, 8); ctx.fill();
+    ctx.strokeStyle = pushing ? col : "#30363d"; ctx.lineWidth = 2; ctx.stroke();
+    ctx.strokeStyle = "#8b949e"; ctx.lineWidth = 10; ctx.beginPath(); ctx.moveTo(160, 0); ctx.lineTo(dist, 0); ctx.stroke();
+    ctx.restore();
+}
+
+function drawGear(x, y, r, ang, t, col, label) {
+    ctx.save(); ctx.translate(x, y); ctx.rotate(ang);
+    ctx.fillStyle = col; ctx.beginPath();
+    for(let i=0; i<t*2; i++){ let a=(i/t)*Math.PI; let d=i%2==0?r:r+10; ctx.lineTo(Math.cos(a)*d, Math.sin(a)*d); }
+    ctx.fill(); ctx.restore();
+    ctx.fillStyle = "#8b949e"; ctx.font = "9px monospace"; ctx.fillText(label, x-30, y+55);
+}
+
+function drawRatchet(x, y, r, ang) {
+    ctx.save(); ctx.translate(x, y); ctx.rotate(ang);
+    ctx.fillStyle = "#161b22"; ctx.beginPath();
+    for(let i=0; i<16; i++){ let a=(i/16)*Math.PI*2; ctx.lineTo(Math.cos(a)*r, Math.sin(a)*r); ctx.lineTo(Math.cos(a+0.1)*(r+15), Math.sin(a+0.1)*(r+15)); }
+    ctx.fill(); ctx.strokeStyle = "#30363d"; ctx.stroke(); ctx.restore();
+}
+
+if (!Path2D.prototype.roundRect) {
+  CanvasRenderingContext2D.prototype.roundRect = function (x, y, w, h, r) {
+    this.beginPath(); this.moveTo(x+r, y); this.arcTo(x+w, y, x+w, y+h, r); this.arcTo(x+w, y+h, x, y+h, r); this.arcTo(x, y+h, x, y, r); this.arcTo(x, y, x+w, y, r); this.closePath(); return this;
+  };
+}
+
+animate();
+</script>
+
+
+</body></html>

@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<!-- saved from url=(0097)file:///C:/Users/APAC/Desktop/Salvio/Faculdade/Mechanic/Simu-Mecanic%20-%20Copia%20-%20Copia.html -->
+<html lang="pt-br"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    
+    <title>Simulador de Transmissão Mecânica v6.0</title>
+    <style>
+        :root { --accent: #38bdf8; --bg: #020617; --panel: #0f172a; --success: #22c55e; }
+        body { display: flex; background: var(--bg); color: #f1f5f9; font-family: 'Inter', sans-serif; margin: 0; height: 100vh; overflow: hidden; }
+        #sidebar { width: 320px; background: var(--panel); padding: 25px; border-right: 1px solid #1e293b; display: flex; flex-direction: column; gap: 18px; z-index: 10; }
+        #main { flex-grow: 1; display: flex; align-items: center; justify-content: center; }
+        canvas { background: radial-gradient(circle, #1e293b 0%, #020617 100%); border-radius: 20px; }
+        .control-group { display: flex; flex-direction: column; gap: 6px; }
+        label { font-size: 0.7rem; color: #94a3b8; text-transform: uppercase; font-weight: 800; }
+        input[type="range"] { cursor: pointer; accent-color: var(--accent); width: 100%; }
+        .val-display { color: var(--accent); font-family: monospace; font-size: 1rem; float: right; }
+        .stats { margin-top: 10px; padding: 15px; background: #1e293b; border-radius: 12px; border-left: 4px solid var(--accent); font-size: 0.85rem; }
+        .stat-line { display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px solid #ffffff05; }
+        .highlight { color: var(--success); font-weight: bold; font-family: monospace; }
+        h2 { margin: 0 0 10px 0; font-size: 1.1rem; color: var(--accent); text-align: center; border-bottom: 1px solid #334155; padding-bottom: 10px; }
+    </style>
+</head>
+<body>
+
+    <div id="sidebar">
+        <h2>SISTEMA DE 3 ESTÁGIOS</h2>
+        <div class="control-group">
+            <label>Módulo (m): <span class="val-display" id="val-mod">6.0</span></label>
+            <input type="range" id="mod" min="4" max="10" step="0.5" value="6">
+        </div>
+        <div class="control-group">
+            <label>Raio Catraca (R1): <span class="val-display" id="val-raio-c">80mm</span></label>
+            <input type="range" id="raio-c" min="70" max="110" value="80">
+        </div>
+        <div class="control-group">
+            <label>Raio Interm. (R2): <span class="val-display" id="val-raio-p">40mm</span></label>
+            <input type="range" id="raio-p" min="30" max="55" value="40">
+        </div>
+        <div class="control-group">
+            <label>Raio Saída (R3): <span class="val-display" id="val-raio-s">50mm</span></label>
+            <input type="range" id="raio-s" min="30" max="60" value="50">
+        </div>
+        <div class="control-group">
+            <label>Pressão: <span class="val-display" id="val-press">6.0 bar</span></label>
+            <input type="range" id="press" min="1" max="10" step="0.5" value="6">
+        </div>
+        <div class="stats">
+            <div class="stat-line"><span>Força Cilindro:</span> <b class="highlight" id="res-force">1178 N</b></div>
+            <div class="stat-line"><span>Relação Total (Z1/Z3):</span> <b id="res-ratio">1:1.63</b></div>
+            <div class="stat-line"><span>Torque Final:</span> <b class="highlight" id="res-torque">58.00 Nm</b></div>
+        </div>
+    </div>
+
+    <div id="main">
+        <canvas id="canvas" width="900" height="600"></canvas>
+    </div>
+
+<script>
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+
+const cfg = {
+    mod: 6, raioC: 80, raioP: 40, raioS: 50, press: 6,
+    angleC: 0, armAngle: 0, lastArmPos: 0, time: 0,
+    z1: 0, z2: 0, z3: 0, ratioTotal: 1
+};
+
+function updateCalculations() {
+    cfg.z1 = Math.floor((cfg.raioC * 2) / cfg.mod);
+    cfg.z2 = Math.floor((cfg.raioP * 2) / cfg.mod);
+    cfg.z3 = Math.floor((cfg.raioS * 2) / cfg.mod);
+    
+    // Em trens simples, as engrenagens intermediárias não afetam a relação final de torque/velocidade, apenas o sentido.
+    // Relação final = Z_entrada / Z_saída
+    cfg.ratioTotal = cfg.z1 / cfg.z3;
+
+    const area = Math.PI * Math.pow(0.025, 2); 
+    const forcaN = (cfg.press * 100000) * area;
+    const torqueEntrada = forcaN * (cfg.raioC / 1000);
+    const torqueFinal = torqueEntrada / cfg.ratioTotal;
+
+    document.getElementById('val-mod').innerText = cfg.mod.toFixed(1);
+    document.getElementById('val-raio-c').innerText = cfg.raioC + "mm";
+    document.getElementById('val-raio-p').innerText = cfg.raioP + "mm";
+    document.getElementById('val-raio-s').innerText = cfg.raioS + "mm";
+    document.getElementById('val-press').innerText = cfg.press.toFixed(1) + " bar";
+    document.getElementById('res-force').innerText = Math.round(forcaN) + " N";
+    document.getElementById('res-ratio').innerText = `1:${cfg.ratioTotal.toFixed(2)}`;
+    document.getElementById('res-torque').innerText = torqueFinal.toFixed(2) + " Nm";
+}
+
+document.querySelectorAll('input').forEach(input => {
+    input.oninput = (e) => {
+        const id = e.target.id;
+        const val = parseFloat(e.target.value);
+        if(id === 'raio-c') cfg.raioC = val;
+        else if(id === 'raio-p') cfg.raioP = val;
+        else if(id === 'raio-s') cfg.raioS = val;
+        else if(id === 'press') cfg.press = val;
+        else if(id === 'mod') cfg.mod = val;
+        updateCalculations();
+    };
+});
+
+function drawGear(x, y, r, ang, teeth, color) {
+    ctx.save(); ctx.translate(x, y); ctx.rotate(ang);
+    ctx.fillStyle = color; ctx.beginPath();
+    for(let i=0; i<teeth*2; i++) {
+        let a = (i/teeth)*Math.PI;
+        let d = i%2==0 ? r : r + (cfg.mod * 1.5);
+        ctx.lineTo(Math.cos(a)*d, Math.sin(a)*d);
+    }
+    ctx.closePath(); ctx.fill();
+    ctx.fillStyle = "#020617"; ctx.beginPath(); ctx.arc(0,0, r/3, 0, Math.PI*2); ctx.fill();
+    ctx.restore();
+}
+
+function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    cfg.time += 0.045;
+
+    let cycle = (Math.sin(cfg.time) + 1) / 2;
+    let isPushing = Math.cos(cfg.time) > 0;
+    cfg.armAngle = (cycle * 0.6) - 0.3;
+
+    if (isPushing) {
+        let delta = cfg.armAngle - cfg.lastArmPos;
+        if (delta > 0) cfg.angleC += delta;
+    }
+    cfg.lastArmPos = cfg.armAngle;
+
+    const CX = 280, CY = 300; // Início do sistema
+
+    // --- CILINDRO ---
+    const cilX = 40, cilY = 150, cilW = 35, cilH = 300;
+    ctx.strokeStyle = "#475569"; ctx.lineWidth = 2;
+    ctx.strokeRect(cilX, cilY, cilW, cilH);
+    if(isPushing) {
+        ctx.fillStyle = `rgba(34, 197, 94, ${cfg.press/15})`;
+        ctx.fillRect(cilX, cilY + (cycle * cilH), cilW, cilH * (1 - cycle));
+    }
+    ctx.fillStyle = "#cbd5e1";
+    ctx.fillRect(cilX + 5, cilY + (cycle * (cilH - 20)), cilW - 10, 20);
+
+    // --- 1. CATRACA (Entrada - Gira Horário) ---
+    ctx.save();
+    ctx.translate(CX, CY); ctx.rotate(cfg.angleC);
+    ctx.fillStyle = "#1e293b"; ctx.beginPath(); ctx.arc(0,0, cfg.raioC, 0, Math.PI*2); ctx.fill();
+    ctx.strokeStyle = "#334155"; ctx.stroke();
+    ctx.fillStyle = "#94a3b8";
+    const step = (Math.PI * 2) / cfg.z1;
+    for(let i=0; i<cfg.z1; i++) {
+        let a = i * step;
+        ctx.beginPath();
+        ctx.moveTo(Math.cos(a)*cfg.raioC, Math.sin(a)*cfg.raioC);
+        ctx.lineTo(Math.cos(a+0.08)*(cfg.raioC + cfg.mod*2), Math.sin(a+0.08)*(cfg.raioC + cfg.mod*2));
+        ctx.lineTo(Math.cos(a+0.12)*cfg.raioC, Math.sin(a+0.12)*cfg.raioC);
+        ctx.fill();
+    }
+    ctx.restore();
+
+    // --- 2. PINHÃO INTERMEDIÁRIO (Inverte - Gira Anti-horário) ---
+    const gap = cfg.mod * 1.5;
+    const x2 = CX + cfg.raioC + cfg.raioP + gap;
+    const angleP = -cfg.angleC * (cfg.z1 / cfg.z2);
+    drawGear(x2, CY, cfg.raioP, angleP, cfg.z2, "#64748b");
+
+    // --- 3. ENGRENAGEM DE SAÍDA (Inverte de novo - Gira Horário) ---
+    const x3 = x2 + cfg.raioP + cfg.raioS + gap;
+    // Sentido igual à catraca: angleS = angleP * (-Z2 / Z3) = (-angleC * Z1/Z2) * (-Z2/Z3) = angleC * Z1/Z3
+    const angleS = cfg.angleC * (cfg.z1 / cfg.z3);
+    drawGear(x3, CY, cfg.raioS, angleS, cfg.z3, "#38bdf8");
+
+    // --- BRAÇO E LINGUETA ---
+    ctx.save();
+    ctx.translate(CX, CY); ctx.rotate(cfg.armAngle);
+    ctx.strokeStyle = "#3b82f6"; ctx.lineWidth = 14; ctx.beginPath();
+    ctx.moveTo(0,0); ctx.lineTo(0, -cfg.raioC - 10); ctx.stroke();
+    ctx.fillStyle = isPushing ? "#22c55e" : "#ef4444";
+    ctx.fillRect(-8, -cfg.raioC - 25, 16, 25);
+    ctx.restore();
+
+    requestAnimationFrame(draw);
+}
+
+updateCalculations();
+draw();
+</script>
+
+
+</body></html>

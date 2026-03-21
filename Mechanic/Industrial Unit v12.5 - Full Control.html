@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<!-- saved from url=(0062)file:///C:/Users/APAC/Desktop/Salvio/Faculdade/Mechanic/a.html -->
+<html lang="pt-br"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    
+    <title>Industrial Unit v12.5 - Full Control</title>
+    <style>
+        :root { --bg: #010409; --p1: #58a6ff; --accent: #3fb950; --warn: #d29922; --crit: #f85149; --panel: #161b22; }
+        body { background: var(--bg); color: #c9d1d9; font-family: 'Segoe UI Mono', monospace; margin: 0; overflow: hidden; }
+        
+        .header { display: flex; justify-content: space-between; padding: 12px 25px; background: #0d1117; border-bottom: 2px solid #30363d; box-shadow: 0 4px 20px rgba(0,0,0,0.5); z-index: 10; position: relative; }
+        .main-layout { display: flex; padding: 20px; gap: 20px; height: calc(100vh - 190px); }
+        
+        .side-panel { width: 320px; display: flex; flex-direction: column; gap: 12px; overflow-y: auto; padding-right: 5px; }
+        .panel { background: var(--panel); border: 1px solid #30363d; border-radius: 8px; padding: 15px; }
+        
+        label { display: block; font-size: 10px; color: #8b949e; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 10px; border-left: 3px solid var(--p1); padding-left: 8px; }
+        
+        .gauge-bg { background: #0d1117; height: 8px; border-radius: 4px; margin: 10px 0; overflow: hidden; border: 1px solid #30363d; }
+        .gauge-fill { height: 100%; transition: width 0.2s; box-shadow: 0 0 8px var(--p1); }
+        
+        input[type="range"] { width: 100%; margin: 8px 0; accent-color: var(--p1); cursor: pointer; }
+        
+        .canvas-container { position: relative; flex-grow: 1; background: radial-gradient(circle, #161b22 0%, #010409 100%); border: 1px solid #30363d; border-radius: 12px; }
+        #telemetryCanvas { position: absolute; bottom: 15px; left: 15px; border: 1px solid #30363d; background: rgba(0,0,0,0.8); }
+        
+        .dashboard { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; padding: 0 20px 20px; }
+        .card { background: var(--panel); border: 1px solid #30363d; padding: 12px; border-radius: 8px; text-align: center; }
+        .value { font-size: 24px; font-weight: bold; color: #f0f6fc; display: block; }
+        .unit { font-size: 9px; color: #8b949e; }
+        
+        .btn-prime { width: 100%; padding: 10px; background: #238636; border: none; border-radius: 6px; color: #fff; font-weight: bold; cursor: pointer; }
+        .btn-prime:hover { background: #2ea043; }
+        
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-thumb { background: #30363d; border-radius: 2px; }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <div style="font-weight: bold;"><span id="status-dot" style="color: var(--crit);">●</span> UNIT_OS v12.5 <span style="color:#444">|</span> ACTIVE_STATION</div>
+    <div id="thermal-stat" style="font-size: 12px; color: var(--accent);">TEMP: 98.3°C</div>
+    <div id="tank-text" style="color:var(--p1)">STORAGE: 100%</div>
+</div>
+
+<div class="main-layout">
+    <div class="side-panel">
+        <div class="panel">
+            <label>Pneumatic Logic</label>
+            <div class="gauge-bg"><div id="tank-bar" class="gauge-fill" style="width: 58.086%; background: var(--warn);"></div></div>
+            <div style="display:flex; justify-content:space-between; font-size:11px;">
+                <span id="tank-press">5.8 BAR</span>
+                <span id="air-flow" style="color:var(--p1)">476.6 L/M</span>
+            </div>
+            <button class="btn-prime" style="margin-top:10px" onclick="state.tank = 200">REPRESSURIZE</button>
+        </div>
+
+        <div class="panel">
+            <label>Load &amp; Resistance</label>
+            <div style="font-size:11px">WORK BRAKE: <b id="brake-val" style="color:var(--crit)">50</b> N.m</div>
+            <input type="range" id="brake-range" min="0" max="50" step="1" value="0">
+            <div style="font-size:11px; margin-top:10px">INERTIA: <b id="ine-val">99</b>%</div>
+            <input type="range" id="inercia" min="50" max="99" value="85">
+        </div>
+
+        <div class="panel">
+            <label>Operation Presets</label>
+            <div style="font-size:11px">TARGET PRESSURE: <b id="p-val">7.0</b> bar</div>
+            <input type="range" id="pressao" min="1" max="10" step="0.1" value="7">
+            <div style="font-size:11px; margin-top:10px">CADENCY: <b id="cpm-val">94</b> CPM</div>
+            <input type="range" id="vel-cpm" min="10" max="120" value="45">
+        </div>
+
+        <div class="panel">
+            <label>Energy Harvest</label>
+            <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:10px">
+                <span>VOLTS: <b id="gen-volt" style="color:var(--p1)">18.0</b></span>
+                <span>AMPS: <b id="gen-curr" style="color:var(--accent)">7.20</b></span>
+            </div>
+            <div class="gauge-bg"><div id="battery-bar" class="gauge-fill" style="width: 23.6335%; background: var(--p1);"></div></div>
+            <div style="font-size:10px; color:#8b949e">CHARGE: <span id="batt-perc">23</span>%</div>
+        </div>
+    </div>
+
+    <div class="canvas-container">
+        <canvas id="mainCanvas" width="1053" height="581"></canvas>
+        <canvas id="telemetryCanvas" width="220" height="80"></canvas>
+    </div>
+</div>
+
+<div class="dashboard">
+    <div class="card"><span class="value" id="cons-total">0.2637</span><span class="unit">TOTAL M³</span></div>
+    <div class="card"><span class="value" id="t-avg">131.7</span><span class="unit">NET TORQUE (N.m)</span></div>
+    <div class="card"><span class="value" id="rpm-out">1116</span><span class="unit">OUTPUT RPM (1:9)</span></div>
+    <div class="card"><span class="value" id="cost-val" style="color:var(--warn)">0.17</span><span class="unit">OPEX COST (BRL)</span></div>
+</div>
+
+<script>
+const canvas = document.getElementById('mainCanvas');
+const ctx = canvas.getContext('2d');
+const tctx = document.getElementById('telemetryCanvas').getContext('2d');
+
+let state = {
+    tank: 200, consumed: 0, time: 0, v: 0, a: 0,
+    history: new Array(220).fill(0),
+    battery: 12, volts: 0, amps: 0,
+    temp: 24.0, particles: []
+};
+
+const CFG = { max: 200, diam: 0.063, stroke: 0.12, gear: 9, costKwh: 0.75, airEff: 0.85 };
+
+function resize() {
+    canvas.width = canvas.parentElement.clientWidth;
+    canvas.height = canvas.parentElement.clientHeight;
+}
+window.onresize = resize; resize();
+
+function spawnExhaust(x, y, active) {
+    if(!active) return;
+    for(let i=0; i<2; i++) {
+        state.particles.push({x, y, vx: (Math.random()-0.5)*3, vy: (Math.random()-0.5)*3, life: 1});
+    }
+}
+
+function drawMachine(cx, cy) {
+    const drawPiston = (off, col, px, py) => {
+        let cycle = Math.sin(state.time + off);
+        let active = Math.cos(state.time + off) > 0;
+        let lx = cx + 170 * Math.cos(cycle * 0.45 + Math.PI/2);
+        let ly = cy + 170 * Math.sin(cycle * 0.45 + Math.PI/2);
+
+        ctx.strokeStyle = active ? col : "#30363d"; ctx.lineWidth = 14;
+        ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(lx, ly); ctx.stroke();
+
+        let ang = Math.atan2(ly-py, lx-px);
+        ctx.save(); ctx.translate(px, py); ctx.rotate(ang);
+        ctx.fillStyle = "#0d1117"; ctx.strokeStyle = active ? col : "#444";
+        ctx.beginPath(); ctx.roundRect(0, -22, 180, 44, 4); ctx.fill(); ctx.stroke();
+        
+        if(active) {
+            ctx.fillStyle = col + "22"; ctx.fillRect(10, -18, 160 * (0.5 + cycle*0.5), 36);
+            if(Math.random() > 0.8) spawnExhaust(lx, ly, true);
+        }
+        ctx.restore();
+    };
+
+    drawPiston(0, "#00f2ff", cx-280, cy+180);
+    drawPiston(Math.PI, "#ff00f2", cx+280, cy+180);
+
+    // Engrenagem de Transmissão
+    ctx.save(); ctx.translate(cx, cy); ctx.rotate(state.a);
+    ctx.fillStyle = "#1c2128"; ctx.strokeStyle = "#30363d";
+    ctx.beginPath();
+    for(let i=0; i<32; i++){
+        let r = i%2==0 ? 80 : 70;
+        ctx.lineTo(Math.cos(i/32*Math.PI*2)*r, Math.sin(i/32*Math.PI*2)*r);
+    }
+    ctx.fill(); ctx.stroke(); ctx.restore();
+
+    // Partículas de Exaustão
+    state.particles.forEach((p, i) => {
+        p.x += p.vx; p.y += p.vy; p.life -= 0.04;
+        ctx.fillStyle = `rgba(255,255,255,${p.life})`;
+        ctx.fillRect(p.x, p.y, 2, 2);
+        if(p.life <= 0) state.particles.splice(i, 1);
+    });
+}
+
+function animate() {
+    const pSet = parseFloat(document.getElementById('pressao').value);
+    const cpm = parseInt(document.getElementById('vel-cpm').value);
+    const ine = parseFloat(document.getElementById('inercia').value) / 100;
+    const brake = parseFloat(document.getElementById('brake-range').value);
+
+    // Física Térmica & Pressão
+    const tPress = (state.tank / 200) * 10;
+    const ePress = Math.min(pSet, tPress);
+    const flow = (0.0031 * 0.12 * 1000) * 2 * cpm * (ePress + 1);
+    
+    if(state.tank > 0.1) {
+        state.tank -= (flow/3600);
+        state.consumed += (flow/3600);
+        state.time += (cpm/60) * 0.08;
+    }
+
+    // Dinâmica de Torque (Newtoniana)
+    let tMotor = (Math.cos(state.time) > 0 || Math.cos(state.time + Math.PI) > 0) ? (ePress * 3.8) : 0;
+    let tBrake = (state.v * 1.5) + (brake * 0.1); // Arraste natural + Freio manual
+    let tNet = tMotor - tBrake;
+
+    state.v = Math.max(0, (state.v + tNet * 0.001) * ine);
+    state.a += state.v;
+    state.temp = 24 + (state.v * 30) + (brake * 0.5);
+
+    // Elétrica
+    state.volts = Math.min(18, state.v * 70);
+    state.amps = state.volts * 0.4 * (state.v > 0.1 ? 1 : 0);
+    if(state.volts > 5.5) state.battery = Math.min(100, state.battery + state.amps*0.001);
+
+    // Interface
+    document.getElementById('tank-bar').style.width = (state.tank/2) + "%";
+    document.getElementById('tank-bar').style.background = tPress < pSet ? "var(--warn)" : "var(--accent)";
+    document.getElementById('tank-press').innerText = tPress.toFixed(1) + " BAR";
+    document.getElementById('air-flow').innerText = flow.toFixed(1) + " L/M";
+    document.getElementById('gen-volt').innerText = state.volts.toFixed(1);
+    document.getElementById('gen-curr').innerText = state.amps.toFixed(2);
+    document.getElementById('battery-bar').style.width = state.battery + "%";
+    document.getElementById('batt-perc').innerText = Math.floor(state.battery);
+    document.getElementById('t-avg').innerText = (tNet * CFG.gear).toFixed(1);
+    document.getElementById('rpm-out').innerText = Math.round(state.v * 680);
+    document.getElementById('cons-total').innerText = (state.consumed/1000).toFixed(4);
+    document.getElementById('cost-val').innerText = (state.consumed/1000 * CFG.airEff * CFG.costKwh).toFixed(2);
+    document.getElementById('thermal-stat').innerText = `TEMP: ${state.temp.toFixed(1)}°C`;
+    document.getElementById('brake-val').innerText = brake;
+    document.getElementById('p-val').innerText = pSet.toFixed(1);
+    document.getElementById('cpm-val').innerText = cpm;
+    document.getElementById('ine-val').innerText = Math.round(ine*100);
+    document.getElementById('status-dot').style.color = state.temp > 70 ? "var(--crit)" : "var(--accent)";
+
+    // Renderização
+    ctx.clearRect(0,0,canvas.width, canvas.height);
+    drawMachine(canvas.width/2, canvas.height/2 - 60);
+
+    state.history.push(tNet); state.history.shift();
+    tctx.clearRect(0,0,220,80); tctx.strokeStyle = "#58a6ff"; tctx.beginPath();
+    state.history.forEach((v,i) => tctx.lineTo(i, 70 - v*1.5)); tctx.stroke();
+
+    requestAnimationFrame(animate);
+}
+animate();
+</script>
+
+
+</body></html>
