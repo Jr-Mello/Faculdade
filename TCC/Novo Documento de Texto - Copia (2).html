@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Master Plan TCC - Automação IA P2P</title>
+    <link href="https://cdn.jsdelivr.net" rel="stylesheet">
+    <style>
+        body { background-color: #f0f2f5; color: #333; }
+        .card { border-radius: 15px; border: none; box-shadow: 0 10px 20px rgba(0,0,0,0.05); }
+        .sensor-box { background: #fff; border-left: 5px solid #198754; padding: 15px; margin-bottom: 10px; border-radius: 8px; }
+        .ai-badge { background: #6610f2; color: white; padding: 3px 8px; border-radius: 12px; font-size: 0.75em; }
+    </style>
+</head>
+<body>
+
+<div class="container py-5">
+    <div class="card p-5 mb-4 bg-dark text-white">
+        <h1>Plano de Implementação: Sistema 16+1</h1>
+        <p class="lead">Integração de Sensores Analógicos com Redes Neurais Distribuídas</p>
+    </div>
+
+    <div class="row">
+        <!-- Coluna de Sensores -->
+        <div class="col-md-5">
+            <h3 class="mb-4">📡 Sensores de Entrada (I/O)</h3>
+            
+            <div class="sensor-box">
+                <span class="ai-badge">IA Preditiva</span>
+                <strong>SCT-013 (Corrente):</strong>
+                <p class="small mb-0">Análise de consumo e detecção de picos irregulares em motores.</p>
+            </div>
+
+            <div class="sensor-box">
+                <span class="ai-badge">Filtro de Ruído</span>
+                <strong>SW-420 (Vibração):</strong>
+                <p class="small mb-0">IA identifica padrões de trepidação fora do normal (Manutenção).</p>
+            </div>
+
+            <div class="sensor-box">
+                <span class="ai-badge">Análise de Tendência</span>
+                <strong>LM35 (Temperatura):</strong>
+                <p class="small mb-0">Monitoramento térmico com alertas via rede P2P.</p>
+            </div>
+        </div>
+
+        <!-- Coluna de Lógica de Software -->
+        <div class="col-md-7">
+            <div class="card p-4">
+                <h3>🛠️ Lógica de Processamento</h3>
+                <p>O fluxo do dado seguirá o seguinte caminho técnico:</p>
+                <ol>
+                    <li><strong>Aquisição:</strong> O sinal analógico entra pelo hardware de interface.</li>
+                    <li><strong>Normalização:</strong> O software no tablet trata o sinal bruto (Remoção de ruído).</li>
+                    <li><strong>Inferência:</strong> O modelo <a href="https://www.tensorflow.org" class="text-decoration-none">[TensorFlow Lite]</a> classifica o estado do sistema.</li>
+                    <li><strong>Sincronização:</strong> O resultado é enviado via P2P para o <strong>17º dispositivo (Backup)</strong>.</li>
+                </ol>
+                <div class="alert alert-warning">
+                    <strong>Tese Central:</strong> A inteligência não está no sensor, mas na capacidade do software móvel de interpretar dados ruidosos e tomar decisões sem um servidor central.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<footer class="text-center pb-5">
+    <small class="text-muted">Documento preparado para a Graduação em Engenharia de Software - UNOPAR</small>
+</footer>
+
+</body>
+</html>

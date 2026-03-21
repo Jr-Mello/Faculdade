@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Calibração de Fluxo de Fótons</title>
+    <script src="https://cdn.jsdelivr.net"></script>
+    <style>
+        body { background: #0f172a; color: #f1f5f9; font-family: system-ui, -apple-system, sans-serif; padding: 20px; }
+        .wrapper { max-width: 1200px; margin: auto; background: #1e293b; padding: 25px; border-radius: 16px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); }
+        .header { border-bottom: 2px solid #334155; margin-bottom: 20px; padding-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+        
+        /* Grid de Exposição */
+        .sensor-grid { display: grid; grid-template-columns: repeat(8, 1fr); gap: 12px; margin: 20px 0; }
+        .sensor-card { background: #000; border: 1px solid #475569; border-radius: 8px; overflow: hidden; position: relative; }
+        .image-sim { width: 100%; aspect-ratio: 1; object-fit: cover; filter: brightness(var(--b)) contrast(1.1); transition: filter 0.5s ease; }
+        .label { position: absolute; bottom: 0; width: 100%; background: rgba(15, 23, 42, 0.9); font-size: 10px; text-align: center; padding: 4px 0; color: #38bdf8; }
+
+        .control-panel { background: #0f172a; padding: 20px; border-radius: 12px; display: flex; gap: 30px; align-items: center; }
+        .stats { font-size: 0.9rem; color: #94a3b8; }
+        .btn-toggle { background: #38bdf8; color: #0f172a; border: none; padding: 10px 20px; border-radius: 6px; font-weight: bold; cursor: pointer; }
+        .btn-toggle:hover { background: #7dd3fc; }
+        
+        .chart-container { height: 250px; margin-top: 20px; }
+    </style>
+</head>
+<body>
+
+<div class="wrapper">
+    <div class="header">
+        <h2>Engenharia de Divisão Progressiva</h2>
+        <button class="btn-toggle" onclick="toggleMode()" id="modeBtn">Alternar para: Calibrado</button>
+    </div>
+
+    <div class="control-panel">
+        <div style="flex: 1;">
+            <label>Intensidade da Fonte (Lúmens): <span id="lumVal" style="color:#38bdf8">50.000</span></label><br>
+            <input type="range" id="lumSlider" min="5000" max="100000" value="50000" style="width: 100%;">
+        </div>
+        <div class="stats" id="infoText">
+            Modo Atual: <strong>Cascata Padrão (50/50)</strong><br>
+            Problema: Perda de 99.9% de luz na última câmera.
+        </div>
+    </div>
+
+    <div class="sensor-grid" id="sensorGrid"></div>
+
+    <div class="chart-container">
+        <canvas id="balanceChart"></canvas>
+    </div>
+</div>
+
+<script>
+    let isCalibrated = false;
+    const grid = document.getElementById('sensorGrid');
+    const lumSlider = document.getElementById('lumSlider');
+    let chart;
+
+    // Criar os 16 sensores
+    for(let i=0; i<16; i++) {
+        const div = document.createElement('div');
+        div.className = 'sensor-card';
+        div.innerHTML = `
+            <img src="https://images.unsplash.com" class="image-sim" id="img-${i}">
+            <div class="label" id="lab-${i}">CAM ${i+1}</div>
+        `;
+        grid.appendChild(div);
+    }
+
+    function update() {
+        const totalLumens = parseInt(lumSlider.value);
+        document.getElementById('lumVal').innerText = totalLumens.toLocaleString();
+        const data = [];
+        let remaining = totalLumens;
+
+        for(let i=0; i<16; i++) {
+            let camLumens;
+            if(!isCalibrated) {
+                // Lógica 50/50: Metade reflete, metade passa
+                camLumens = remaining * 0.5;
+                remaining *= 0.5;
+            } else {
+                // Lógica Calibrada: Divide total igualmente entre as câmeras restantes
+                camLumens = totalLumens / 16;
+            }
+            
+            data.push(Math.round(camLumens));
+            const brightness = (camLumens / (totalLumens / 8)); 
+            document.getElementById(`img-${i}`).style.setProperty('--b', brightness);
+            document.getElementById(`lab-${i}`).innerText = Math.round(camLumens).toLocaleString() + " lm";
+        }
+
+        chart.data.datasets[0].data = data;
+        chart.update();
+    }
+
+    function toggleMode() {
+        isCalibrated = !isCalibrated;
+        const btn = document.getElementById('modeBtn');
+        const info = document.getElementById('infoText');
+        
+        if(isCalibrated) {
+            btn.innerText = "Alternar para: Padrão (50/50)";
+            info.innerHTML = "Modo Atual: <strong>Divisores Calibrados</strong><br>Solução: Espelhos assimétricos equalizam a saída.";
+        } else {
+            btn.innerText = "Alternar para: Calibrado";
+            info.innerHTML = "Modo Atual: <strong>Cascata Padrão (50/50)</strong><br>Problema: Perda logarítmica de sinal.";
+        }
+        update();
+    }
+
+    const ctx = document.getElementById('balanceChart').getContext('2d');
+    chart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: Array.from({length: 16}, (_, i) => i + 1),
+            datasets: [{
+                label: 'Lúmens por Sensor',
+                data: [],
+                backgroundColor: '#38bdf8',
+                borderRadius: 4
+            }]
+        },
+        options: {
+            maintainAspectRatio: false,
+            scales: {
+                y: { beginAtZero: true, grid: { color: '#334155' } },
+                x: { grid: { display: false } }
+            },
+            plugins: { legend: { display: false } }
+        }
+    });
+
+    lumSlider.oninput = update;
+    update();
+</script>
+</body>
+</html>

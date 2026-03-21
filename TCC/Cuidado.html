@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Life-Safety Core | P2P Hybrid Architecture</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com');
+        body { font-family: 'Outfit', sans-serif; background: #020617; color: #f1f5f9; }
+        .tech-card { background: rgba(30, 41, 59, 0.5); border: 1px solid rgba(59, 130, 246, 0.2); backdrop-filter: blur(12px); }
+        .neon-text { text-shadow: 0 0 10px rgba(59, 130, 246, 0.5); }
+    </style>
+</head>
+<body class="p-6 md:p-16">
+
+    <header class="max-w-6xl mx-auto mb-16 text-center">
+        <h1 class="text-5xl md:text-7xl font-black neon-text mb-4">LIFE-SAFETY <span class="text-blue-500">CORE</span></h1>
+        <p class="text-slate-400 mono text-sm tracking-widest uppercase italic">Sistema de Proteção Crítica: Crianças, Idosos e Combate à Violência</p>
+    </header>
+
+    <main class="max-w-6xl mx-auto grid md:grid-cols-2 gap-12">
+        
+        <!-- Módulo de Proteção Humana -->
+        <section class="space-y-6">
+            <h2 class="text-2xl font-bold border-l-4 border-blue-500 pl-4 uppercase">Análise de Comportamento IA</h2>
+            <div class="tech-card p-6 rounded-3xl">
+                <h3 class="text-blue-400 font-bold mb-2 uppercase text-xs">Proteção de Vulneráveis</h3>
+                <p class="text-sm text-slate-400 leading-relaxed">
+                    Inferência local via <strong>Pose Estimation</strong> para detecção imediata de quedas e acidentes com idosos/crianças. Monitoramento de áreas de risco sem envio de imagens para Cloud.
+                </p>
+            </div>
+            <div class="tech-card p-6 rounded-3xl">
+                <h3 class="text-red-400 font-bold mb-2 uppercase text-xs">Identificação de Violência</h3>
+                <p class="text-sm text-slate-400 leading-relaxed">
+                    Análise preditiva de padrões de agressão física através de redes neurais convolucionais (CNN). Identificação automática de armas e objetos perigosos em tempo real.
+                </p>
+            </div>
+        </section>
+
+        <!-- Módulo de Infraestrutura 16+1 -->
+        <section class="space-y-6">
+            <h2 class="text-2xl font-bold border-l-4 border-emerald-500 pl-4 uppercase">Arquitetura de Cluster P2P</h2>
+            <div class="tech-card p-6 rounded-3xl relative overflow-hidden">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-emerald-400 font-bold uppercase text-xs tracking-widest">N+1 Redundancy (16 Servers)</h3>
+                    <span class="bg-emerald-500/20 text-emerald-400 text-[10px] px-2 py-1 rounded mono">Segmented Bridge</span>
+                </div>
+                <p class="text-sm text-slate-400 mb-4">Limite de 16 servidores por roteador físico. Expansão automática para gateways secundários via redundância de malha.</p>
+                <div class="bg-black/30 p-4 rounded-xl mono text-[10px] text-emerald-500 border border-emerald-500/20">
+                    >> SERVER_17: DECODER_BACKUP_ACTIVE<br>
+                    >> MODE: ANALOG_FAILOVER_READY<br>
+                    >> STATUS: MONITORING CLUSTER 01
+                </div>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+                <div class="tech-card p-4 rounded-2xl text-center">
+                    <span class="block text-xl font-black">DIGITAL</span>
+                    <span class="text-[10px] text-slate-500 uppercase">P2P Metadata</span>
+                </div>
+                <div class="tech-card p-4 rounded-2xl text-center">
+                    <span class="block text-xl font-black">ANALOG</span>
+                    <span class="text-[10px] text-slate-500 uppercase">Physical Signal</span>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="max-w-6xl mx-auto mt-20 text-center text-slate-600 text-[10px] mono uppercase tracking-[0.3em]">
+        Propriedade Intelectual em Registro // APAC-Canoas-RS // ProUni 2026
+    </footer>
+
+</body>
+</html>

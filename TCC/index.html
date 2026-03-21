@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Especificação Técnica | Sistema de Automação P2P</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com');
+        body { font-family: 'Inter', sans-serif; }
+        .mono { font-family: 'Fira Code', monospace; }
+        .bg-mesh {
+            background-color: #020617;
+            background-image: radial-gradient(at 0% 0%, hsla(222,47%,11%,1) 0, transparent 50%), 
+                              radial-gradient(at 100% 0%, hsla(217,91%,60%,0.15) 0, transparent 50%);
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-900">
+
+    <!-- Header Principal -->
+    <header class="bg-mesh text-white py-20 px-6 border-b border-slate-800">
+        <div class="max-w-4xl mx-auto">
+            <div class="flex items-center gap-3 mb-6">
+                <span class="px-3 py-1 rounded-full bg-blue-500/20 text-blue-400 text-xs font-bold tracking-widest uppercase">Protocolo Ativo</span>
+                <span class="text-slate-500 text-xs mono">v2.0.26-build</span>
+            </div>
+            <h1 class="text-4xl md:text-6xl font-black mb-4 tracking-tight">Arquitetura de Segurança Descentralizada</h1>
+            <p class="text-xl text-slate-400 font-light">Ecossistema P2P com Inteligência Artificial Offline para Ambientes Prediais e Condomínios.</p>
+        </div>
+    </header>
+
+    <main class="max-w-4xl mx-auto py-16 px-6">
+        
+        <!-- Bloco 1: Core de Rede -->
+        <section class="mb-20">
+            <div class="flex items-center gap-4 mb-8">
+                <div class="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold">01</div>
+                <h2 class="text-3xl font-black tracking-tight italic uppercase">Rede & Conectividade</h2>
+            </div>
+            <div class="grid md:grid-cols-2 gap-8">
+                <div class="space-y-4 text-slate-600 leading-relaxed">
+                    <p>O sistema opera em uma topologia <strong>P2P (Peer-to-Peer)</strong> onde cada dispositivo Android (Tablet/Smartphone) atua simultaneamente como cliente e servidor.</p>
+                    <ul class="list-disc pl-5 space-y-2">
+                        <li><strong>Service Discovery:</strong> Varredura automática de rede para identificação de nós ativos via UDP/mDNS.</li>
+                        <li><strong>Rede Bridge:</strong> Interligação de sub-redes para controle administrativo centralizado.</li>
+                        <li><strong>Zero-Config:</strong> Instalação <i>Plug & Play</i> sem necessidade de IP fixo ou configurações de roteador complexas.</li>
+                    </ul>
+                </div>
+                <div class="bg-slate-900 p-6 rounded-2xl border border-slate-800 mono text-[13px] text-blue-300 shadow-2xl">
+                    <p class="text-slate-500 mb-2">// Varredura de Rede Ativa</p>
+                    <p>SCANNING_LOCAL_NETWORK...</p>
+                    <p class="text-emerald-400">[OK] Node_Alpha Found (192.168.1.15)</p>
+                    <p class="text-emerald-400">[OK] Node_Beta Found (192.168.1.22)</p>
+                    <p class="text-blue-400">HANDSHAKE: P2P_ENCRYPTED_BRIDGE_ESTABLISHED</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Bloco 2: IA Offline -->
+        <section class="mb-20">
+            <div class="flex items-center gap-4 mb-8">
+                <div class="w-10 h-10 bg-indigo-600 rounded-lg flex items-center justify-center text-white font-bold">02</div>
+                <h2 class="text-3xl font-black tracking-tight italic uppercase">Inteligência Artificial (Edge AI)</h2>
+            </div>
+            <div class="bg-white p-8 rounded-3xl border border-slate-200 shadow-sm">
+                <p class="text-lg text-slate-700 mb-6">Processamento local de dados sensíveis utilizando <strong>TensorFlow Lite</strong> e <strong>ONNX Runtime</strong> para máxima privacidade.</p>
+                <div class="grid md:grid-cols-3 gap-6">
+                    <div class="p-4 bg-slate-50 rounded-xl">
+                        <h4 class="font-bold text-indigo-900 mb-1">IA Offline</h4>
+                        <p class="text-xs text-slate-500">Zero dependência de internet para análise de eventos críticos.</p>
+                    </div>
+                    <div class="p-4 bg-slate-50 rounded-xl">
+                        <h4 class="font-bold text-indigo-900 mb-1">NPU Acceleration</h4>
+                        <p class="text-xs text-slate-500">Otimização via NNAPI para dispositivos Android modestos.</p>
+                    </div>
+                    <div class="p-4 bg-slate-50 rounded-xl">
+                        <h4 class="font-bold text-indigo-900 mb-1">Privacidade</h4>
+                        <p class="text-xs text-slate-500">Dados biométricos e de rotina nunca deixam o perímetro do condomínio.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Bloco 3: Engenharia e ProUni -->
+        <section class="bg-blue-600 rounded-3xl p-10 text-white shadow-xl relative overflow-hidden">
+            <div class="relative z-10">
+                <h2 class="text-2xl font-black mb-4 uppercase italic">Visão Estratégica de Engenharia</h2>
+                <div class="grid md:grid-cols-2 gap-10">
+                    <div>
+                        <h4 class="font-bold mb-2 opacity-80">Objetivo Acadêmico:</h4>
+                        <p class="text-sm leading-relaxed">Utilizar a graduação para formalizar o <strong>Ciclo de Vida de Software (SDLC)</strong>, implementando padrões de Testes Unitários e CI/CD para os microserviços distribuídos.</p>
+                    </div>
+                    <div>
+                        <h4 class="font-bold mb-2 opacity-80">Status ProUni 2026:</h4>
+                        <div class="bg-blue-700 p-4 rounded-xl border border-blue-500">
+                            <p class="font-mono text-sm">>> Prioridade: 1ª Opção (Canoas/RS)</p>
+                            <p class="font-mono text-sm">>> Ranking: 2º / 12 Vagas</p>
+                            <p class="font-mono text-sm font-bold text-emerald-300 mt-2 italic">[SITUAÇÃO: PRÉ-CLASSIFICADO]</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Decoração visual -->
+            <div class="absolute top-0 right-0 -mr-20 -mt-20 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
+        </section>
+
+    </main>
+
+    <footer class="py-20 text-center border-t border-slate-200">
+        <p class="text-slate-400 text-sm mono">SISTEMA_AUTORRECUPERAVEL_ATIVO // 2026</p>
+        <p class="text-slate-300 text-[10px] mt-2 uppercase tracking-widest">Documento gerado para fins de validação técnica de Engenharia de Software</p>
+    </footer>
+
+</body>
+</html>

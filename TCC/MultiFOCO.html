@@ -1,0 +1,84 @@
+Visão Estereoscópica: O dispositivo divide a tela em duas imagens, uma para cada olho, com um leve deslocamento entre elas, gerando a sensação de profundidade e tridimensionalidade. Como funcionaria para divição de um dispositivo em varias cameras para analise
+Expandir o conceito de visão estereoscópica para múltiplas câmeras é o que chamamos tecnicamente de Visão Multivista (Multi-view Stereo). Enquanto o cérebro humano usa duas imagens para calcular profundidade, um sistema de múltiplas câmeras utiliza a triangulação avançada para criar mapas de profundidade muito mais precisos e reconstruções 3D completas. 
+Aqui está como esse processo funciona na prática, dividido por etapas:
+1. Disposição Geométrica e Calibração
+Para que o dispositivo entenda o que está "vendo", as câmeras precisam estar coordenadas.
+Linha de Base (Baseline): Assim como a distância entre nossos olhos, a distância entre as câmeras define o alcance da profundidade. Câmeras próximas são boas para objetos perto; câmeras distantes são melhores para captar profundidade ao longe.
+Calibração Intrínseca e Extrínseca: O sistema precisa saber exatamente a lente de cada câmera (distorção) e a posição exata de uma em relação às outras no espaço 3D.
+2. O Processo de Correspondência (Matching)
+Este é o "coração" do funcionamento. O software busca o mesmo ponto (ex: a ponta de um nariz ou o canto de uma mesa) em todas as imagens disponíveis.
+Geometria Epipolar: Para economizar processamento, o sistema não procura o ponto em toda a imagem da segunda ou terceira câmera, mas apenas ao longo de uma linha específica baseada na posição da primeira câmera.
+Redundância: Com 3 ou mais câmeras, se um objeto estiver escondido (ocluso) para a Câmera B, ele ainda pode ser visto pela Câmera C, eliminando "pontos cegos" que sistemas de apenas duas câmeras possuem.
+3. Cálculo de Disparidade e Profundidade
+A profundidade (
+) é inversamente proporcional à disparidade (
+ — o deslocamento do objeto entre as imagens). A fórmula básica para cada par de câmeras é: 
+
+Onde:
+
+ é a distância focal da lente.
+
+ é a baseline (distância entre as câmeras).
+
+ é a disparidade (quantos pixels o objeto "andou" de uma imagem para outra). 
+4. Fusão de Dados e Nuvem de Pontos
+Em vez de apenas uma imagem "achatada" com profundidade, o sistema combina os dados de todas as câmeras para gerar uma Nuvem de Pontos 3D (Point Cloud).
+Cada pixel ganha uma coordenada 
+.
+Isso permite que você "gire" o objeto virtualmente, pois tem informações de múltiplos ângulos simultaneamente. 
+Comparação: Estereoscopia Simples vs. Multi-Câmeras
+Característica 	Estereoscopia (2 Câmeras)	Multi-Câmeras (3+)
+Precisão	Boa para distâncias médias.	Altíssima e consistente.
+Oclusão	Problemas com objetos sobrepostos.	Resolve oclusões facilmente.
+Campo de Visão	Limitado à sobreposição frontal.	Pode chegar a 360° (ex: carros autônomos).
+Processamento	Baixo/Médio.	Altíssimo (exige GPUs potentes).
+Exemplos Práticos de Aplicação
+Carros Autônomos: Utilizam várias câmeras ao redor do veículo para criar uma bolha de percepção 3D constante.
+Fotogrametria: Uso de dezenas de câmeras para escanear pessoas ou objetos e criar modelos 3D realistas para filmes ou jogos.
+Cirurgia Robótica: Múltiplas perspectivas que permitem ao médico ter uma noção de profundidade sem sombras ou pontos cegos.
+Você gostaria que eu detalhasse algum algoritmo específico usado para esse processamento de imagem, como o SGBM ou redes neurais de profundidade? 
+
+
+
+
+
+
+
+7 sites
+TV 3D
+É através da estereoscopia, inerente ao facto do ser humano possuir visão binocular, que é possível captar a sensação de profundid...
+
+Instituto de Telecomunicações
+
+Estimativa de Profundidade
+30 de mai. de 2025 — Expandindo a visão estéreo, o estéreo multivista usa múltiplas imagens capturadas de vários ângulos para reconstruir modelos 3D, f...
+
+FlowHunt
+
+Obtenção da disparidade e dos mapas de profundidade em vídeos 3D
+Profundidade e Disparidade estão relacionadas entre si, sendo uma inversamente proporcional à outra. Esse artigo se propõe a estud...
+
+IFPB
+
+Mostrar tudo
+A ideia compartilhar uma imagem em varias cameras de forma totalmente analogica
+Para compartilhar uma imagem entre várias câmeras de forma totalmente analógica, você deve atuar na óptica (antes da luz atingir o sensor) ou no sinal elétrico bruto (se estiver usando câmeras de vídeo analógicas antigas). 
+Aqui estão as três formas principais de realizar essa divisão:
+1. Divisão Óptica (Beam Splitting)
+Este é o método mais purista, onde você divide o feixe de luz real que vem da lente para que ele atinja múltiplos sensores simultaneamente.
+Divisores de Feixe (Beam Splitters): São cubos ou espelhos semi-transparentes que permitem que parte da luz passe direto enquanto reflete o restante em um ângulo de 90°.
+Configuração em Cascata: Você pode colocar vários divisores em linha para alimentar 3, 4 ou mais câmeras com a mesma imagem exata.
+Vantagem: Visão idêntica para todas as câmeras (sem erro de paralaxe).
+Desvantagem: A intensidade da luz cai pela metade a cada divisão (50/50), exigindo ambientes muito iluminados. 
+2. Multi-Lentes ou Adaptadores de Imagem (Image Splitters)
+Dispositivos ópticos específicos, como o Hamamatsu W-VIEW GEMINI, podem ser montados na frente ou atrás de uma única lente. Eles projetam imagens idênticas (ou filtradas por cor) em diferentes câmeras ou em partes diferentes de um mesmo sensor. 
+3. Distribuidor de Vídeo Analógico (Splitter de Sinal)
+Se o sistema usa câmeras que geram um sinal de vídeo composto (BNC/RCA), use um Distribuidor de Vídeo Ativo:
+O sinal de uma câmera entra no dispositivo, que contém circuitos amplificadores analógicos para replicar o sinal para várias saídas sem perda de qualidade ou brilho.
+Isso é comum em sistemas de monitoramento antigos para enviar a mesma imagem para vários monitores ou gravadores simultaneamente. 
+Resumo Técnico: Óptico vs. Elétrico
+Método	O que divide?	Perda de Qualidade	Complexidade
+Beam Splitter	A própria luz	Perda de brilho (lux)	Alta (alinhamento crítico)
+Prisma/Lente	O campo de visão	Redução de resolução	Média
+Distribuidor BNC	O sinal elétrico	Mínima (se amplificado)	Baixa
+A divisão da imagem tem como objetivo criar um efeito visual artístico ou realizar algum tipo de medição técnica em paralelo? 

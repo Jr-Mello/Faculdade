@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Metadata Flow: Distributed Quorum 16+1</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com');
+        body { font-family: 'Inter', sans-serif; background: #0a0a0a; color: #f8fafc; }
+        .mono { font-family: 'JetBrains Mono', monospace; }
+        
+        /* Pulso de Pacotes de Dados */
+        .packet {
+            width: 8px;
+            height: 8px;
+            background: #3b82f6;
+            border-radius: 2px;
+            position: absolute;
+            offset-path: path('M0,0 L200,0');
+            animation: movePacket 1s infinite linear;
+        }
+
+        @keyframes movePacket {
+            0% { offset-distance: 0%; opacity: 0; }
+            50% { opacity: 1; }
+            100% { offset-distance: 100%; opacity: 0; }
+        }
+
+        .node-box { border: 1px solid rgba(59, 130, 246, 0.3); background: rgba(15, 23, 42, 0.8); }
+    </style>
+</head>
+<body class="p-4 md:p-12">
+
+    <div class="max-w-5xl mx-auto">
+        <header class="mb-12">
+            <h1 class="text-3xl font-black italic tracking-tighter uppercase">Protocolo de <span class="text-blue-500">Metadados</span> P2P</h1>
+            <p class="text-xs mono text-slate-500 mt-2">Foco: Comunicação de Eventos (Acidentes/Violência) sem Transmissão de Imagem</p>
+        </header>
+
+        <!-- Gráfico de Fluxo de Dados -->
+        <section class="node-box rounded-[2rem] p-10 relative mb-12 shadow-2xl overflow-hidden">
+            
+            <div class="flex flex-col md:flex-row justify-between items-center gap-12 relative z-10">
+                
+                <!-- 1. NÓ CAPTOR (Analista Local) -->
+                <div class="flex flex-col items-center">
+                    <div class="w-20 h-20 bg-blue-600 rounded-2xl flex items-center justify-center shadow-lg border-2 border-blue-400">
+                        <span class="text-2xl">🧠</span>
+                    </div>
+                    <p class="mt-4 text-[10px] mono font-bold text-blue-400 uppercase">Processador de Borda</p>
+                    <span class="text-[9px] text-slate-500 italic">Extração de Metadados</span>
+                </div>
+
+                <!-- 2. ROTEADOR (Distribuidor de Votos) -->
+                <div class="flex flex-col items-center">
+                    <div class="w-24 h-24 rounded-full border-2 border-dashed border-slate-700 flex items-center justify-center">
+                        <span class="text-3xl">📡</span>
+                    </div>
+                    <p class="mt-2 text-[10px] mono uppercase text-slate-400 font-bold">Roteador Bridge</p>
+                    <span class="text-[9px] text-slate-600 italic">Tráfego de Pacotes < 1KB</span>
+                </div>
+
+                <!-- 3. CLUSTER DE QUORUM (16 Nós) -->
+                <div class="grid grid-cols-4 gap-2 p-4 bg-black/40 rounded-xl border border-slate-800">
+                    <script>
+                        for(let i=1; i<=16; i++) {
+                            document.write(`<div class="w-7 h-7 rounded bg-slate-800 border border-blue-900/50 flex items-center justify-center text-[8px] mono text-blue-400">N${i}</div>`);
+                        }
+                    </script>
+                </div>
+            </div>
+
+            <!-- Legenda de Fluxo -->
+            <div class="mt-10 flex justify-center gap-10 text-[10px] mono uppercase tracking-widest text-slate-500">
+                <div class="flex items-center gap-2"><span class="w-2 h-2 bg-blue-500"></span> Alerta de Evento</div>
+                <div class="flex items-center gap-2"><span class="w-2 h-2 bg-emerald-500"></span> Confirmação (Voto)</div>
+            </div>
+        </section>
+
+        <!-- Detalhamento Técnico -->
+        <div class="grid md:grid-cols-2 gap-8">
+            <div class="space-y-4">
+                <h3 class="text-white font-bold uppercase text-sm border-b border-blue-500 pb-1">Eficiência de Barramento</h3>
+                <p class="text-xs text-slate-400 leading-relaxed">
+                    O sistema **não compartilha streaming**. O Nó Captor processa a imagem via TFLite e envia apenas um pacote de metadados (ex: coordenadas da queda). Os outros 16 nós recebem esse alerta e cruzam com suas próprias percepções locais para gerar o **Quorum de Decisão**.
+                </p>
+            </div>
+            <div class="space-y-4">
+                <h3 class="text-white font-bold uppercase text-sm border-b border-emerald-500 pb-1">Segurança e Backup (N+1)</h3>
+                <p class="text-xs text-slate-400 leading-relaxed">
+                    A comunicação de dados leve garante que o sistema funcione mesmo em redes instáveis. O **Servidor 17** escuta apenas as confirmações finais; se a rede P2P silenciar, ele dispara o **Handoff Analógico** imediatamente para a central de emergência.
+                </p>
+            </div>
+        </div>
+
+        <footer class="mt-16 pt-6 border-t border-slate-900 flex justify-between items-center text-[9px] mono text-slate-600 uppercase">
+            <span>Engenharia de Software EAD - 2026</span>
+            <span class="text-blue-900">PROUNI: CANOAS/RS - 3º/12</span>
+        </footer>
+    </div>
+
+</body>
+</html>

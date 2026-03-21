@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Apresentação Técnica | Cluster P2P Híbrido</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com');
+        body { font-family: 'Space Grotesk', sans-serif; background-color: #050505; color: #e5e7eb; }
+        .mono { font-family: 'Fira Code', monospace; }
+        .gradient-border {
+            background: linear-gradient(90deg, #3b82f6, #10b981);
+            height: 2px;
+            width: 100%;
+        }
+        .card-glass {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+    </style>
+</head>
+<body class="p-4 md:p-12">
+
+    <header class="max-w-6xl mx-auto mb-16">
+        <div class="flex justify-between items-end mb-4">
+            <div>
+                <h1 class="text-4xl md:text-6xl font-bold tracking-tighter">SISTEMA <span class="text-blue-500">P2P</span> HYBRID</h1>
+                <p class="text-slate-400 mt-2 uppercase tracking-widest text-sm">Arquitetura de Missão Crítica para Segurança Humana</p>
+            </div>
+            <div class="text-right hidden md:block">
+                <p class="text-[10px] mono text-blue-500 uppercase">ProUni Status: 3º/12 (Canoas)</p>
+                <p class="text-[10px] mono text-slate-500">Protocolo: N+1 Redundancy</p>
+            </div>
+        </div>
+        <div class="gradient-border"></div>
+    </header>
+
+    <main class="max-w-6xl mx-auto grid md:grid-cols-12 gap-8">
+        
+        <!-- Coluna da Esquerda: Especificações de Rede -->
+        <div class="md:col-span-7 space-y-8">
+            <section class="card-glass p-8 rounded-3xl">
+                <h2 class="text-2xl font-bold mb-6 flex items-center">
+                    <span class="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-sm mr-3">01</span>
+                    Topologia de Cluster Segmentado
+                </h2>
+                <div class="space-y-4 text-slate-300">
+                    <p>O ecossistema é projetado para escalabilidade horizontal infinita através de segmentação lógica:</p>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="border border-white/10 p-4 rounded-xl">
+                            <span class="block text-blue-400 font-bold text-xl">16</span>
+                            <span class="text-xs uppercase text-slate-500">Nós por Roteador</span>
+                        </div>
+                        <div class="border border-white/10 p-4 rounded-xl">
+                            <span class="block text-emerald-400 font-bold text-xl">∞</span>
+                            <span class="text-xs uppercase text-slate-500">Expansão via Bridge</span>
+                        </div>
+                    </div>
+                    <p class="text-sm italic text-slate-400">Ao atingir o limite de 16 servidores, o sistema realiza o handoff automático para um segundo gateway de rede, mantendo a integridade da malha P2P.</p>
+                </div>
+            </section>
+
+            <section class="card-glass p-8 rounded-3xl">
+                <h2 class="text-2xl font-bold mb-6 flex items-center">
+                    <span class="w-8 h-8 bg-emerald-600 rounded-full flex items-center justify-center text-sm mr-3">02</span>
+                    Saída Híbrida e Contingência
+                </h2>
+                <p class="text-slate-300 mb-4">Cada nó processa **IA Offline (TFLite/ONNX)** e entrega resultados em duplo barramento:</p>
+                <ul class="space-y-3 mono text-xs">
+                    <li class="bg-white/5 p-3 rounded border-l-4 border-blue-500">>> DIGITAL: Metadados via P2P / JSON Interface</li>
+                    <li class="bg-white/5 p-3 rounded border-l-4 border-emerald-500">>> ANALÓGICO: Sinal físico direto para automação/hardwired</li>
+                </ul>
+            </section>
+        </div>
+
+        <!-- Coluna da Direita: O 17º Elemento -->
+        <div class="md:col-span-5 space-y-8">
+            <div class="bg-blue-600 p-8 rounded-3xl shadow-[0_0_50px_rgba(59,130,246,0.3)]">
+                <h3 class="text-2xl font-black mb-4 uppercase italic tracking-tighter">O Decodificador (N+1)</h3>
+                <p class="text-sm mb-6 leading-relaxed">
+                    O <strong>17º Servidor</strong> opera em modo de escuta passiva. Sua função exclusiva é atuar como <strong>Decodificador Analógico de Backup</strong>. Caso ocorra degradação no cluster digital, ele assume a tradução dos sinais para os periféricos críticos.
+                </p>
+                <div class="bg-black/20 p-4 rounded-xl text-xs mono">
+                    STATUS: STANDBY_MONITORING<br>
+                    READY_FOR_FAILOVER: YES
+                </div>
+            </div>
+
+            <div class="card-glass p-8 rounded-3xl border-dashed border-white/20">
+                <h4 class="text-sm font-bold uppercase tracking-widest text-slate-500 mb-4">Engenharia de Software EAD</h4>
+                <p class="text-xs text-slate-400 leading-loose">
+                    Projeto focado em <strong>Tolerância a Falhas</strong> e <strong>Sistemas Distribuídos</strong>. Ideal para apresentação acadêmica como estudo de caso de Edge Computing em regime de contingência física.
+                </p>
+            </div>
+        </div>
+
+    </main>
+
+    <footer class="max-w-6xl mx-auto mt-20 pb-12 flex flex-col md:flex-row justify-between text-slate-600 text-[10px] mono uppercase tracking-widest">
+        <p>Desenvolvido para portfólio de engenharia - 2026</p>
+        <p>Sem Registro Central | Segurança por Contexto de Rede</p>
+    </footer>
+
+</body>
+</html>

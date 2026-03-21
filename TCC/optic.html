@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Blueprint: Conversão Óptico-Analógica de Alta Fidelidade</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com');
+        
+        body { 
+            font-family: 'Lexend', sans-serif; 
+            background-color: #f4f4f4; 
+            color: #1a1a1a; 
+            background-image: radial-gradient(#d1d1d1 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+
+        .blueprint-card {
+            background: white;
+            border: 2px solid #1a1a1a;
+            box-shadow: 10px 10px 0px #1a1a1a;
+        }
+
+        .mono { font-family: 'JetBrains Mono', monospace; }
+        
+        .technical-line {
+            border-left: 4px solid #2563eb;
+            padding-left: 1rem;
+        }
+    </style>
+</head>
+<body class="p-6 md:p-12">
+
+    <div class="max-w-5xl mx-auto">
+        <!-- Cabeçalho de Engenharia -->
+        <header class="mb-12 border-b-4 border-black pb-6">
+            <div class="flex justify-between items-start">
+                <div>
+                    <h1 class="text-4xl font-900 uppercase tracking-tighter">Projeto: Optical-to-Analog Bridge</h1>
+                    <p class="mono text-sm text-blue-600 font-bold mt-2">ID_PROTOCOLO: AR-VR_FAILOVER_2026</p>
+                </div>
+                <div class="text-right text-xs mono uppercase">
+                    <p>Status: Pesquisa e Desenvolvimento</p>
+                    <p>Origem: Engenharia P2P Híbrida</p>
+                </div>
+            </div>
+        </header>
+
+        <main class="grid md:grid-cols-2 gap-12">
+            
+            <!-- Descrição do Conceito -->
+            <section class="blueprint-card p-8">
+                <h2 class="text-xl font-bold mb-4 uppercase bg-black text-white px-3 py-1 inline-block">Conceito Operacional</h2>
+                <p class="text-gray-700 leading-relaxed mb-6">
+                    A proposta visa a extração de sinais visuais diretamente de lentes de Realidade Virtual ou Aumentada para compartilhamento em tempo real com o <strong>17º Servidor (Decodificador)</strong>. O objetivo é criar um canal de redundância física que independa do processamento de rede (P2P) do dispositivo principal.
+                </p>
+                <div class="technical-line">
+                    <h4 class="font-bold text-sm uppercase text-blue-700">Aplicação Crítica:</h4>
+                    <p class="text-sm italic text-gray-600">Monitoramento remoto de cuidadores de idosos e crianças, permitindo que a central veja exatamente o que o operador vê, mesmo em caso de travamento do Sistema Operacional.</p>
+                </div>
+            </section>
+
+            <!-- Métodos de Implementação -->
+            <section class="blueprint-card p-8">
+                <h2 class="text-xl font-bold mb-4 uppercase bg-blue-600 text-white px-3 py-1 inline-block">Métodos de Captura</h2>
+                <ul class="space-y-6">
+                    <li class="border-b border-gray-100 pb-4">
+                        <span class="font-bold block">1. Splitter Óptico (Prisma):</span>
+                        <span class="text-sm text-gray-500">Divisão física da luz projetada na lente, direcionada a um micro-sensor CMOS analógico independente.</span>
+                    </li>
+                    <li class="border-b border-gray-100 pb-4">
+                        <span class="font-bold block">2. Hardware Tap (Pre-Display):</span>
+                        <span class="text-sm text-gray-500">Interceptação do sinal LVDS/MIPI antes da conversão para o display e transformação direta em sinal analógico CVBS.</span>
+                    </li>
+                    <li>
+                        <span class="font-bold block">3. Fibra Óptica Plástica (POF):</span>
+                        <span class="text-sm text-gray-500">Uso de feixes de luz para conduzir a imagem do display até o decodificador externo de forma passiva.</span>
+                    </li>
+                </ul>
+            </section>
+
+            <!-- Diagrama de Blocos Lógico -->
+            <section class="md:col-span-2 blueprint-card p-8 bg-slate-50">
+                <h2 class="text-xl font-bold mb-8 uppercase text-center underline">Fluxograma de Redundância Híbrida</h2>
+                <div class="flex flex-col md:flex-row justify-around items-center gap-4 mono text-[11px] font-bold">
+                    <div class="p-4 border-2 border-black bg-white">DISPLAY ÓPTICO (VR)</div>
+                    <div class="text-2xl">→</div>
+                    <div class="p-4 border-2 border-blue-600 bg-blue-50 text-blue-700">CONVERSOR FÍSICO</div>
+                    <div class="text-2xl">→</div>
+                    <div class="p-4 border-2 border-emerald-600 bg-emerald-50 text-emerald-700">SINAL ANALÓGICO (BACKUP)</div>
+                    <div class="text-2xl">→</div>
+                    <div class="p-4 border-2 border-black bg-black text-white">17º SERVIDOR (FAILOVER)</div>
+                </div>
+                <p class="mt-8 text-center text-xs text-gray-400 italic">
+                    Nota Técnica: Este fluxo ignora a camada de rede P2P para garantir visibilidade em situações de "Blackout Digital".
+                </p>
+            </section>
+        </main>
+
+        <footer class="mt-12 text-center text-[10px] mono text-gray-500 uppercase tracking-widest">
+            Documento de Estudo de Viabilidade - Engenharia de Software Unopar 2026
+        </div>
+
+    </div>
+
+</body>
+</html>
