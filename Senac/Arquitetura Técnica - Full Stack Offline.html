@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<!-- saved from url=(0049)file:///C:/Users/APAC/Desktop/Salvio/Senac/i.html -->
+<html lang="pt-br"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    
+    <title>Arquitetura Técnica - Full Stack Offline</title>
+    <style>
+        @import url('https://fonts.googleapis.com');
+
+        :root {
+            --cyan: #00f2fe;
+            --purple: #9d50bb;
+            --green: #00ff87;
+            --bg: #0a0e14;
+            --card-bg: rgba(16, 23, 31, 0.9);
+        }
+
+        body {
+            background: var(--bg);
+            color: #d1d5db;
+            font-family: 'JetBrains Mono', monospace;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        .system-container {
+            display: flex;
+            align-items: center;
+            gap: 40px;
+            padding: 40px;
+            border: 1px solid rgba(255,255,255,0.05);
+            background: radial-gradient(circle at center, #16212e 0%, #0a0e14 100%);
+            border-radius: 20px;
+            position: relative;
+        }
+
+        /* ESTÁGIOS (NODES) */
+        .stage {
+            width: 260px;
+            position: relative;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .stage-header {
+            background: var(--card-bg);
+            border: 1px solid rgba(255,255,255,0.1);
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid var(--cyan);
+            z-index: 2;
+            position: relative;
+        }
+
+        .stage-header h3 { margin: 0; font-size: 1rem; color: var(--cyan); letter-spacing: 1px; }
+        .stage-header span { font-size: 0.7rem; opacity: 0.6; }
+
+        /* PAINEL DE INFORMAÇÕES (HOVER) */
+        .info-panel {
+            background: rgba(0, 0, 0, 0.85);
+            border: 1px solid var(--cyan);
+            padding: 15px;
+            margin-top: 10px;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            line-height: 1.4;
+            opacity: 0.8;
+            transform: translateY(0);
+            transition: 0.3s;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        .stage:hover .stage-header { border-color: var(--cyan); background: rgba(0, 242, 254, 0.05); }
+        .stage:hover .info-panel { opacity: 1; transform: translateY(-5px); border-color: white; }
+
+        .tech-tag {
+            display: inline-block;
+            padding: 2px 6px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 4px;
+            font-size: 0.65rem;
+            margin-top: 5px;
+            color: var(--green);
+        }
+
+        /* CONECTORES */
+        .flow-line {
+            flex-grow: 1;
+            height: 2px;
+            background: linear-gradient(90deg, var(--cyan), var(--purple));
+            position: relative;
+            min-width: 60px;
+        }
+
+        .data-packet {
+            position: absolute;
+            top: -4px;
+            width: 8px;
+            height: 8px;
+            background: white;
+            border-radius: 50%;
+            box-shadow: 0 0 10px white;
+            animation: movePacket 2s infinite linear;
+        }
+
+        @keyframes movePacket {
+            0% { left: 0%; opacity: 0; }
+            50% { opacity: 1; }
+            100% { left: 100%; opacity: 0; }
+        }
+
+        /* DECORAÇÃO */
+        .watermark {
+            position: absolute;
+            bottom: 10px; right: 20px;
+            font-size: 10px; opacity: 0.2;
+            letter-spacing: 5px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="system-container">
+    
+    <!-- ESTÁGIO 1: INFRA -->
+    <div class="stage">
+        <div class="stage-header">
+            <h3>01. INFRAESTRUTURA</h3>
+            <span>Camada de Conectividade</span>
+        </div>
+        <div class="info-panel">
+            <strong>MikroTik RouterOS</strong><br>
+            • Gerencia o Hotspot Offline.<br>
+            • <strong>Walled Garden:</strong> Libera o IP do servidor sem login.<br>
+            • <strong>DNS Estático:</strong> Resolve a URL do projeto.
+            <div class="tech-tag">DHCP / DNS / Firewall</div>
+        </div>
+    </div>
+
+    <div class="flow-line"><div class="data-packet"></div></div>
+
+    <!-- ESTÁGIO 2: CORE -->
+    <div class="stage">
+        <div class="stage-header" style="border-left-color: var(--purple);">
+            <h3>02. CORE SERVER</h3>
+            <span>Processamento e Dados</span>
+        </div>
+        <div class="info-panel" style="border-color: var(--purple);">
+            <strong>Android Java App</strong><br>
+            • <strong>Server:</strong> WebSocket/HTTP rodando em segundo plano.<br>
+            • <strong>IA Local:</strong> Processa comandos do aluno.<br>
+            • <strong>Database:</strong> SQLite para persistência.
+            <div class="tech-tag">Java / WebSockets / JSON</div>
+        </div>
+    </div>
+
+    <div class="flow-line"><div class="data-packet" style="animation-delay: 1s;"></div></div>
+
+    <!-- ESTÁGIO 3: CLIENT -->
+    <div class="stage">
+        <div class="stage-header" style="border-left-color: var(--green);">
+            <h3>03. INTERFACE</h3>
+            <span>Experiência do Aluno</span>
+        </div>
+        <div class="info-panel" style="border-color: var(--green);">
+            <strong>Frontend Moderno</strong><br>
+            • <strong>Client-Side:</strong> UI reativa (JS Puro/Vue).<br>
+            • <strong>Tempo Real:</strong> Recebe push sem dar F5.<br>
+            • <strong>Offline-First:</strong> Tudo roda via rede local.
+            <div class="tech-tag">HTML5 / CSS3 / JS ES6</div>
+        </div>
+    </div>
+
+    <div class="watermark">SISTEMA_EDUCACIONAL_V.4</div>
+</div>
+
+
+
+</body></html>

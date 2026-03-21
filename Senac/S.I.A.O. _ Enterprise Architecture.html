@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<!-- saved from url=(0049)file:///C:/Users/APAC/Desktop/Salvio/Senac/i.html -->
+<html lang="pt-br"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    
+    <title>S.I.A.O. | Enterprise Architecture</title>
+    <style>
+        @import url('https://fonts.googleapis.com');
+
+        :root {
+            --primary: #00f2fe;
+            --secondary: #7000ff;
+            --success: #00ff87;
+            --warning: #f7941d;
+            --bg-deep: #020406;
+            --panel-bg: rgba(6, 10, 18, 0.95);
+        }
+
+        body {
+            background: var(--bg-deep);
+            color: #a5b4fc;
+            font-family: 'JetBrains Mono', monospace;
+            margin: 0;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        /* Scanline Effect */
+        body::before {
+            content: " ";
+            display: block;
+            position: absolute;
+            top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            z-index: 100;
+            background-size: 100% 4px, 3px 100%;
+            pointer-events: none;
+        }
+
+        header {
+            height: 60px;
+            background: rgba(0, 0, 0, 0.8);
+            border-bottom: 2px solid var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 30px;
+            box-shadow: 0 0 30px rgba(0, 242, 254, 0.3);
+        }
+
+        .logo { font-family: 'Orbitron'; font-weight: 900; font-size: 1.2rem; color: var(--primary); }
+
+        /* Grid de Engenharia */
+        .dashboard {
+            display: grid;
+            grid-template-columns: 320px 1fr 320px;
+            gap: 20px;
+            padding: 20px;
+            flex: 1;
+        }
+
+        .col { display: flex; flex-direction: column; gap: 20px; }
+
+        .widget {
+            background: var(--panel-bg);
+            border: 1px solid rgba(0, 242, 254, 0.2);
+            border-radius: 4px;
+            padding: 15px;
+            position: relative;
+            box-shadow: inset 0 0 15px rgba(0,0,0,0.5);
+        }
+
+        .widget-h {
+            font-family: 'Orbitron';
+            font-size: 0.7rem;
+            color: var(--primary);
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        /* Central AI Core */
+        .core-display {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .ai-node {
+            width: 250px;
+            height: 250px;
+            border-radius: 50%;
+            border: 1px solid var(--secondary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 50px rgba(112, 0, 255, 0.2);
+            animation: pulse-border 4s infinite alternate;
+        }
+
+        .data-stream {
+            position: absolute;
+            width: 100%;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--primary), transparent);
+            top: 50%;
+            animation: stream 3s infinite linear;
+        }
+
+        /* Metrics */
+        .meter {
+            height: 4px;
+            background: #111;
+            margin: 10px 0;
+            overflow: hidden;
+        }
+        .meter-fill {
+            height: 100%;
+            background: var(--success);
+            width: 0%;
+            transition: 0.5s;
+        }
+
+        /* Logs */
+        #log-window {
+            font-size: 0.65rem;
+            height: 150px;
+            overflow-y: auto;
+            color: #5c7cfa;
+        }
+
+        @keyframes pulse-border {
+            from { transform: scale(1); border-color: var(--secondary); }
+            to { transform: scale(1.05); border-color: var(--primary); }
+        }
+
+        @keyframes stream {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .tag { font-size: 0.6rem; padding: 2px 5px; background: rgba(0, 242, 254, 0.1); border: 1px solid var(--primary); margin-right: 5px; }
+
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="logo">OFFLINE_AI_CORE // S.I.A.O.</div>
+    <div style="font-size: 0.7rem;">UPTIME: <span id="timer">00:01:45</span> | ENCRYPT: AES-256</div>
+</header>
+
+<div class="dashboard">
+    <!-- INFRA E REDE -->
+    <div class="col">
+        <div class="widget">
+            <div class="widget-h">GATEWAY MIKROTIK <span style="color:var(--success)">CONNECTED</span></div>
+            <div class="tag">ROUTEROS v7</div>
+            <p style="font-size: 0.7rem; margin-top:10px;">Captive Portal: <span style="color: #fff">Active</span></p>
+            <p style="font-size: 0.7rem;">DNS Cache: <span style="color: #fff">edu.local</span></p>
+            <div class="meter"><div class="meter-fill" style="width: 45%; background: var(--primary);"></div></div>
+            <small style="font-size: 0.5rem">NETWORK LOAD: 1.2 GBPS (LOCAL)</small>
+        </div>
+
+        <div class="widget" style="flex:1">
+            <div class="widget-h">LOGS DE TRANSMISSÃO</div>
+            <div id="log-window"><div style="margin-bottom: 5px;"><span style="color:var(--primary)">[18:44:28]</span> Incoming WS Request from 192.168.88.25</div><div style="margin-bottom: 5px;"><span style="color:var(--primary)">[18:44:25]</span> Pushing JSON response to socket...</div><div style="margin-bottom: 5px;"><span style="color:var(--primary)">[18:44:23]</span> Captive Portal Handshake: Device_82 verified</div><div style="margin-bottom: 5px;"><span style="color:var(--primary)">[18:43:49]</span> Captive Portal Handshake: Device_82 verified</div><div style="margin-bottom: 5px;"><span style="color:var(--primary)">[18:42:49]</span> Tokenizing prompt: 'O que é fotossíntese?'</div><div style="margin-bottom: 5px;"><span style="color:var(--primary)">[18:41:49]</span> TFLite Inference triggered...</div><div style="margin-bottom: 5px;"><span style="color:var(--primary)">[18:41:44]</span> Tokenizing prompt: 'O que é fotossíntese?'</div><div style="margin-bottom: 5px;"><span style="color:var(--primary)">[18:41:41]</span> SQLite Similarity Search: Match found (98%)</div><div style="margin-bottom: 5px;"><span style="color:var(--primary)">[18:41:39]</span> Tokenizing prompt: 'O que é fotossíntese?'</div><div style="margin-bottom: 5px;"><span style="color:var(--primary)">[18:41:36]</span> Captive Portal Handshake: Device_82 verified</div><div style="margin-bottom: 5px;"><span style="color:var(--primary)">[18:41:34]</span> Pushing JSON response to socket...</div><div style="margin-bottom: 5px;"><span style="color:var(--primary)">[18:41:31]</span> Pushing JSON response to socket...</div><div style="margin-bottom: 5px;"><span style="color:var(--primary)">[18:41:29]</span> Captive Portal Handshake: Device_82 verified</div><div style="margin-bottom: 5px;"><span style="color:var(--primary)">[18:41:26]</span> TFLite Inference triggered...</div><div style="margin-bottom: 5px;"><span style="color:var(--primary)">[18:41:24]</span> Captive Portal Handshake: Device_82 verified</div><div style="margin-bottom: 5px;"><span style="color:var(--primary)">[18:41:21]</span> TFLite Inference triggered...</div><div style="margin-bottom: 5px;"><span style="color:var(--primary)">[18:41:19]</span> SQLite Similarity Search: Match found (98%)</div><div style="margin-bottom: 5px;"><span style="color:var(--primary)">[18:41:16]</span> TFLite Inference triggered...</div><div style="margin-bottom: 5px;"><span style="color:var(--primary)">[18:41:14]</span> TFLite Inference triggered...</div><div style="margin-bottom: 5px;"><span style="color:var(--primary)">[18:41:11]</span> Incoming WS Request from 192.168.88.25</div><div style="margin-bottom: 5px;"><span style="color:var(--primary)">[18:41:09]</span> Incoming WS Request from 192.168.88.25</div><div style="margin-bottom: 5px;"><span style="color:var(--primary)">[18:41:06]</span> SQLite Similarity Search: Match found (98%)</div><div style="margin-bottom: 5px;"><span style="color:var(--primary)">[18:41:04]</span> TFLite Inference triggered...</div><div style="margin-bottom: 5px;"><span style="color:var(--primary)">[18:41:01]</span> Pushing JSON response to socket...</div><div style="margin-bottom: 5px;"><span style="color:var(--primary)">[18:40:59]</span> SQLite Similarity Search: Match found (98%)</div><div style="margin-bottom: 5px;"><span style="color:var(--primary)">[18:40:56]</span> Captive Portal Handshake: Device_82 verified</div><div style="margin-bottom: 5px;"><span style="color:var(--primary)">[18:40:54]</span> Pushing JSON response to socket...</div><div style="margin-bottom: 5px;"><span style="color:var(--primary)">[18:40:51]</span> Tokenizing prompt: 'O que é fotossíntese?'</div><div style="margin-bottom: 5px;"><span style="color:var(--primary)">[18:40:49]</span> SQLite Similarity Search: Match found (98%)</div><div style="margin-bottom: 5px;"><span style="color:var(--primary)">[18:40:46]</span> Captive Portal Handshake: Device_82 verified</div><div style="margin-bottom: 5px;"><span style="color:var(--primary)">[18:40:43]</span> Incoming WS Request from 192.168.88.25</div><div style="margin-bottom: 5px;"><span style="color:var(--primary)">[18:40:40]</span> Incoming WS Request from 192.168.88.25</div><div style="margin-bottom: 5px;"><span style="color:var(--primary)">[18:40:38]</span> SQLite Similarity Search: Match found (98%)</div><div style="margin-bottom: 5px;"><span style="color:var(--primary)">[18:40:35]</span> SQLite Similarity Search: Match found (98%)</div><div style="margin-bottom: 5px;"><span style="color:var(--primary)">[18:40:33]</span> SQLite Similarity Search: Match found (98%)</div><div style="margin-bottom: 5px;"><span style="color:var(--primary)">[18:40:30]</span> TFLite Inference triggered...</div><div style="margin-bottom: 5px;"><span style="color:var(--primary)">[18:40:28]</span> SQLite Similarity Search: Match found (98%)</div><div style="margin-bottom: 5px;"><span style="color:var(--primary)">[18:40:25]</span> SQLite Similarity Search: Match found (98%)</div><div style="margin-bottom: 5px;"><span style="color:var(--primary)">[18:40:23]</span> Incoming WS Request from 192.168.88.25</div><div style="margin-bottom: 5px;"><span style="color:var(--primary)">[18:40:20]</span> Pushing JSON response to socket...</div><div style="margin-bottom: 5px;"><span style="color:var(--primary)">[18:40:18]</span> Tokenizing prompt: 'O que é fotossíntese?'</div><div style="margin-bottom: 5px;"><span style="color:var(--primary)">[18:40:15]</span> SQLite Similarity Search: Match found (98%)</div><div style="margin-bottom: 5px;"><span style="color:var(--primary)">[18:40:13]</span> TFLite Inference triggered...</div></div>
+        </div>
+    </div>
+
+    <!-- CORE AI -->
+    <div class="col core-display">
+        <div class="data-stream"></div>
+        <div class="ai-node">
+            <div style="text-align: center;">
+                <div style="font-size: 0.6rem; opacity: 0.5;">ENGINE_V4</div>
+                <div style="font-family: &#39;Orbitron&#39;; font-size: 1.5rem; color: #fff; margin: 10px 0;">LLAMA-LITE</div>
+                <div id="ai-status" style="color: var(--success); font-size: 0.7rem;">IDLE</div>
+            </div>
+        </div>
+        <div style="width: 80%; margin-top: 40px;">
+            <div class="widget-h">LATÊNCIA DE INFERÊNCIA (RAG)</div>
+            <div class="meter"><div id="lat-bar" class="meter-fill" style="width: 35.7208%;"></div></div>
+            <div style="display: flex; justify-content: space-between; font-size: 0.6rem;">
+                <span>0ms</span><span id="ms-label">120ms</span><span>500ms</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- CLIENT E DB -->
+    <div class="col">
+        <div class="widget">
+            <div class="widget-h">CONEXÕES ATIVAS</div>
+            <div style="font-size: 1.5rem; font-family: &#39;Orbitron&#39;; color: #fff;">024</div>
+            <div style="font-size: 0.6rem; opacity: 0.7;">DISPOSITIVOS EM ALTA VELOCIDADE</div>
+        </div>
+
+        <div class="widget">
+            <div class="widget-h">DATA_SOURCE (SQLITE)</div>
+            <div style="font-size: 0.7rem;">
+                Rows: <span style="color: #fff">4,812 indexed</span><br>
+                Embeddings: <span style="color: #fff">384-dim vectors</span><br>
+                RAG Context: <span style="color: var(--success)">ACTIVE</span>
+            </div>
+        </div>
+
+        <div class="widget" style="background: rgba(112, 0, 255, 0.05);">
+            <div class="widget-h">ANDROID KERNEL STATUS</div>
+            <div class="meter"><div class="meter-fill" id="ram-meter" style="width: 57.236%; background: var(--secondary);"></div></div>
+            <small style="font-size: 0.5rem">RAM USAGE (APP + AI): <span id="ram-val">4.2GB</span></small>
+        </div>
+    </div>
+</div>
+
+<script>
+    const logs = [
+        "Incoming WS Request from 192.168.88.25",
+        "Tokenizing prompt: 'O que é fotossíntese?'",
+        "SQLite Similarity Search: Match found (98%)",
+        "TFLite Inference triggered...",
+        "Pushing JSON response to socket...",
+        "Captive Portal Handshake: Device_82 verified"
+    ];
+
+    const logWindow = document.getElementById('log-window');
+    const aiStatus = document.getElementById('ai-status');
+    const latBar = document.getElementById('lat-bar');
+    const ramMeter = document.getElementById('ram-meter');
+
+    function updateLogs() {
+        const log = logs[Math.floor(Math.random() * logs.length)];
+        const entry = document.createElement('div');
+        entry.style.marginBottom = "5px";
+        entry.innerHTML = `<span style="color:var(--primary)">[${new Date().toLocaleTimeString()}]</span> ${log}`;
+        logWindow.prepend(entry);
+        
+        // Simular Atividade na IA
+        aiStatus.innerText = "PROCESSING...";
+        aiStatus.style.color = "var(--warning)";
+        latBar.style.width = (Math.random() * 40 + 10) + "%";
+        
+        setTimeout(() => {
+            aiStatus.innerText = "IDLE";
+            aiStatus.style.color = "var(--success)";
+        }, 1500);
+    }
+
+    setInterval(updateLogs, 2500);
+
+    // Timer Uptime
+    let seconds = 0;
+    setInterval(() => {
+        seconds++;
+        let h = Math.floor(seconds / 3600).toString().padStart(2, '0');
+        let m = Math.floor((seconds % 3600) / 60).toString().padStart(2, '0');
+        let s = (seconds % 60).toString().padStart(2, '0');
+        document.getElementById('timer').innerText = `${h}:${m}:${s}`;
+        
+        // Oscilar RAM
+        ramMeter.style.width = (55 + Math.random() * 10) + "%";
+    }, 1000);
+</script>
+
+
+
+</body></html>

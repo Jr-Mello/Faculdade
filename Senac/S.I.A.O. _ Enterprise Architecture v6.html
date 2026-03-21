@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<!-- saved from url=(0049)file:///C:/Users/APAC/Desktop/Salvio/Senac/i.html -->
+<html lang="pt-br"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    
+    <title>S.I.A.O. | Enterprise Architecture v6</title>
+    <script src="./S.I.A.O. _ Enterprise Architecture v6_files/saved_resource"></script>
+    <style>
+        @import url('https://fonts.googleapis.com');
+
+        :root {
+            --accent: #00f2fe;
+            --neural: #7000ff;
+            --success: #00ff87;
+            --bg: #02060c;
+            --glass: rgba(10, 18, 30, 0.9);
+        }
+
+        body {
+            background: var(--bg);
+            color: #e2e8f0;
+            font-family: 'JetBrains Mono', monospace;
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        header {
+            height: 50px;
+            padding: 0 25px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(0,0,0,0.6);
+            border-bottom: 1px solid var(--accent);
+            box-shadow: 0 0 15px rgba(0, 242, 254, 0.2);
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 350px 1fr 350px;
+            grid-template-rows: 1fr 200px;
+            gap: 15px;
+            padding: 15px;
+            flex: 1;
+        }
+
+        .card {
+            background: var(--glass);
+            border: 1px solid rgba(0, 242, 254, 0.1);
+            border-radius: 4px;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        .card-h { font-size: 0.65rem; color: var(--accent); letter-spacing: 2px; margin-bottom: 15px; text-transform: uppercase; }
+
+        /* AI CORE VISUAL */
+        .ai-center {
+            grid-column: 2;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: radial-gradient(circle, rgba(112, 0, 255, 0.1) 0%, transparent 70%);
+        }
+
+        .neural-pulse {
+            width: 200px; height: 200px;
+            border: 2px solid var(--neural);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 30px var(--neural);
+            animation: pulse 2s infinite ease-in-out;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 0.8; }
+            50% { transform: scale(1.05); opacity: 1; box-shadow: 0 0 50px var(--neural); }
+            100% { transform: scale(1); opacity: 0.8; }
+        }
+
+        .terminal {
+            background: #000;
+            color: var(--success);
+            font-size: 0.7rem;
+            padding: 10px;
+            border-radius: 4px;
+            height: 100%;
+            overflow: hidden;
+            border: 1px solid #1e293b;
+        }
+
+        .stat-bar { height: 4px; background: #1e293b; border-radius: 2px; margin: 10px 0; overflow: hidden; }
+        .fill { height: 100%; background: var(--accent); transition: width 0.3s; }
+    </style>
+</head>
+<body>
+
+<header>
+    <div style="font-family: &#39;Big Shoulders Display&#39;; font-size: 1.5rem; color: var(--accent);">S.I.A.O. OS_v6.0</div>
+    <div style="font-size: 0.7rem;">STATUS: <span style="color: var(--success)">● ENCRYPTED_OFFLINE_LINK</span></div>
+</header>
+
+<div class="main-grid">
+    <!-- NETWORK -->
+    <div class="card">
+        <div class="card-h">NETWORK_MONITOR (MIKROTIK)</div>
+        <div style="font-size: 0.8rem; margin-bottom: 10px;">Traffic Load: <span id="net-val">12.4 Mbps</span></div>
+        <div class="stat-bar"><div id="net-fill" class="fill" style="width: 35%"></div></div>
+        <canvas id="netChart" height="150"></canvas>
+        <div style="margin-top: auto; font-size: 0.6rem; opacity: 0.6;">GATEWAY: 192.168.88.1 (RouterOS)</div>
+    </div>
+
+    <!-- AI ENGINE -->
+    <div class="card ai-center">
+        <div class="neural-pulse">
+            <div style="text-align: center;">
+                <div style="font-size: 0.6rem; opacity: 0.7;">INFERENCE_ACTIVE</div>
+                <div style="font-family: &#39;Big Shoulders Display&#39;; font-size: 3rem; margin: 5px 0;">NLP-RAG</div>
+                <div id="ai-status" style="color: var(--accent); font-size: 0.7rem;">READY</div>
+            </div>
+        </div>
+        <div style="width: 300px; margin-top: 30px;">
+            <div style="display: flex; justify-content: space-between; font-size: 0.6rem; margin-bottom: 5px;">
+                <span>LATÊNCIA DE BUSCA</span><span id="lat-text">112ms</span>
+            </div>
+            <div class="stat-bar"><div id="lat-fill" class="fill" style="width: 20%; background: var(--neural);"></div></div>
+        </div>
+    </div>
+
+    <!-- KERNEL -->
+    <div class="card">
+        <div class="card-h">SYSTEM_KERNEL (ANDROID)</div>
+        <div style="font-size: 0.8rem; margin-bottom: 10px;">RAM Allocation: <span id="ram-val">4.2 GB</span></div>
+        <div class="stat-bar"><div id="ram-fill" class="fill" style="width: 65%; background: #fff;"></div></div>
+        <canvas id="kernelChart" height="150"></canvas>
+        <div style="margin-top: auto; font-size: 0.6rem; opacity: 0.6;">SERVICE: NanoHTTPD (Java 11)</div>
+    </div>
+
+    <!-- LOGS -->
+    <div class="card" style="grid-column: 1 / 4;">
+        <div class="card-h">REAL-TIME_DATA_STREAM</div>
+        <div id="log-terminal" class="terminal"></div>
+    </div>
+</div>
+
+<script>
+    // Configuração do Gráfico de Rede
+    const netCtx = document.getElementById('netChart').getContext('2d');
+    const netChart = new Chart(netCtx, {
+        type: 'line',
+        data: {
+            labels: ['', '', '', '', '', '', '', '', '', ''],
+            datasets: [{
+                data: [12, 19, 15, 22, 30, 25, 35, 28, 40, 32],
+                borderColor: '#00f2fe',
+                borderWidth: 2,
+                tension: 0.4,
+                pointRadius: 0,
+                fill: true,
+                backgroundColor: 'rgba(0, 242, 254, 0.05)'
+            }]
+        },
+        options: { responsive: true, plugins: { legend: false }, scales: { x: { display: false }, y: { display: false } } }
+    });
+
+    // Configuração do Gráfico de Kernel (Processamento)
+    const kerCtx = document.getElementById('kernelChart').getContext('2d');
+    const kerChart = new Chart(kerCtx, {
+        type: 'bar',
+        data: {
+            labels: ['T1', 'T2', 'T3', 'T4', 'T5'],
+            datasets: [{
+                data: [40, 60, 50, 80, 70],
+                backgroundColor: '#7000ff'
+            }]
+        },
+        options: { responsive: true, plugins: { legend: false }, scales: { x: { display: false }, y: { display: false } } }
+    });
+
+    // Simulação Dinâmica
+    const logs = [
+        "[NET] Request from 192.168.88.42",
+        "[IA] Search Context: 'Sistema Solar'",
+        "[SQL] SQLite Index Search: 12ms",
+        "[IA] Generating Local Response...",
+        "[SYS] Thermal check: 38°C - STABLE",
+        "[NET] Packet Sent: 204 bytes"
+    ];
+
+    function update() {
+        // Update Network
+        const val = Math.floor(Math.random() * 50 + 10);
+        document.getElementById('net-val').innerText = val + " Mbps";
+        document.getElementById('net-fill').style.width = (val * 2) + "%";
+        netChart.data.datasets[0].data.shift();
+        netChart.data.datasets[0].data.push(val);
+        netChart.update('none');
+
+        // Update Terminal
+        const term = document.getElementById('log-terminal');
+        const entry = document.createElement('div');
+        entry.innerHTML = `> ${logs[Math.floor(Math.random() * logs.length)]}`;
+        term.prepend(entry);
+        if(term.children.length > 6) term.lastChild.remove();
+
+        // Update IA Latency
+        const lat = Math.floor(Math.random() * 100 + 80);
+        document.getElementById('lat-text').innerText = lat + "ms";
+        document.getElementById('lat-fill').style.width = (lat/5) + "%";
+
+        // Update RAM
+        const ram = (4 + Math.random()).toFixed(1);
+        document.getElementById('ram-val').innerText = ram + " GB";
+    }
+
+    setInterval(update, 2000);
+</script>
+
+
+</body></html>

@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Interpretador P2P JSON - AI Edge</title>
+    <style>
+        :root { --primary: #00ff41; --bg: #0d0d0d; --card: #1a1a1a; --error: #ff4444; }
+        body { background: var(--bg); color: white; font-family: 'Courier New', monospace; margin: 20px; }
+        .container { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        
+        /* Área de Input */
+        .input-area { display: flex; flex-direction: column; gap: 10px; }
+        textarea { 
+            background: #000; color: var(--primary); border: 1px solid #444;
+            padding: 10px; height: 300px; border-radius: 4px; resize: none; font-size: 13px;
+        }
+        button { 
+            background: var(--primary); color: black; border: none; padding: 12px;
+            font-weight: bold; cursor: pointer; border-radius: 4px; transition: 0.3s;
+        }
+        button:hover { background: #00cc33; transform: scale(1.02); }
+
+        /* Área do Monitor */
+        .monitor-canvas { 
+            background: #000; border: 2px solid #333; position: relative;
+            width: 100%; height: 350px; overflow: hidden; border-radius: 8px;
+        }
+        .bounding-box { 
+            position: absolute; border: 2px solid var(--primary); 
+            color: var(--primary); font-size: 11px; font-weight: bold; background: rgba(0,255,65,0.1);
+        }
+        .info-panel { 
+            margin-top: 15px; padding: 15px; background: var(--card); 
+            border-radius: 8px; border-left: 5px solid var(--primary);
+        }
+        .error-msg { color: var(--error); font-size: 12px; margin-top: 5px; display: none; }
+        .node-badge { color: #aaa; font-size: 12px; margin-bottom: 10px; display: block; }
+    </style>
+</head>
+<body>
+
+    <h1>Interpretador de Protocolo P2P (JSON)</h1>
+    <p>Simule a chegada de um pacote de dados de um dos 16 servidores:</p>
+
+    <div class="container">
+        <!-- LADO ESQUERDO: INPUT -->
+        <div class="input-area">
+            <textarea id="jsonInput" placeholder="Cole o JSON do servidor aqui..."></textarea>
+            <div id="errorMessage" class="error-msg">JSON Inválido! Verifique a sintaxe.</div>
+            <button onclick="interpretarJSON()">PROCESSAR PACOTE P2P</button>
+            <small style="color: #666;">Dica: Altere os valores de 'object' ou 'box' no JSON e clique em processar.</small>
+        </div>
+
+        <!-- LADO DIREITO: RESULTADO -->
+        <div class="output-area">
+            <div class="monitor-canvas" id="canvas">
+                <div style="padding: 10px; color: #333;">VISUALIZADOR_NODE_OUTPUT</div>
+            </div>
+            
+            <div class="info-panel" id="infoPanel">
+                <span class="node-badge" id="nodeBadge">Aguardando dados...</span>
+                <div id="dataDetails">Nenhum processo ativo na rede.</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // JSON Inicial de Exemplo (conforme discutimos)
+        const defaultJSON = {
+            "header": {
+                "node_id": "SERVER_04_SALA_AUDIO",
+                "timestamp": new Date().toISOString()
+            },
+            "payload": {
+                "type": "vision_analysis",
+                "detections": [{
+                    "object": "PESSOA_DETECTADA",
+                    "confidence": 0.98,
+                    "box": [50, 80, 180, 200]
+                }]
+            }
+        };
+
+        // Carrega o exemplo no textarea ao abrir a página
+        document.getElementById('jsonInput').value = JSON.stringify(defaultJSON, null, 4);
+
+        function interpretarJSON() {
+            const input = document.getElementById('jsonInput').value;
+            const errorMsg = document.getElementById('errorMessage');
+            const canvas = document.getElementById('canvas');
+            
+            try {
+                const data = JSON.parse(input);
+                errorMsg.style.display = 'none';
+
+                // 1. Atualiza Informações do Nó
+                document.getElementById('nodeBadge').innerText = `ORIGEM: ${data.header.node_id} | TS: ${data.header.timestamp}`;
+
+                // 2. Limpa o Canvas e Desenha o Novo Objeto
+                const oldBoxes = document.querySelectorAll('.bounding-box');
+                oldBoxes.forEach(b => b.remove());
+
+                if(data.payload.detections && data.payload.detections.length > 0) {
+                    const det = data.payload.detections[0];
+                    const [x, y, w, h] = det.box;
+
+                    const box = document.createElement('div');
+                    box.className = 'bounding-box';
+                    box.style.left = x + 'px';
+                    box.style.top = y + 'px';
+                    box.style.width = w + 'px';
+                    box.style.height = h + 'px';
+                    box.innerHTML = `&nbsp;${det.object} (${(det.confidence * 100).toFixed(0)}%)`;
+                    canvas.appendChild(box);
+
+                    // 3. Atualiza Detalhes de Texto
+                    document.getElementById('dataDetails').innerHTML = `
+                        <strong>Evento detectado:</strong> ${det.object}<br>
+                        <strong>Confiança IA:</strong> ${det.confidence}<br>
+                        <strong>Status da Rede:</strong> Sincronizado via WebSockets
+                    `;
+                }
+
+            } catch (e) {
+                errorMsg.style.display = 'block';
+                console.error("Erro no JSON:", e);
+            }
+        }
+    </script>
+</body>
+</html>

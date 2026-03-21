@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>S.I.A.O. | Neural Architecture v7.0</title>
+    <script src="https://cdn.jsdelivr.net"></script>
+    <style>
+        @import url('https://fonts.googleapis.com');
+
+        :root {
+            --primary: #00f2fe;
+            --secondary: #7d2ae8;
+            --success: #00ff87;
+            --danger: #ff0055;
+            --bg-main: #010409;
+            --glass: rgba(13, 17, 23, 0.95);
+            --border-glow: rgba(0, 242, 254, 0.3);
+        }
+
+        body {
+            background-color: var(--bg-main);
+            background-image: 
+                radial-gradient(circle at 2px 2px, rgba(255,255,255,0.02) 1px, transparent 0);
+            background-size: 40px 40px;
+            color: #c9d1d9;
+            font-family: 'JetBrains Mono', monospace;
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Topo Futurista */
+        header {
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 40px;
+            background: linear-gradient(90deg, rgba(0,0,0,0.8), transparent);
+            border-bottom: 1px solid var(--border-glow);
+        }
+
+        .sys-id { font-family: 'Space Grotesk'; font-weight: 700; font-size: 1.2rem; letter-spacing: 3px; color: var(--primary); }
+
+        /* Dashboard Core */
+        .grid-container {
+            display: grid;
+            grid-template-columns: 380px 1fr 380px;
+            grid-template-rows: 1fr 220px;
+            gap: 20px;
+            padding: 20px;
+            flex: 1;
+        }
+
+        .glass-card {
+            background: var(--glass);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 8px 32px 0 rgba(0,0,0,0.8);
+            backdrop-filter: blur(10px);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        /* Animação de Borda Ativa */
+        .glass-card::after {
+            content: ''; position: absolute; top: -1px; left: -1px; right: -1px; height: 1px;
+            background: linear-gradient(90deg, transparent, var(--primary), transparent);
+            animation: line-move 3s infinite linear;
+        }
+
+        @keyframes line-move { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
+
+        .label { font-size: 0.65rem; color: #8b949e; text-transform: uppercase; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; }
+        .label::before { content: '◈'; color: var(--primary); }
+
+        /* Central Neural Hub */
+        .neural-hub {
+            grid-column: 2;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .core-circle {
+            width: 280px; height: 280px;
+            border: 1px solid var(--border-glow);
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: radial-gradient(circle, rgba(125, 42, 232, 0.1) 0%, transparent 80%);
+            box-shadow: inset 0 0 40px rgba(0, 242, 254, 0.1);
+            position: relative;
+        }
+
+        .data-orbit {
+            position: absolute; width: 100%; height: 100%;
+            border: 1px dashed rgba(255,255,255,0.1);
+            border-radius: 50%;
+            animation: spin 20s linear infinite;
+        }
+
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+        /* Métricas Dinâmicas */
+        .metric-value { font-family: 'Space Grotesk'; font-size: 1.8rem; color: #fff; margin-bottom: 5px; }
+        .progress-bar { height: 3px; background: #21262d; border-radius: 2px; overflow: hidden; }
+        .progress-fill { height: 100%; background: var(--primary); transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1); }
+
+        /* Terminal Logs */
+        .terminal-box {
+            background: #000;
+            border-radius: 8px;
+            padding: 15px;
+            font-size: 0.75rem;
+            color: var(--success);
+            height: 100%;
+            overflow: hidden;
+            border: 1px solid #30363d;
+        }
+
+        .log-entry { margin-bottom: 4px; display: flex; gap: 10px; }
+        .log-ts { color: #8b949e; font-size: 0.65rem; }
+
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="sys-id">S.I.A.O. // ARCHITECT_V7</div>
+    <div style="display: flex; gap: 30px; font-size: 0.7rem;">
+        <div>NET_LATENCY: <span id="ping-val" style="color:var(--success)">1ms</span></div>
+        <div>OFFLINE_SECURITY: <span style="color:var(--primary)">AES-256-GCM</span></div>
+    </div>
+</header>
+
+<div class="grid-container">
+    
+    <!-- COLUNA 01: NETWORK (MIKROTIK) -->
+    <div class="glass-card">
+        <div class="label">Infraestrutura MikroTik</div>
+        <div class="metric-value" id="net-load">4.8 Mbps</div>
+        <div class="progress-bar"><div id="net-fill" class="progress-fill" style="width: 24%"></div></div>
+        
+        <div style="flex:1; margin-top: 20px;">
+            <canvas id="netChart"></canvas>
+        </div>
+        
+        <div style="font-size: 0.6rem; margin-top: 15px; opacity: 0.5;">
+            GW: 192.168.88.1 | SSIDs: EDU_OFFLINE_5G
+        </div>
+    </div>
+
+    <!-- COLUNA 02: NEURAL CORE (ANDROID) -->
+    <div class="neural-hub">
+        <div class="data-orbit"></div>
+        <div class="core-circle">
+            <div style="font-size: 0.6rem; opacity: 0.5;">INFERENCE_ENGINE</div>
+            <div style="font-family: 'Space Grotesk'; font-size: 2.8rem; font-weight: 700; color: #fff;">NLP-RAG</div>
+            <div id="ai-status" style="color: var(--success); font-size: 0.7rem; margin-top: 10px;">● ENGINE_IDLE</div>
+        </div>
+        
+        <div style="width: 350px; margin-top: 40px; text-align: center;">
+            <div class="label" style="justify-content: center;">Semântica de Busca (RAG)</div>
+            <div style="display: flex; justify-content: space-between; font-size: 0.65rem; margin-bottom: 6px;">
+                <span>VEC_SIMILARITY</span> <span id="sim-val">0.982</span>
+            </div>
+            <div class="progress-bar"><div id="sim-fill" class="progress-fill" style="width: 98%; background: var(--secondary);"></div></div>
+        </div>
+    </div>
+
+    <!-- COLUNA 03: SYSTEM KERNEL -->
+    <div class="glass-card">
+        <div class="label">Android Kernel Status</div>
+        <div class="metric-value" id="ram-val">4.52 GB</div>
+        <div class="progress-bar"><div id="ram-fill" class="progress-fill" style="width: 45%; background: #fff;"></div></div>
+        
+        <div style="flex:1; margin-top: 20px;">
+            <canvas id="ramChart"></canvas>
+        </div>
+        
+        <div style="font-size: 0.6rem; margin-top: 15px; color: var(--secondary);">
+            STORAGE: 1.2GB/64GB | SQLite_FTS5: ACTIVE
+        </div>
+    </div>
+
+    <!-- RODAPÉ: LOGS -->
+    <div class="glass-card" style="grid-column: 1 / 4;">
+        <div class="label">Real-Time Event Stream</div>
+        <div id="terminal" class="terminal-box"></div>
+    </div>
+</div>
+
+<script>
+    // Gráfico de Rede (MIKROTIK)
+    const netCtx = document.getElementById('netChart').getContext('2d');
+    const netChart = new Chart(netCtx, {
+        type: 'line',
+        data: {
+            labels: Array(10).fill(''),
+            datasets: [{
+                data: [12, 15, 10, 18, 22, 16, 25, 30, 28, 35],
+                borderColor: '#00f2fe',
+                borderWidth: 2,
+                fill: true,
+                backgroundColor: 'rgba(0, 242, 254, 0.05)',
+                tension: 0.4,
+                pointRadius: 0
+            }]
+        },
+        options: { plugins: { legend: false }, scales: { x: { display: false }, y: { display: false } } }
+    });
+
+    // Gráfico de RAM (ANDROID)
+    const ramCtx = document.getElementById('ramChart').getContext('2d');
+    const ramChart = new Chart(ramCtx, {
+        type: 'bar',
+        data: {
+            labels: Array(8).fill(''),
+            datasets: [{
+                data: [45, 48, 42, 46, 50, 47, 49, 45],
+                backgroundColor: '#7d2ae8',
+                borderRadius: 4
+            }]
+        },
+        options: { plugins: { legend: false }, scales: { x: { display: false }, y: { display: false } } }
+    });
+
+    // Lógica de Atualização Realista
+    const logs = [
+        "Request received from 192.168.88.10",
+        "Tokenizing input stream (NLP)...",
+        "RAG: Context matched in SQLite (12ms)",
+        "TFLite: Local Inference successful",
+        "WebSocket: Push complete",
+        "Thermal: Core temperature 41°C"
+    ];
+
+    function update() {
+        // Update Network
+        const netVal = Math.floor(Math.random() * 40 + 5);
+        document.getElementById('net-load').innerText = netVal + " Mbps";
+        document.getElementById('net-fill').style.width = netVal + "%";
+        netChart.data.datasets[0].data.shift();
+        netChart.data.datasets[0].data.push(netVal);
+        netChart.update('none');
+
+        // Update Terminal
+        const term = document.getElementById('terminal');
+        const entry = document.createElement('div');
+        entry.className = 'log-entry';
+        entry.innerHTML = `<span class="log-ts">[${new Date().toLocaleTimeString()}]</span> > ${logs[Math.floor(Math.random() * logs.length)]}`;
+        term.prepend(entry);
+        if(term.children.length > 8) term.lastChild.remove();
+
+        // Update RAM
+        const ramVal = (4 + Math.random()).toFixed(2);
+        document.getElementById('ram-val').innerText = ramVal + " GB";
+        
+        // Simular Atividade na IA
+        const status = document.getElementById('ai-status');
+        if(Math.random() > 0.7) {
+            status.innerText = "● INFERENCING...";
+            status.style.color = "var(--danger)";
+        } else {
+            status.innerText = "● ENGINE_IDLE";
+            status.style.color = "var(--success)";
+        }
+    }
+
+    setInterval(update, 2500);
+</script>
+
+</body>
+</html>
