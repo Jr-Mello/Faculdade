@@ -1,0 +1,75 @@
+
+<!-- saved from url=(0063)file:///C:/Users/APAC/Desktop/Salvio/Senac/Portifolio/Port.html -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"></head><body><section class="glass p-6 rounded-3xl mb-10 border-l-4 border-amber-500">
+    <h3 class="text-amber-400 font-bold mb-4 uppercase tracking-widest text-xs">
+        <i class="fa-solid fa-database"></i> Gestão de Persistência (LocalStorage)
+    </h3>
+    <div class="flex flex-wrap gap-4">
+        <button onclick="exportarProgresso()" class="bg-emerald-600 hover:bg-emerald-500 px-4 py-2 rounded-lg text-xs font-bold transition-all">
+            <i class="fa-solid fa-file-export"></i> EXPORTAR BACKUP (.JSON)
+        </button>
+        
+        <label class="bg-blue-600 hover:bg-blue-500 px-4 py-2 rounded-lg text-xs font-bold cursor-pointer transition-all">
+            <i class="fa-solid fa-file-import"></i> IMPORTAR PROGRESSO
+            <input type="file" id="importFile" class="hidden" onchange="importarProgresso(event)">
+        </label>
+
+        <button onclick="limparCache()" class="bg-red-600 hover:bg-red-500 px-4 py-2 rounded-lg text-xs font-bold transition-all">
+            <i class="fa-solid fa-trash-can"></i> LIMPAR TUDO
+        </button>
+    </div>
+</section>
+
+<script>
+    // 1. FUNÇÃO: SALVAR AUTOMATICAMENTE (CHAMAR SEMPRE QUE O ALUNO COMPLETAR UMA PALAVRA)
+    function salvarPalavraNoProgresso(palavra) {
+        let progresso = JSON.parse(localStorage.getItem('progresso_apac') || '[]');
+        if (!progresso.includes(palavra)) {
+            progresso.push(palavra);
+            localStorage.setItem('progresso_apac', JSON.stringify(progresso));
+            alert(`Progresso Salvo: ${palavra}`);
+        }
+    }
+
+    // 2. FUNÇÃO: EXPORTAR (BAIXAR ARQUIVO JSON)
+    function exportarProgresso() {
+        const dados = localStorage.getItem('progresso_apac') || '[]';
+        const blob = new Blob([dados], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `progresso_aluno_${Date.now()}.json`;
+        link.click();
+    }
+
+    // 3. FUNÇÃO: IMPORTAR (LER ARQUIVO JSON)
+    function importarProgresso(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const dadosImportados = JSON.parse(e.target.result);
+                if (Array.isArray(dadosImportados)) {
+                    localStorage.setItem('progresso_apac', JSON.stringify(dadosImportados));
+                    alert("Progresso Importado com Sucesso!");
+                    location.reload(); // Recarrega para mostrar as mudanças
+                }
+            } catch (err) {
+                alert("Erro ao ler o arquivo de importação.");
+            }
+        };
+        reader.readAsText(file);
+    }
+
+    // 4. FUNÇÃO: LIMPAR CACHE
+    function limparCache() {
+        if (confirm("Tem certeza que deseja apagar todo o progresso do aluno?")) {
+            localStorage.removeItem('progresso_apac');
+            alert("Memória limpa!");
+            location.reload();
+        }
+    }
+</script>
+</body></html>

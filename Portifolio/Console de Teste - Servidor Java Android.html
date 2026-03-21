@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<!-- saved from url=(0063)file:///C:/Users/APAC/Desktop/Salvio/Senac/Portifolio/Port.html -->
+<html lang="pt-br"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    
+    <title>Console de Teste - Servidor Java Android</title>
+    <script src="./Console de Teste - Servidor Java Android_files/saved_resource"></script>
+    <style>
+        .json-viewer { background: #011627; color: #addbff; font-family: 'Fira Code', monospace; }
+        .status-online { color: #10b981; }
+        .status-offline { color: #ef4444; }
+    </style>
+<style>*, ::before, ::after{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246 / 0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }::backdrop{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246 / 0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }/* ! tailwindcss v3.4.17 | MIT License | https://tailwindcss.com */*,::after,::before{box-sizing:border-box;border-width:0;border-style:solid;border-color:#e5e7eb}::after,::before{--tw-content:''}:host,html{line-height:1.5;-webkit-text-size-adjust:100%;-moz-tab-size:4;tab-size:4;font-family:ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";font-feature-settings:normal;font-variation-settings:normal;-webkit-tap-highlight-color:transparent}body{margin:0;line-height:inherit}hr{height:0;color:inherit;border-top-width:1px}abbr:where([title]){-webkit-text-decoration:underline dotted;text-decoration:underline dotted}h1,h2,h3,h4,h5,h6{font-size:inherit;font-weight:inherit}a{color:inherit;text-decoration:inherit}b,strong{font-weight:bolder}code,kbd,pre,samp{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;font-feature-settings:normal;font-variation-settings:normal;font-size:1em}small{font-size:80%}sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}sub{bottom:-.25em}sup{top:-.5em}table{text-indent:0;border-color:inherit;border-collapse:collapse}button,input,optgroup,select,textarea{font-family:inherit;font-feature-settings:inherit;font-variation-settings:inherit;font-size:100%;font-weight:inherit;line-height:inherit;letter-spacing:inherit;color:inherit;margin:0;padding:0}button,select{text-transform:none}button,input:where([type=button]),input:where([type=reset]),input:where([type=submit]){-webkit-appearance:button;background-color:transparent;background-image:none}:-moz-focusring{outline:auto}:-moz-ui-invalid{box-shadow:none}progress{vertical-align:baseline}::-webkit-inner-spin-button,::-webkit-outer-spin-button{height:auto}[type=search]{-webkit-appearance:textfield;outline-offset:-2px}::-webkit-search-decoration{-webkit-appearance:none}::-webkit-file-upload-button{-webkit-appearance:button;font:inherit}summary{display:list-item}blockquote,dd,dl,figure,h1,h2,h3,h4,h5,h6,hr,p,pre{margin:0}fieldset{margin:0;padding:0}legend{padding:0}menu,ol,ul{list-style:none;margin:0;padding:0}dialog{padding:0}textarea{resize:vertical}input::placeholder,textarea::placeholder{opacity:1;color:#9ca3af}[role=button],button{cursor:pointer}:disabled{cursor:default}audio,canvas,embed,iframe,img,object,svg,video{display:block;vertical-align:middle}img,video{max-width:100%;height:auto}[hidden]:where(:not([hidden=until-found])){display:none}.mx-auto{margin-left:auto;margin-right:auto}.mb-2{margin-bottom:0.5rem}.mb-4{margin-bottom:1rem}.mb-6{margin-bottom:1.5rem}.mb-8{margin-bottom:2rem}.mt-8{margin-top:2rem}.block{display:block}.flex{display:flex}.grid{display:grid}.h-\[300px\]{height:300px}.min-h-screen{min-height:100vh}.w-full{width:100%}.max-w-4xl{max-width:56rem}.flex-col{flex-direction:column}.items-center{align-items:center}.justify-center{justify-content:center}.justify-between{justify-content:space-between}.gap-2{gap:0.5rem}.gap-6{gap:1.5rem}.space-y-1 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(0.25rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(0.25rem * var(--tw-space-y-reverse))}.overflow-y-auto{overflow-y:auto}.rounded{border-radius:0.25rem}.rounded-lg{border-radius:0.5rem}.rounded-xl{border-radius:0.75rem}.rounded-b-xl{border-bottom-right-radius:0.75rem;border-bottom-left-radius:0.75rem}.rounded-t-xl{border-top-left-radius:0.75rem;border-top-right-radius:0.75rem}.border{border-width:1px}.border-b{border-bottom-width:1px}.border-blue-800\/30{border-color:rgb(30 64 175 / 0.3)}.border-slate-700{--tw-border-opacity:1;border-color:rgb(51 65 85 / var(--tw-border-opacity, 1))}.bg-blue-600{--tw-bg-opacity:1;background-color:rgb(37 99 235 / var(--tw-bg-opacity, 1))}.bg-blue-900\/20{background-color:rgb(30 58 138 / 0.2)}.bg-slate-800{--tw-bg-opacity:1;background-color:rgb(30 41 59 / var(--tw-bg-opacity, 1))}.bg-slate-900{--tw-bg-opacity:1;background-color:rgb(15 23 42 / var(--tw-bg-opacity, 1))}.p-2{padding:0.5rem}.p-4{padding:1rem}.p-6{padding:1.5rem}.p-8{padding:2rem}.py-3{padding-top:0.75rem;padding-bottom:0.75rem}.pb-4{padding-bottom:1rem}.font-mono{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace}.text-2xl{font-size:1.5rem;line-height:2rem}.text-lg{font-size:1.125rem;line-height:1.75rem}.text-sm{font-size:0.875rem;line-height:1.25rem}.text-xs{font-size:0.75rem;line-height:1rem}.font-bold{font-weight:700}.font-semibold{font-weight:600}.uppercase{text-transform:uppercase}.tracking-widest{letter-spacing:0.1em}.text-blue-300{--tw-text-opacity:1;color:rgb(147 197 253 / var(--tw-text-opacity, 1))}.text-blue-400{--tw-text-opacity:1;color:rgb(96 165 250 / var(--tw-text-opacity, 1))}.text-slate-200{--tw-text-opacity:1;color:rgb(226 232 240 / var(--tw-text-opacity, 1))}.text-slate-400{--tw-text-opacity:1;color:rgb(148 163 184 / var(--tw-text-opacity, 1))}.text-white{--tw-text-opacity:1;color:rgb(255 255 255 / var(--tw-text-opacity, 1))}.shadow-xl{--tw-shadow:0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);--tw-shadow-colored:0 20px 25px -5px var(--tw-shadow-color), 0 8px 10px -6px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.transition-all{transition-property:all;transition-timing-function:cubic-bezier(0.4, 0, 0.2, 1);transition-duration:150ms}.hover\:bg-blue-500:hover{--tw-bg-opacity:1;background-color:rgb(59 130 246 / var(--tw-bg-opacity, 1))}.focus\:border-blue-500:focus{--tw-border-opacity:1;border-color:rgb(59 130 246 / var(--tw-border-opacity, 1))}.focus\:outline-none:focus{outline:2px solid transparent;outline-offset:2px}@media (min-width: 768px){.md\:grid-cols-2{grid-template-columns:repeat(2, minmax(0, 1fr))}}</style></head>
+<body class="bg-slate-900 text-slate-200 min-h-screen p-8">
+
+    <div class="max-w-4xl mx-auto">
+        <header class="mb-8 border-b border-slate-700 pb-4">
+            <h1 class="text-2xl font-bold text-blue-400">🛠 System Debugger - APAC Offline</h1>
+            <p class="text-slate-400">Teste de comunicação entre Front-end JS e Servidor Java Nativo</p>
+        </header>
+
+        <div class="grid md:grid-cols-2 gap-6">
+            <!-- Painel de Controle -->
+            <div class="bg-slate-800 p-6 rounded-xl shadow-xl">
+                <h2 class="text-lg font-semibold mb-4">Configuração do Host</h2>
+                
+                <label class="block text-sm mb-2 text-slate-400">IP do Servidor Android:</label>
+                <input type="text" id="serverIp" value="192.168.0.100:8080" class="w-full bg-slate-900 border border-slate-700 p-2 rounded mb-4 text-blue-400 focus:outline-none focus:border-blue-500">
+
+                <label class="block text-sm mb-2 text-slate-400">Endpoint / Comando:</label>
+                <select id="endpoint" class="w-full bg-slate-900 border border-slate-700 p-2 rounded mb-6">
+                    <option value="/getAula">/getAula (IA Alfabetização)</option>
+                    <option value="/getLivro">/getLivro (Biblioteca)</option>
+                    <option value="/status">/status (Health Check)</option>
+                </select>
+
+                <button onclick="testarConexao()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-lg transition-all flex items-center justify-center gap-2">
+                    <span id="btnText">EXECUTAR REQUEST</span>
+                </button>
+            </div>
+
+            <!-- Monitor de Resposta -->
+            <div class="flex flex-col">
+                <div class="bg-slate-800 p-4 rounded-t-xl border-b border-slate-700 flex justify-between items-center">
+                    <span class="text-sm font-mono">SERVER_RESPONSE</span>
+                    <span id="statusIndicator" class="text-xs font-bold uppercase status-offline">● Erro de Conexão</span>
+                </div>
+                <pre id="jsonOutput" class="json-viewer p-6 rounded-b-xl h-[300px] overflow-y-auto text-sm">// ERRO: Não foi possível conectar ao IP 192.168.0.100:8080.
+// Verifique se o servidor Java está ligado no Android.
+
+Detalhes: Failed to fetch</pre>
+            </div>
+        </div>
+
+        <!-- Guia de Teste -->
+        <footer class="mt-8 bg-blue-900/20 p-4 rounded-lg border border-blue-800/30">
+            <h3 class="text-blue-300 font-bold mb-2 uppercase text-xs tracking-widest">Protocolo de Engenharia</h3>
+            <ul class="text-xs text-slate-400 space-y-1">
+                <li>• Certifique-se que o <strong>ServerSocket</strong> no Java está rodando na porta definida.</li>
+                <li>• O retorno do Java deve conter o header: <code>Access-Control-Allow-Origin: *</code> para evitar erro de CORS.</li>
+                <li>• Formato esperado: <code>Content-Type: application/json</code>.</li>
+            </ul>
+        </footer>
+    </div>
+
+    <script>
+        async function testarConexao() {
+            const ip = document.getElementById('serverIp').value;
+            const endpoint = document.getElementById('endpoint').value;
+            const output = document.getElementById('jsonOutput');
+            const status = document.getElementById('statusIndicator');
+            const btn = document.getElementById('btnText');
+
+            output.textContent = "// Solicitando dados ao Android...";
+            btn.textContent = "PROCESSANDO...";
+
+            try {
+                // Simulação ou chamada real via Fetch
+                const response = await fetch(`http://${ip}${endpoint}`, {
+                    method: 'GET',
+                    mode: 'cors'
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    output.textContent = JSON.stringify(data, null, 4);
+                    status.textContent = "● Online (200 OK)";
+                    status.className = "text-xs font-bold uppercase status-online";
+                } else {
+                    throw new Error("Erro na resposta do servidor.");
+                }
+            } catch (err) {
+                status.textContent = "● Erro de Conexão";
+                status.className = "text-xs font-bold uppercase status-offline";
+                output.textContent = `// ERRO: Não foi possível conectar ao IP ${ip}.\n// Verifique se o servidor Java está ligado no Android.\n\nDetalhes: ${err.message}`;
+            } finally {
+                btn.textContent = "EXECUTAR REQUEST";
+            }
+        }
+    </script>
+
+
+</body></html>
