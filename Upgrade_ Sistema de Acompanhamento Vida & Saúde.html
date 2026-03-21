@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<!-- saved from url=(0044)file:///C:/Users/APAC/Desktop/Salvio/AC.html -->
+<html lang="pt-br"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    
+    <title>Upgrade: Sistema de Acompanhamento Vida &amp; Saúde</title>
+    <style>
+        :root { --senac-blue: #004587; --alert: #e74c3c; --success: #27ae60; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f4f7f6; padding: 20px; }
+        .container { max-width: 1000px; margin: auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+        
+        .header-top { display: flex; justify-content: space-between; align-items: center; border-bottom: 4px solid var(--senac-blue); margin-bottom: 20px; }
+        
+        /* Layout de Duas Colunas */
+        .system-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
+        
+        .panel { border: 1px solid #ddd; border-radius: 8px; padding: 15px; }
+        .panel h3 { margin-top: 0; color: var(--senac-blue); border-bottom: 1px solid #eee; padding-bottom: 10px; }
+        
+        /* Visualização das Divisórias */
+        .calendar-track { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; margin-top: 10px; }
+        .day-box { border: 1px solid #eee; padding: 5px; text-align: center; font-size: 0.8em; background: #fafafa; position: relative; }
+        .has-task { background: #fff3cd; border-color: #ffeeba; cursor: pointer; }
+        .has-task::after { content: '●'; color: var(--alert); position: absolute; top: 2px; right: 2px; }
+
+        .tag { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 0.7em; color: white; }
+        .tag-rh { background: #3498db; }
+        .tag-aluno { background: #9b59b6; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header-top">
+        <h2>Gestão Documental 360°</h2>
+        <span style="font-weight: bold; color: var(--senac-blue);">SENAC - Téc. Adm</span>
+    </div>
+
+    <div class="system-grid">
+        <!-- Coluna A: O Arquivo de Referência -->
+        <div class="panel">
+            <h3>🗄️ Arquivo Alfabético (Repositório)</h3>
+            <p><small>Onde o documento "mora" permanentemente.</small></p>
+            <ul style="list-style: none; padding: 0;">
+                <li>📁 <strong>C</strong>osta, Marcelo <span class="tag tag-aluno">Prontuário</span></li>
+                <li>📁 <strong>F</strong>erreira, Alice <span class="tag tag-rh">Contrato RH</span></li>
+                <li>📁 <strong>S</strong>ouza, Roberto <span class="tag tag-aluno">Atestado</span></li>
+            </ul>
+        </div>
+
+        <!-- Coluna B: O Arquivo de Prosseguimento Aprimorado -->
+        <div class="panel">
+            <h3>📅 Prosseguimento (Ação em Fevereiro)</h3>
+            <p><small>Monitoramento ativo de prazos vigentes.</small></p>
+            <div class="calendar-track">
+                <!-- Simulação de dias do mês -->
+                <div class="day-box">20</div><div class="day-box">21</div>
+                <div class="day-box">22</div><div class="day-box">23</div>
+                <div class="day-box has-task" title="Vence Atestado: Souza, R.">24</div>
+                <div class="day-box">25</div><div class="day-box has-task" title="Renovar Plano: Costa, M.">26</div>
+            </div>
+            <div style="margin-top: 15px; font-size: 0.85em; background: #fdf2f2; padding: 10px; border-radius: 5px;">
+                <strong>⚠️ Ação para Hoje (Dia 26):</strong><br>
+                Ligar para <em>Costa, Marcelo</em>. Plano anual expira em 10 dias. Documento original na pasta <strong>C</strong> do Arquivo Alfabético.
+            </div>
+        </div>
+    </div>
+
+    <div style="margin-top:30px;">
+        <h3>🔗 Conectividade Sistêmica</h3>
+        <p>Aprimoramos o arquivo de acompanhamento com o uso de <strong>Cartões de Referência Cruzada</strong>. Quando um documento entra no sistema, ele gera um "clone de controle" que viaja pelas pastas de data, enquanto o original permanece seguro e imóvel no arquivo alfabético.</p>
+    </div>
+</div>
+
+
+
+</body></html>

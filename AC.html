@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>PROJETO FINAL SENAC - VIDA & SAÚDE</title>
+    <style>
+        :root { --blue: #004587; --orange: #f39c12; --green: #27ae60; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; padding: 20px; }
+        .page { max-width: 1000px; margin: auto; background: white; padding: 50px; border-radius: 8px; box-shadow: 0 0 20px rgba(0,0,0,0.1); }
+        header { border-bottom: 4px solid var(--blue); text-align: center; margin-bottom: 30px; }
+        h1 { color: var(--blue); margin-bottom: 5px; }
+        h2 { background: var(--blue); color: white; padding: 10px; margin-top: 30px; font-size: 1.1em; border-radius: 4px; }
+        
+        /* Mapa Mental PowerPoint Style */
+        .map-box { display: flex; justify-content: space-between; margin: 30px 0; gap: 15px; }
+        .node { flex: 1; padding: 15px; border: 2px solid var(--blue); border-radius: 10px; text-align: center; font-weight: bold; background: #fff; }
+        .link { font-size: 2em; align-self: center; color: var(--orange); }
+
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        th { background: #eee; padding: 10px; border: 1px solid #ddd; }
+        td { border: 1px solid #ddd; padding: 10px; font-size: 0.9em; }
+
+        .btn-print { display: block; width: 100%; padding: 20px; background: var(--green); color: white; border: none; 
+                    border-radius: 8px; font-size: 1.2em; font-weight: bold; cursor: pointer; margin-top: 40px; }
+
+        @media print {
+            .btn-print { display: none; }
+            body { padding: 0; }
+            .page { box-shadow: none; width: 100%; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="page">
+    <header>
+        <p>CURSO TÉCNICO EM ADMINISTRAÇÃO - SENAC</p>
+        <h1>GESTÃO DOCUMENTAL: ACADEMIA VIDA & SAÚDE</h1>
+        <p>Sistema Alfabético e Prosseguimento Integrado</p>
+    </header>
+
+    <h2>1. Conceito do Sistema (Mapa Mental)</h2>
+    <div class="map-box">
+        <div class="node">ARQUIVO ALFABÉTICO<br><small>(Onde guarda)</small><br><span style="color:var(--green)">Fixação do Dado</span></div>
+        <div class="link">➔</div>
+        <div class="node" style="border-color: var(--orange);">ARQUIVO PROSSEGUIMENTO<br><small>(Quando agir)</small><br><span style="color:var(--orange)">Inteligência do Prazo</span></div>
+    </div>
+
+    <h2>2. Estrutura do Arquivo de Prosseguimento (Follow-up)</h2>
+    <table>
+        <tr><th>Divisórias</th><th>Ação Administrativa</th><th>Documentos Relacionados</th></tr>
+        <tr><td><b>1 a 31 (Dias)</b></td><td>Controle de caixa, manutenção diária e faltas de alunos.</td><td>Comprovantes e Fichas de Alerta</td></tr>
+        <tr><td><b>Jan a Dez (Meses)</b></td><td>Renovação de contratos, impostos anuais e exames médicos.</td><td>Contratos e Atestados</td></tr>
+    </table>
+
+    <h2>3. Lista de Itens para Implementação</h2>
+    <ul>
+        <li><b>Mobiliário:</b> Arquivos de aço com trilhos para pastas suspensas.</li>
+        <li><b>Consumíveis:</b> Pastas coloridas (Variadex), etiquetas e guias divisórias.</li>
+        <li><b>Controle:</b> Cartões "Guia de Fora" para rastreio de documentos.</li>
+    </ul>
+
+    <h2>4. Resumo de Temporalidade</h2>
+    <p>Os documentos de alunos são mantidos por 5 anos após o encerramento do plano (CDC). Documentos de RH seguem prazos trabalhistas de até 20 anos.</p>
+
+    <button class="btn-print" onclick="window.print()">📥 GERAR PDF PARA APRESENTAÇÃO</button>
+</div>
+
+</body>
+</html>

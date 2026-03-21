@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<!-- saved from url=(0044)file:///C:/Users/APAC/Desktop/Salvio/AC.html -->
+<html lang="pt-br"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema SGD-VS | Academia Vida e Saúde</title>
+    <style>
+        :root { --primary: #1a5276; --secondary: #27ae60; --accent: #e67e22; --bg: #f8f9fa; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); margin: 0; padding: 20px; }
+        .dashboard { max-width: 1100px; margin: auto; background: white; padding: 40px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+        h1 { color: var(--primary); text-align: center; border-bottom: 3px solid var(--secondary); padding-bottom: 10px; text-transform: uppercase; letter-spacing: 2px; }
+        
+        /* Mapa Mental Complexo */
+        .mindmap-container { display: flex; justify-content: center; padding: 40px 0; overflow-x: auto; }
+        .node { padding: 15px 25px; border-radius: 10px; color: white; font-weight: bold; text-align: center; min-width: 180px; position: relative; }
+        .root { background: var(--primary); z-index: 2; }
+        .sub-node { background: var(--secondary); margin: 0 10px; font-size: 0.9em; }
+        .leaf { background: #5d6d7e; font-size: 0.8em; margin-top: 10px; }
+
+        .flex-row { display: flex; justify-content: space-between; gap: 20px; margin-top: 30px; }
+        .card { flex: 1; padding: 20px; border: 1px solid #ddd; border-radius: 10px; background: #fff; }
+        .card h3 { color: var(--secondary); margin-top: 0; }
+
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 0.9em; }
+        th { background: var(--primary); color: white; padding: 12px; }
+        td { border: 1px solid #ddd; padding: 10px; text-align: center; }
+        .status-alert { background: #f9ebea; color: #c0392b; font-weight: bold; border-radius: 4px; }
+    </style>
+</head>
+<body>
+
+<div class="dashboard">
+    <h1>Sistema de Gestão Documental - Vida &amp; Saúde</h1>
+
+    <!-- Mapa Mental Ilustrativo -->
+    <div class="mindmap-container">
+        <div style="text-align: center;">
+            <div class="node root">SISTEMA INTEGRADO (SGD-VS)</div>
+            <div style="display: flex; justify-content: center; margin-top: 30px;">
+                <div>
+                    <div class="node sub-node">MÉTODO ALFABÉTICO</div>
+                    <div class="node leaf">Prontuário de Alunos</div>
+                    <div class="node leaf">Dossiê de Funcionários</div>
+                    <div class="node leaf">Contratos Fornecedores</div>
+                </div>
+                <div>
+                    <div class="node sub-node" style="background: var(--accent);">ARQUIVO PROSSEGUIMENTO</div>
+                    <div class="node leaf">Controle de Exames (30/60/90 dias)</div>
+                    <div class="node leaf">Renovação de Planos Anuais</div>
+                    <div class="node leaf">Manutenção de Equipamentos</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="flex-row">
+        <div class="card">
+            <h3>🗄️ Organização Alfabética (RH)</h3>
+            <p><strong>Regra Aplicada:</strong> <em>Alfabetação por Sobrenome.</em></p>
+            <ul>
+                <li><strong>A</strong>raújo, Carlos (Instrutor)</li>
+                <li><strong>B</strong>arbosa, Juliana (Recepcionista)</li>
+                <li><strong>S</strong>ilva, Fernando (Personal)</li>
+            </ul>
+        </div>
+        <div class="card">
+            <h3>📅 Prosseguimento (Operacional)</h3>
+            <p><strong>Configuração:</strong> <em>Timeline Cronológica.</em></p>
+            <table>
+                <tbody><tr>
+                    <th>Gatilho</th>
+                    <th>Data Alvo</th>
+                    <th>Ação Administrativa</th>
+                </tr>
+                <tr>
+                    <td>Exame Médico</td>
+                    <td>15/Abr</td>
+                    <td class="status-alert">Bloqueio de Catraca</td>
+                </tr>
+                <tr>
+                    <td>Fim de Experiência</td>
+                    <td>22/Abr</td>
+                    <td>Avaliação de Desempenho</td>
+                </tr>
+            </tbody></table>
+        </div>
+    </div>
+
+    <div style="margin-top: 30px; padding: 20px; background: #e8f6f3; border-radius: 10px;">
+        <h3>📌 Resumo Técnico para Apresentação</h3>
+        <p>Este sistema resolve o problema da <strong>ociosidade documental</strong>. Enquanto o arquivo alfabético organiza o passado e o presente da Academia Vida &amp; Saúde, o arquivo de prosseguimento gerencia o futuro, garantindo que a empresa seja <strong>proativa</strong> e não apenas reativa aos problemas legais e administrativos.</p>
+    </div>
+</div>
+
+
+
+</body></html>

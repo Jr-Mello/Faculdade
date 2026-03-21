@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portfólio Engenharia de Software - Unopar</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --dark: #1e293b;
+            --light: #f8fafc;
+            --success: #10b981;
+        }
+        body { font-family: 'Segoe UI', sans-serif; line-height: 1.6; margin: 0; background: var(--light); color: var(--dark); }
+        header { background: var(--dark); color: white; padding: 3rem 1rem; text-align: center; border-bottom: 5px solid var(--primary); }
+        .container { max-width: 900px; margin: 2rem auto; padding: 0 1rem; }
+        .card { background: white; padding: 1.5rem; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 2rem; }
+        h1, h2 { color: var(--primary); border-bottom: 2px solid #e2e8f0; padding-bottom: 10px; }
+        
+        /* Galeria de Fotos */
+        .gallery { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin-top: 20px; }
+        .gallery-item { background: #eee; border-radius: 8px; height: 180px; display: flex; align-items: center; justify-content: center; border: 2px dashed #cbd5e1; color: #64748b; font-size: 0.9rem; text-align: center; overflow: hidden; }
+        .gallery-item img { width: 100%; height: 100%; object-fit: cover; }
+
+        /* Botão Download */
+        .btn-container { text-align: center; margin: 3rem 0; }
+        .btn-download { background: var(--success); color: white; padding: 15px 30px; text-decoration: none; border-radius: 50px; font-weight: bold; transition: transform 0.2s; display: inline-block; box-shadow: 0 4px 10px rgba(16, 185, 129, 0.3); }
+        .btn-download:hover { transform: scale(1.05); background: #059669; }
+
+        .tech-stack { display: flex; gap: 10px; flex-wrap: wrap; margin: 1rem 0; }
+        .badge { background: var(--primary); color: white; padding: 5px 12px; border-radius: 20px; font-size: 0.85rem; }
+        footer { text-align: center; padding: 2rem; background: #e2e8f0; margin-top: 2rem; }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>Ecossistema de Ensino Offline & IA</h1>
+    <p>Projeto Integrador - Engenharia de Software | <strong>APAC Porto Alegre</strong></p>
+</header>
+
+<div class="container">
+    
+    <section class="card">
+        <h2>🛠 Arquitetura do Sistema</h2>
+        <div class="tech-stack">
+            <span class="badge">Java Nativo (Server)</span>
+            <span class="badge">JSON API</span>
+            <span class="badge">JS Vanilla (Front)</span>
+            <span class="badge">IA Pedagógica</span>
+        </div>
+        <p>Sistema operando como <strong>Edge Server</strong> no Android, servindo conteúdo via IP para dispositivos na rede local, garantindo alfabetização sem dependência de internet.</p>
+    </section>
+
+    <section class="card">
+        <h2>📸 Galeria de Interface (Screenshots)</h2>
+        <div class="gallery">
+            <div class="gallery-item">
+                <!-- Substitua o 'src' pela sua imagem: <img src="sua_foto.png"> -->
+                <span>[Print do Painel Java no Android]</span>
+            </div>
+            <div class="gallery-item">
+                <span>[Interface de Alfabetização JS]</span>
+            </div>
+            <div class="gallery-item">
+                <span>[Gestão de Biblioteca]</span>
+            </div>
+        </div>
+    </section>
+
+    <div class="btn-container">
+        <!-- O link abaixo deve apontar para o seu arquivo PDF na mesma pasta -->
+        <a href="documentacao_tecnica.pdf" class="btn-download" target="_blank">
+            📄 BAIXAR DOCUMENTAÇÃO TÉCNICA (PDF)
+        </a>
+    </div>
+
+</div>
+
+<footer>
+    <p>Desenvolvido para fins acadêmicos e sociais na APAC Porto Alegre/Partenon.</p>
+</footer>
+
+</body>
+</html>

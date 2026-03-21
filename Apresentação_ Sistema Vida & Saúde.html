@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<!-- saved from url=(0044)file:///C:/Users/APAC/Desktop/Salvio/AC.html -->
+<html lang="pt-br"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    
+    <title>Apresentação: Sistema Vida &amp; Saúde</title>
+    <style>
+        :root { --senac-orange: #f39c12; --senac-blue: #004587; --bg: #f4f7f6; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 20px; color: #333; }
+        .slide { max-width: 1000px; margin: auto; background: white; padding: 40px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); border-top: 10px solid var(--senac-blue); }
+        
+        h1 { color: var(--senac-blue); text-align: center; text-transform: uppercase; }
+        
+        /* Estilo Mapa Mental Estilo PowerPoint */
+        .mindmap { display: flex; justify-content: center; align-items: center; gap: 30px; margin: 40px 0; flex-wrap: wrap; }
+        .node { padding: 20px; border-radius: 10px; color: white; text-align: center; font-weight: bold; width: 220px; box-shadow: 0 4px 6px rgba(0,0,0,0.2); }
+        .node-main { background: var(--senac-blue); font-size: 1.2em; }
+        .node-branch { background: var(--senac-orange); }
+        .node-leaf { background: #27ae60; font-size: 0.8em; margin-top: 5px; color: white; border: 1px solid #1e8449; }
+
+        .btn-download { display: block; width: fit-content; margin: 30px auto; padding: 15px 30px; background: #27ae60; color: white; border: none; border-radius: 50px; font-weight: bold; cursor: pointer; transition: 0.3s; text-decoration: none; }
+        .btn-download:hover { background: #219150; transform: scale(1.05); }
+
+        .content-section { border-left: 4px solid var(--senac-orange); padding-left: 20px; margin: 20px 0; }
+    </style>
+</head>
+<body>
+
+<div class="slide">
+    <h1>Academia Vida &amp; Saúde</h1>
+    <p style="text-align: center;"><strong>Sistema Integrado de Gestão Documental (SIGD)</strong></p>
+
+    <!-- Mapa Mental Visual -->
+    <div class="mindmap">
+        <div class="node node-branch">
+            ARQUIVO ALFABÉTICO
+            <div class="node node-leaf">Prontuários (A-Z)</div>
+            <div class="node node-leaf">Dossiê de Funcionários</div>
+            <div class="node node-leaf">Contratos Fornecedores</div>
+        </div>
+
+        <div class="node node-main">GESTÃO GERAL<br>(Cérebro da Academia)</div>
+
+        <div class="node node-branch" style="background: #e67e22;">
+            PROSSEGUIMENTO
+            <div class="node node-leaf">Exames Médicos (Datas)</div>
+            <div class="node node-leaf">Manutenção de Máquinas</div>
+            <div class="node node-leaf">Renovação de Planos</div>
+        </div>
+    </div>
+
+    <div class="content-section">
+        <h3>🚀 Operação do Sistema</h3>
+        <p>O <strong>Arquivo de Prosseguimento</strong> utiliza o sistema de 43 divisórias (31 dias + 12 meses). Todo documento que entra no arquivo alfabético gera um "card de ação" no arquivo cronológico, garantindo 0% de esquecimento de prazos legais e comerciais.</p>
+    </div>
+
+    <!-- Botão de Download -->
+    <button class="btn-download" onclick="baixarProjeto()">📥 Baixar Relatório do Projeto (TXT)</button>
+</div>
+
+<script>
+    function baixarProjeto() {
+        const conteudo = `
+SISTEMA DE GESTÃO DOCUMENTAL - ACADEMIA VIDA & SAÚDE
+--------------------------------------------------
+MODELO: Integrado (Alfabético + Prosseguimento)
+
+1. ARQUIVO ALFABÉTICO (ESTÁTICO):
+   - Organização: Sobrenome, Nome.
+   - Categorias: RH, Alunos e Administrativo.
+   - Cores (Variadex): Azul (RH), Verde (Alunos), Amarelo (Adm).
+
+2. ARQUIVO DE PROSSEGUIMENTO (DINÂMICO):
+   - Estrutura: 31 divisórias diárias + 12 divisórias mensais.
+   - Escopo Total: 
+     * Alunos: Vencimento de atestados, renovação de planos, avaliações físicas.
+     * RH: Contratos de experiência, exames periódicos (ASO), férias.
+     * Manutenção: Lubrificação de esteiras, troca de filtros de água.
+     * Legal: Alvarás, impostos e taxas (ECAD/ISS).
+
+3. REGRAS DE SEGURANÇA:
+   - Uso de Guia de Fora para retiradas.
+   - Tabela de Temporalidade aplicada conforme LGPD.
+--------------------------------------------------
+Trabalho Técnico de Administração - SENAC
+        `;
+        
+        const blob = new Blob([conteudo], { type: "text/plain" });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = "Projeto_Arquivo_VidaESaude.txt";
+        link.click();
+    }
+</script>
+
+
+
+</body></html>

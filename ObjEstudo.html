@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portfólio Engenharia: Sistema P2P Edge AI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background: #0f172a; color: #f8fafc; font-family: 'Inter', sans-serif; }
+        .radar {
+            position: relative;
+            width: 300px;
+            height: 300px;
+            border-radius: 50%;
+            border: 2px solid #1e293b;
+            background: radial-gradient(circle, #1e293b 10%, transparent 70%);
+            overflow: hidden;
+        }
+        .pulse {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 10px; height: 10px;
+            background: #22c55e;
+            border-radius: 50%;
+            box-shadow: 0 0 20px #22c55e;
+        }
+        .wave {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            border: 1px solid #22c55e;
+            border-radius: 50%;
+            animation: wave 3s infinite;
+        }
+        @keyframes wave {
+            0% { width: 0; height: 0; opacity: 1; }
+            100% { width: 300px; height: 300px; opacity: 0; }
+        }
+        .node { position: absolute; width: 8px; height: 8px; background: #64748b; border-radius: 50%; }
+        .node.active { background: #ef4444; box-shadow: 0 0 15px #ef4444; }
+        .line { position: absolute; height: 2px; background: rgba(239, 68, 68, 0.3); transform-origin: left; display: none; }
+    </style>
+</head>
+<body class="p-8">
+    <div class="max-w-4xl mx-auto">
+        <header class="mb-12 border-b border-slate-700 pb-6">
+            <h1 class="text-4xl font-bold text-green-400">Sistema de Monitoramento Crítico P2P</h1>
+            <p class="text-slate-400 mt-2">Engenharia de Software - Projeto Integrador Unopar</p>
+        </header>
+
+        <section class="grid md:grid-cols-2 gap-12 items-center">
+            <div>
+                <h2 class="text-2xl font-semibold mb-4 italic text-slate-200">Visualização de Triangulação (L2 Bridge)</h2>
+                <div class="radar mx-auto" id="radar">
+                    <div class="pulse"></div>
+                    <div class="wave"></div>
+                    <!-- Nodes -->
+                    <div class="node" style="top: 20%; left: 50%;" id="n1"></div>
+                    <div class="node" style="top: 70%; left: 20%;" id="n2"></div>
+                    <div class="node" style="top: 70%; left: 80%;" id="n3"></div>
+                </div>
+                <div class="mt-6 text-center">
+                    <button onclick="simularAlerta()" class="bg-red-600 hover:bg-red-700 px-6 py-2 rounded-full font-bold transition">Simular Alerta JSON</button>
+                </div>
+            </div>
+
+            <div class="space-y-4">
+                <div class="bg-slate-800 p-4 rounded-lg border-l-4 border-green-500">
+                    <h3 class="font-bold">Edge Computing & AI</h3>
+                    <p class="text-sm text-slate-300">Análise harmônica de áudio local para redução de latência.</p>
+                </div>
+                <div class="bg-slate-800 p-4 rounded-lg border-l-4 border-blue-500">
+                    <h3 class="font-bold">Infraestrutura MikroTik</h3>
+                    <p class="text-sm text-slate-300">Rede L2 transparente com IP Bindings (Bypass) via WebSocket.</p>
+                </div>
+                <div class="bg-slate-800 p-4 rounded-lg border-l-4 border-purple-500">
+                    <h3 class="font-bold">P2P Mesh Network</h3>
+                    <p class="text-sm text-slate-300">Consenso entre nós via JSON para eliminação de falsos positivos.</p>
+                </div>
+            </div>
+        </section>
+
+        <footer class="mt-16 bg-slate-900 p-6 rounded-xl border border-slate-700">
+            <h3 class="text-green-400 font-mono mb-2">Stack Técnica:</h3>
+            <div class="flex flex-wrap gap-4 text-xs font-mono">
+                <span class="bg-slate-700 px-3 py-1 rounded">Java (Backend)</span>
+                <span class="bg-slate-700 px-3 py-1 rounded">WebSocket API</span>
+                <span class="bg-slate-700 px-3 py-1 rounded">RouterOS v7 (MikroTik)</span>
+                <span class="bg-slate-700 px-3 py-1 rounded">CNN Audio Analysis</span>
+                <span class="bg-slate-700 px-3 py-1 rounded">SQLite / JSON</span>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        function simularAlerta() {
+            const nodes = ['n1', 'n2', 'n3'];
+            nodes.forEach((id, index) => {
+                setTimeout(() => {
+                    document.getElementById(id).classList.add('active');
+                }, index * 400);
+            });
+
+            setTimeout(() => {
+                alert("CONSENSO ATINGIDO: 3 nós reportaram o evento. Disparando comando DTMF para a Base.");
+                nodes.forEach(id => document.getElementById(id).classList.remove('active'));
+            }, 1500);
+        }
+    </script>
+</body>
+</html>

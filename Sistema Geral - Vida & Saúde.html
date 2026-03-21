@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<!-- saved from url=(0044)file:///C:/Users/APAC/Desktop/Salvio/AC.html -->
+<html lang="pt-br"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    
+    <title>Sistema Geral - Vida &amp; Saúde</title>
+    <style>
+        :root { --main: #003366; --rh: #3498db; --aluno: #27ae60; --adm: #f1c40f; }
+        body { font-family: 'Segoe UI', sans-serif; background: #e9ecef; padding: 20px; }
+        .folder-system { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 30px; }
+        .archive-box { background: white; padding: 20px; border-radius: 8px; border-top: 8px solid; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        
+        /* Conexões do Mapa Mental */
+        .connector { text-align: center; font-size: 2em; color: var(--main); margin: 10px 0; }
+        
+        .follow-up-unit { background: #fff; border: 2px dashed var(--main); padding: 20px; border-radius: 10px; display: flex; align-items: center; justify-content: space-around; }
+        .month-tab { background: var(--main); color: white; padding: 10px; border-radius: 5px; width: 60px; text-align: center; font-size: 0.8em; }
+        
+        .legend { font-size: 0.9em; background: #fff; padding: 15px; border-radius: 5px; margin-top: 20px; }
+    </style>
+</head>
+<body>
+
+    <h2 style="text-align:center; color: var(--main);">MAPA DO ARQUIVO GERAL - ACADEMIA VIDA &amp; SAÚDE</h2>
+
+    <!-- Nível 1: Arquivo de Referência (Alfabético) -->
+    <div class="folder-system">
+        <div class="archive-box" style="border-color: var(--rh);">
+            <strong>SETOR RH</strong><br><small>Método Alfabético (Nome)</small>
+            <p>Dossiês de Colaboradores</p>
+        </div>
+        <div class="archive-box" style="border-color: var(--aluno);">
+            <strong>SETOR TÉCNICO</strong><br><small>Método Alfabético (Sobrenome)</small>
+            <p>Prontuários de Alunos</p>
+        </div>
+        <div class="archive-box" style="border-color: var(--adm);">
+            <strong>SETOR ADM</strong><br><small>Método por Assunto</small>
+            <p>Notas e Manutenção</p>
+        </div>
+    </div>
+
+    <div class="connector">⬇️ <i>Fluxo de Prazos</i> ⬇️</div>
+
+    <!-- Nível 2: Arquivo de Prosseguimento (Cronológico) -->
+    <div class="follow-up-unit">
+        <div style="width: 30%;">
+            <h3>Arquivo de Prosseguimento</h3>
+            <p><small>Acompanhamento Diário de Pendências</small></p>
+        </div>
+        <div class="month-tab">JAN</div>
+        <div class="month-tab" style="transform: scale(1.2); border: 2px solid #e74c3c;">FEV</div>
+        <div class="month-tab">MAR</div>
+        <div class="month-tab">...</div>
+        <div style="background: #fdf2f2; padding: 10px; border-radius: 5px; font-size: 0.8em;">
+            <strong>Pendência hoje (26/02):</strong><br>
+            ✅ Renovar Alvará Sanitário<br>
+            ✅ Ligar para Alunos (Venc. Atestado)
+        </div>
+    </div>
+
+    <div class="legend">
+        <strong>💡 Como explicar no SENAC:</strong> Este sistema integra o arquivo <i>estático</i> (pastas coloridas onde os documentos ficam guardados) com o arquivo <i>dinâmico</i> (calendário de prosseguimento que dita as tarefas do dia). Isso garante que o administrador da academia nunca seja pego de surpresa por uma fiscalização ou por um contrato vencido.
+    </div>
+
+
+
+</body></html>

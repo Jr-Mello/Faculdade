@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Rede P2P Blockchain - Monitoramento de Segurança</title>
+    <style>
+        body { background: #0a0e14; color: #00ff9d; font-family: 'Segoe UI', sans-serif; margin: 0; overflow: hidden; }
+        #canvas { position: absolute; top: 0; left: 0; }
+        
+        /* Interface de Monitoramento */
+        .ui-overlay { position: relative; z-index: 10; padding: 20px; display: flex; gap: 20px; pointer-events: none; }
+        
+        .status-box { background: rgba(0, 20, 40, 0.9); border: 1px solid #00ff9d; padding: 15px; width: 280px; border-radius: 8px; box-shadow: 0 0 20px rgba(0,255,157,0.2); }
+        
+        /* O Console de Log (Engenharia) */
+        .console-log { background: rgba(0, 0, 0, 0.85); border: 1px solid #333; padding: 15px; width: 450px; height: 180px; 
+                       border-radius: 8px; font-family: 'Courier New', monospace; font-size: 12px; overflow: hidden; color: #aaa; }
+        .log-entry { margin-bottom: 5px; border-left: 2px solid #00ff9d; padding-left: 8px; animation: fadeIn 0.3s ease; }
+        .log-entry.alert { color: #f39c12; border-left-color: #f39c12; }
+        .log-entry.success { color: #00ff9d; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .highlight { color: #f39c12; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="ui-overlay">
+    <div class="status-box">
+        <h3>Rede P2P Blockchain (PoA)</h3>
+        <p>Status: <span id="status">Sincronizando...</span></p>
+        <p>Bases Ativas: <span id="count">10</span></p>
+    </div>
+
+    <!-- Console de Log Adicionado -->
+    <div class="console-log" id="console">
+        <div class="log-entry">> Inicializando protocolo Contact ID Digital...</div>
+        <div class="log-entry">> Conectado à Rede Bridge P2P Cidreira.</div>
+    </div>
+</div>
+
+<canvas id="canvas"></canvas>
+
+<script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    const consoleDiv = document.getElementById('console');
+    const status = document.getElementById('status');
+
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    let bases = [];
+    const numBases = 10;
+
+    for(let i=0; i<numBases; i++) {
+        bases.push({
+            x: Math.random() * (canvas.width - 100) + 50,
+            y: Math.random() * (canvas.height - 100) + 50,
+            id: "Base_" + String.fromCharCode(65 + i),
+            alert: false
+        });
+    }
+
+    function addLog(text, type = '') {
+        const entry = document.createElement('div');
+        entry.className = `log-entry ${type}`;
+        entry.innerHTML = `[${new Date().toLocaleTimeString()}] ${text}`;
+        consoleDiv.prepend(entry);
+        if (consoleDiv.childNodes.length > 8) consoleDiv.removeChild(consoleDiv.lastChild);
+    }
+
+    function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.strokeStyle = "rgba(0, 255, 157, 0.1)";
+        for(let i=0; i<numBases; i++) {
+            for(let j=i+1; j<numBases; j++) {
+                ctx.beginPath();
+                ctx.moveTo(bases[i].x, bases[i].y);
+                ctx.lineTo(bases[j].x, bases[j].y);
+                ctx.stroke();
+            }
+        }
+        bases.forEach(b => {
+            ctx.fillStyle = b.alert ? "#f39c12" : "#00ff9d";
+            ctx.beginPath();
+            ctx.arc(b.x, b.y, 10, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = "#fff";
+            ctx.fillText(b.id, b.x - 15, b.y - 15);
+        });
+        requestAnimationFrame(draw);
+    }
+
+    function dispararAlerta() {
+        let index = Math.floor(Math.random() * numBases);
+        let b = bases[index];
+        b.alert = true;
+        
+        addLog(`ALERTA: CID 130 Detectado na ${b.id}`, 'alert');
+        status.innerHTML = "<span class='highlight'>VALIDANDO...</span>";
+
+        setTimeout(() => {
+            addLog(`CONSENSO PoA: Bloco #001A assinado pela ${b.id}`, 'success');
+            addLog(`BLOCKCHAIN: Registro imutável propagado para a malha.`, 'success');
+            bases.forEach(node => node.alert = true);
+            status.innerHTML = "Evento Registrado";
+        }, 1200);
+
+        setTimeout(() => {
+            bases.forEach(node => node.alert = false);
+            status.innerHTML = "Rede Monitorada";
+            addLog(`Sistema em espera (Escaneando Redes Bridge...)`);
+        }, 5000);
+    }
+
+    setInterval(dispararAlerta, 8000);
+    draw();
+</script>
+
+</body>
+</html>

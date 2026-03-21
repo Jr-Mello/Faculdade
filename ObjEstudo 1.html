@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Engenharia | Sistema P2P Edge AI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com');
+        
+        body { 
+            background: #020617; 
+            color: #f8fafc; 
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+        }
+
+        /* Animação do Radar de Triangulação */
+        .radar-container {
+            position: relative;
+            width: 100%;
+            max-width: 400px;
+            aspect-ratio: 1;
+            background: radial-gradient(circle, #1e293b 1px, transparent 1px);
+            background-size: 30px 30px;
+            border: 1px solid #334155;
+            border-radius: 12px;
+        }
+
+        .scan-line {
+            position: absolute;
+            width: 50%;
+            height: 2px;
+            background: linear-gradient(to right, transparent, #22c55e);
+            top: 50%;
+            left: 50%;
+            transform-origin: left;
+            animation: rotate 4s linear infinite;
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .node-p2p {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            background: #475569;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+            z-index: 10;
+        }
+
+        .node-p2p.alert {
+            background: #ef4444;
+            box-shadow: 0 0 20px #ef4444;
+            transform: scale(1.5);
+        }
+
+        .connection-line {
+            position: absolute;
+            background: rgba(34, 197, 94, 0.2);
+            height: 1px;
+            transform-origin: left center;
+            display: none;
+        }
+
+        .status-badge {
+            font-family: 'Fira Code', monospace;
+            animation: blink 1.5s infinite;
+        }
+
+        @keyframes blink {
+            50% { opacity: 0.5; }
+        }
+    </style>
+</head>
+<body class="p-4 md:p-10">
+
+    <div class="max-w-6xl mx-auto">
+        <!-- Header Técnico -->
+        <header class="flex flex-col md:flex-row justify-between items-start md:items-center mb-12 gap-4">
+            <div>
+                <h1 class="text-3xl font-bold tracking-tighter text-white">SISTEMA P2P <span class="text-green-500">EDGE AI</span></h1>
+                <p class="text-slate-400 font-mono text-sm uppercase tracking-widest">Protocolo: WebSocket + JSON | Infra: MikroTik L2 Bridge</p>
+            </div>
+            <div class="bg-slate-900 border border-slate-700 px-4 py-2 rounded-lg">
+                <span class="status-badge text-green-400 text-xs">● REDE ONLINE (BYPASSED)</span>
+            </div>
+        </header>
+
+        <div class="grid lg:grid-cols-12 gap-8">
+            
+            <!-- Coluna Esquerda: Visualização em Tempo Real -->
+            <div class="lg:col-span-7 bg-slate-900/50 p-6 rounded-2xl border border-slate-800">
+                <h2 class="text-xl font-semibold mb-6 flex items-center gap-2">
+                    <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+                    Simulador de Triangulação P2P
+                </h2>
+
+                <div class="flex flex-col items-center">
+                    <div class="radar-container" id="radar">
+                        <div class="scan-line"></div>
+                        <!-- Nós da Rede -->
+                        <div id="node1" class="node-p2p" style="top: 20%; left: 30%;"></div>
+                        <div id="node2" class="node-p2p" style="top: 15%; left: 70%;"></div>
+                        <div id="node3" class="node-p2p" style="top: 80%; left: 50%;"></div>
+                        <div id="node4" class="node-p2p" style="top: 50%; left: 10%;"></div>
+                        <div id="base" class="node-p2p" style="top: 50%; left: 50%; background: #22c55e; width: 16px; height: 16px;"></div>
+                    </div>
+
+                    <div class="mt-8 flex gap-4">
+                        <button onclick="dispararSimulacao()" class="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-8 rounded-full transition-all active:scale-95 shadow-lg shadow-red-900/20">
+                            DISPARAR GATILHO IA
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Coluna Direita: Logs e Stack -->
+            <div class="lg:col-span-5 space-y-6">
+                <div class="bg-slate-900 p-6 rounded-2xl border border-slate-800">
+                    <h3 class="text-sm font-bold text-slate-500 uppercase mb-4 tracking-widest">Logs do WebSocket (JSON)</h3>
+                    <div id="log-terminal" class="font-mono text-xs space-y-2 h-48 overflow-y-auto text-green-400">
+                        <p>> Handshake WebSocket inicializado...</p>
+                        <p>> Conectado ao MikroTik Bridge L2...</p>
+                        <p>> Escutando pacotes da vizinhança...</p>
+                    </div>
+                </div>
+
+                <div class="bg-slate-900 p-6 rounded-2xl border border-slate-800">
+                    <h3 class="text-sm font-bold text-slate-500 uppercase mb-4 tracking-widest">Arquitetura do Projeto</h3>
+                    <ul class="space-y-3 text-sm">
+                        <li class="flex justify-between border-b border-slate-800 pb-2">
+                            <span class="text-slate-400">Processamento</span>
+                            <span class="text-white font-semibold">Java + CNN (Edge)</span>
+                        </li>
+                        <li class="flex justify-between border-b border-slate-800 pb-2">
+                            <span class="text-slate-400">Rede de Dados</span>
+                            <span class="text-white font-semibold">P2P WebSocket</span>
+                        </li>
+                        <li class="flex justify-between border-b border-slate-800 pb-2">
+                            <span class="text-slate-400">MikroTik Mode</span>
+                            <span class="text-white font-semibold">IP Binding (Bypassed)</span>
+                        </li>
+                        <li class="flex justify-between">
+                            <span class="text-slate-400">Fallback</span>
+                            <span class="text-white font-semibold">DTMF Radio Link</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function addLog(msg, color = "text-green-400") {
+            const terminal = document.getElementById('log-terminal');
+            const p = document.createElement('p');
+            p.className = color;
+            p.innerHTML = `> ${msg}`;
+            terminal.appendChild(p);
+            terminal.scrollTop = terminal.scrollHeight;
+        }
+
+        function dispararSimulacao() {
+            const nodes = ['node1', 'node2', 'node3'];
+            addLog("EVENTO DETECTADO NO NÓ 01", "text-yellow-400");
+            
+            // Simula a triangulação
+            nodes.forEach((id, i) => {
+                setTimeout(() => {
+                    document.getElementById(id).classList.add('alert');
+                    addLog(`JSON RECEBIDO: { "origem": "${id}", "status": "ALERTA" }`);
+                    
+                    if(i === 2) {
+                        setTimeout(() => {
+                            addLog("CONSENSO P2P ATINGIDO (3 NÓS)", "text-red-500 font-bold");
+                            addLog("DISPARANDO COMANDO DTMF PARA A BASE...", "text-red-500");
+                            alert("⚠️ ALERTA GERAL: Triangulação confirmada via WebSocket!");
+                        }, 500);
+                    }
+                }, i * 800);
+            });
+
+            // Reseta após 6 segundos
+            setTimeout(() => {
+                nodes.forEach(id => document.getElementById(id).classList.remove('alert'));
+                addLog("Sistema reinicializado em modo escuta.");
+            }, 6000);
+        }
+    </script>
+</body>
+</html>
