@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Demo: Painel de Consenso de IA Analógica</title>
+    <style>
+        :root {
+            --bg: #0f172a;
+            --card: #1e293b;
+            --accent: #3b82f6;
+            --safe: #10b981;
+            --danger: #ef4444;
+            --text: #f8fafc;
+        }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); margin: 0; display: flex; height: 100vh; overflow: hidden; }
+        
+        /* Sidebar de Agentes */
+        .sidebar { width: 300px; background: var(--card); border-right: 1px solid #334155; padding: 20px; display: flex; flex-direction: column; gap: 15px; }
+        .agent-card { background: #0f172a; padding: 15px; border-radius: 8px; border-left: 4px solid var(--safe); transition: 0.3s; }
+        .agent-card.alert { border-left-color: var(--danger); animation: pulse 2s infinite; }
+        .agent-name { font-weight: bold; font-size: 0.9em; display: flex; justify-content: space-between; }
+        .agent-status { font-size: 0.8em; color: #94a3b8; }
+
+        /* Área Principal */
+        .main { flex: 1; padding: 20px; display: flex; flex-direction: column; gap: 20px; }
+        .video-container { position: relative; background: #000; border-radius: 12px; flex: 1; display: flex; align-items: center; justify-content: center; border: 2px solid #334155; overflow: hidden; }
+        .video-placeholder { color: #334155; text-align: center; }
+        
+        /* Overlay de Análise */
+        .ai-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
+        .bounding-box { position: absolute; border: 2px solid var(--danger); display: none; }
+
+        /* Painel de Veredito */
+        .verdict-bar { background: var(--card); padding: 20px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; }
+        .consensus-meter { display: flex; gap: 10px; }
+        .dot { width: 12px; height: 12px; border-radius: 50%; background: #334155; }
+        .dot.active { background: var(--safe); }
+        .dot.danger { background: var(--danger); }
+
+        .btn-action { background: var(--danger); color: white; border: none; padding: 10px 25px; border-radius: 6px; font-weight: bold; cursor: pointer; }
+
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <h2 style="font-size: 1.2em; margin-bottom: 20px; border-bottom: 1px solid #334155; padding-bottom: 10px;">Agentes Especialistas</h2>
+        
+        <div class="agent-card" id="agent-geo">
+            <div class="agent-name">IA GEOMÉTRICA <span class="tag">Ativa</span></div>
+            <div class="agent-status">Analisando vetores corporais...</div>
+        </div>
+
+        <div class="agent-card" id="agent-obj">
+            <div class="agent-name">IA DE OBJETOS <span class="tag">Ativa</span></div>
+            <div class="agent-status">Escaneando perigos...</div>
+        </div>
+
+        <div class="agent-card" id="agent-health">
+            <div class="agent-name">IA DE SAÚDE <span class="tag">Ativa</span></div>
+            <div class="agent-status">Monitorando oximetria/ritmo...</div>
+        </div>
+
+        <div style="margin-top: auto; font-size: 0.7em; color: #64748b;">
+            SISTEMA DE BARRAMENTO ANALÓGICO V.1.0<br>DISTRIBUIÇÃO ÓPTICA: SINCRONIZADA
+        </div>
+    </div>
+
+    <div class="main">
+        <div class="verdict-bar">
+            <div>
+                <span style="color: #94a3b8; font-size: 0.8em;">STATUS DO CONSENSO:</span>
+                <div style="font-weight: bold; font-size: 1.1em;" id="consensus-text">AMBIENTE SEGURO</div>
+            </div>
+            <div class="consensus-meter">
+                <div class="dot active" id="dot-1"></div>
+                <div class="dot active" id="dot-2"></div>
+                <div class="dot active" id="dot-3"></div>
+            </div>
+            <button class="btn-action" onclick="simulateAlert()">SIMULAR EMERGÊNCIA</button>
+        </div>
+
+        <div class="video-container" id="video-feed">
+            <div class="video-placeholder">
+                <svg width="100" height="100" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
+                <p>FEED DE VÍDEO ORIGINAL (ANALÓGICO)</p>
+            </div>
+            <div class="ai-overlay">
+                <div class="bounding-box" id="box-alert" style="top: 40%; left: 45%; width: 100px; height: 150px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function simulateAlert() {
+            const btn = document.querySelector('.btn-action');
+            if(btn.innerText === "SIMULAR EMERGÊNCIA") {
+                // Ativar Alertas nas IAs Especialistas
+                document.getElementById('agent-geo').classList.add('alert');
+                document.getElementById('agent-geo').querySelector('.agent-status').innerText = "ANOMALIA: Queda detectada";
+                
+                document.getElementById('agent-health').classList.add('alert');
+                document.getElementById('agent-health').querySelector('.agent-status').innerText = "ALERTA: Frequência respiratória alterada";
+
+                // Atualizar Consenso
+                document.getElementById('dot-1').classList.add('danger');
+                document.getElementById('dot-3').classList.add('danger');
+                document.getElementById('consensus-text').innerText = "CONSENSO: EMERGÊNCIA (QUEDA)";
+                document.getElementById('consensus-text').style.color = "#ef4444";
+                
+                // Mostrar na Imagem
+                document.getElementById('box-alert').style.display = "block";
+                btn.innerText = "RESETAR SISTEMA";
+            } else {
+                location.reload();
+            }
+        }
+    </script>
+</body>
+</html>

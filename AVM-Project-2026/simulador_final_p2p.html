@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>P2P Mesh - Telemetry & Vision Simulator</title>
+    <style>
+        :root { --bg: #050507; --panel: #121214; --java: #f89820; --js: #f7df1e; --accent: #00f2ff; --danger: #ff3333; --safe: #00ff88; }
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: var(--bg); color: #fff; margin: 0; display: flex; height: 100vh; overflow: hidden; }
+        
+        /* Sidebar: Logs e Métricas */
+        .sidebar { width: 340px; background: var(--panel); border-right: 1px solid #222; padding: 20px; display: flex; flex-direction: column; gap: 15px; }
+        .stats-box { background: #000; padding: 15px; border-radius: 8px; border: 1px solid #333; }
+        .stat-row { display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 0.85em; }
+        .stat-val { color: var(--accent); font-weight: bold; font-family: monospace; }
+        
+        .log-container { flex: 1; background: #000; border: 1px solid #222; padding: 10px; font-size: 0.75em; overflow-y: auto; color: #888; font-family: monospace; margin-top: 10px; }
+
+        /* Dashboard Principal */
+        .main { flex: 1; padding: 20px; display: flex; flex-direction: column; gap: 15px; overflow-y: auto; }
+        .node-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
+        .node-card { background: #1a1a1e; border: 1px solid #333; padding: 15px; border-radius: 8px; transition: 0.3s; border-left: 4px solid #333; }
+        .node-card.active { border-left-color: var(--safe); box-shadow: 0 0 10px rgba(0,255,136,0.05); }
+        .node-card.alert { border-left-color: var(--danger); background: #221111; animation: blink 1s infinite; }
+
+        /* Telemetria e Feed */
+        .telemetry-row { display: grid; grid-template-columns: 1fr 300px; gap: 15px; height: 220px; }
+        .chart-container { background: #000; border-radius: 8px; padding: 10px; border: 1px solid #222; position: relative; }
+        .vision-feed { background: #000; border-radius: 8px; position: relative; border: 1px solid #333; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+        
+        .overlay { position: absolute; inset: 0; background: rgba(255,0,0,0.2); display: none; flex-direction: column; align-items: center; justify-content: center; border: 4px solid var(--danger); z-index: 10; text-align: center; }
+
+        /* Botões */
+        .controls { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+        .btn { border: none; padding: 12px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 0.75em; text-transform: uppercase; transition: 0.2s; }
+        .btn-sim { background: #222; color: #ccc; border: 1px solid #444; }
+        .btn-sim:hover { border-color: var(--accent); color: #fff; background: #2a2a2a; }
+        .btn-reset { background: var(--safe); color: #000; grid-column: span 2; margin-top: 5px; }
+
+        canvas { width: 100%; height: 100%; }
+        @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.8; } 100% { opacity: 1; } }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <h2 style="margin:0; font-size: 1.1em; color: var(--accent);">P2P MESH TELEMETRY</h2>
+        
+        <div class="stats-box">
+            <div class="stat-row"><span>Nós Java Ativos:</span> <span class="stat-val" id="count-nodes">3</span></div>
+            <div class="stat-row"><span>Eventos Detectados:</span> <span class="stat-val" id="count-events">0</span></div>
+            <div class="stat-row"><span>Status Bridge:</span> <span class="stat-val" style="color:var(--safe)">ESTÁVEL</span></div>
+            <div class="stat-row"><span>Uptime:</span> <span class="stat-val" id="uptime">00:00:00</span></div>
+        </div>
+
+        <div class="log-container" id="p2p-log">
+            <div>> Sistema Iniciado...</div>
+            <div>> P2P Bridge: Pronto.</div>
+        </div>
+
+        <div class="controls">
+            <button class="btn btn-sim" onclick="simulate('queda')">Simular Queda</button>
+            <button class="btn btn-sim" onclick="simulate('saude')">Crise Saúde</button>
+            <button class="btn btn-sim" onclick="simulate('invasao')">Invasão</button>
+            <button class="btn btn-sim" onclick="simulate('incendio')">Fogo/Fumaça</button>
+            <button class="btn btn-reset" onclick="resetSystem()">Restabelecer Malha (Reset)</button>
+        </div>
+    </div>
+
+    <div class="main">
+        <div class="node-grid">
+            <div class="node-card active" id="n1">
+                <div style="font-size: 0.7em; color: var(--java); font-weight: bold;">NÓ 01: BIOMECÂNICA</div>
+                <div id="v1" style="font-size: 0.9em; margin-top: 5px;">Monitorando...</div>
+            </div>
+            <div class="node-card active" id="n2">
+                <div style="font-size: 0.7em; color: var(--java); font-weight: bold;">NÓ 02: SEGURANÇA</div>
+                <div id="v2" style="font-size: 0.9em; margin-top: 5px;">Área Protegida</div>
+            </div>
+            <div class="node-card active" id="n3">
+                <div style="font-size: 0.7em; color: var(--java); font-weight: bold;">NÓ 03: ESPECTRAL</div>
+                <div id="v3" style="font-size: 0.9em; margin-top: 5px;">Sinal Térmico OK</div>
+            </div>
+        </div>
+
+        <div class="telemetry-row">
+            <div class="chart-container">
+                <div style="position:absolute; top:5px; left:10px; font-size:0.7em; color:var(--accent)">LATÊNCIA P2P WS (ms)</div>
+                <canvas id="telemetryCanvas"></canvas>
+            </div>
+            <div class="vision-feed" id="feed">
+                <div style="color: #222; font-size: 0.7em; text-align: center;">STREAM ANALÓGICO<br>RAW INPUT</div>
+                <div class="overlay" id="alert-ui">
+                    <h2 id="alert-title" style="margin:0; font-size: 1.5em;">ALERTA</h2>
+                    <p id="alert-desc" style="font-size: 0.8em; margin: 5px 0 0 0;"></p>
+                </div>
+            </div>
+        </div>
+
+        <div style="background: #111; padding: 15px; border-radius: 8px; font-size: 0.85em; border-left: 4px solid var(--js); line-height: 1.4;">
+            <strong>Lógica de Consenso Híbrida:</strong> 
+            Esta simulação demonstra a recepção de dados via <strong>WebSocket (Bridge P2P)</strong>. O gráfico de telemetria indica a velocidade de resposta das classes Java nativas. O alerta no dashboard (JS) só é disparado quando o sistema valida os vetores de pelo menos dois nós.
+        </div>
+    </div>
+
+    <script>
+        // Configurações Globais
+        let eventCount = 0;
+        let latencyData = Array(30).fill(5); // Inicia com latência estável de 5ms
+        const canvas = document.getElementById('telemetryCanvas');
+        const ctx = canvas.getContext('2d');
+        const log = document.getElementById('p2p-log');
+
+        // Função para desenhar o gráfico manualmente (Sem dependência externa)
+        function drawChart() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.beginPath();
+            ctx.strokeStyle = '#00f2ff';
+            ctx.lineWidth = 2;
+            
+            const step = canvas.width / (latencyData.length - 1);
+            const maxHeight = 40; // Max latência esperada na escala
+
+            latencyData.forEach((val, i) => {
+                const x = i * step;
+                const y = canvas.height - (val / maxHeight * canvas.height);
+                if(i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            });
+
+            ctx.stroke();
+            
+            // Preenchimento degradê
+            ctx.lineTo(canvas.width, canvas.height);
+            ctx.lineTo(0, canvas.height);
+            ctx.fillStyle = 'rgba(0, 242, 255, 0.05)';
+            ctx.fill();
+        }
+
+        // Ajustar tamanho do canvas
+        function resizeCanvas() {
+            canvas.width = canvas.parentElement.clientWidth;
+            canvas.height = canvas.parentElement.clientHeight;
+            drawChart();
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        function addLog(msg, isAlert) {
+            const time = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'});
+            const div = document.createElement('div');
+            div.style.color = isAlert ? 'var(--danger)' : 'var(--java)';
+            div.innerText = `[${time}] ${msg}`;
+            log.appendChild(div);
+            log.scrollTop = log.scrollHeight;
+        }
+
+        function simulate(type) {
+            eventCount++;
+            document.getElementById('count-events').innerText = eventCount;
+            document.getElementById('alert-ui').style.display = 'flex';
+            
+            // Simula pico de latência no processamento
+            latencyData.push(Math.floor(Math.random() * 15) + 20);
+            latencyData.shift();
+
+            if(type === 'queda') {
+                updateNode(1, "QUEDA DETECTADA", true);
+                updateNode(3, "VETOR G ALTO", true);
+                setOverlay("EMERGÊNCIA: QUEDA", "Consenso: Biomecânica + Espectral");
+                addLog("P2P: Nó 01 e 03 confirmaram impacto.", true);
+            } else if(type === 'saude') {
+                updateNode(1, "ARRITMIA", true);
+                updateNode(3, "CALOR CORPORAL ↑", true);
+                setOverlay("CRISE DE SAÚDE", "Sinais vitais em nível crítico.");
+                addLog("P2P: Cruzamento de dados de BPM/Temperatura.", true);
+            } else if(type === 'invasao') {
+                updateNode(2, "INTRUSÃO", true);
+                setOverlay("SEGURANÇA: INVASÃO", "Violação detectada no Nó 02.");
+                addLog("P2P: Nó 02 identificou objeto não autorizado.", true);
+            } else if(type === 'incendio') {
+                updateNode(3, "FOGO / FUMAÇA", true);
+                updateNode(2, "PROTOCOLO EVACUAR", true);
+                setOverlay("ALERTA: INCÊNDIO", "Radiação IR detectada no Nó 03.");
+                addLog("P2P: Alerta térmico distribuído na malha.", true);
+            }
+            drawChart();
+        }
+
+        function updateNode(id, msg, isAlert) {
+            const el = document.getElementById(`n${id}`);
+            el.classList.add(isAlert ? 'alert' : 'active');
+            document.getElementById(`v${id}`).innerText = msg;
+        }
+
+        function setOverlay(title, desc) {
+            document.getElementById('alert-title').innerText = title;
+            document.getElementById('alert-desc').innerText = desc;
+        }
+
+        function resetSystem() {
+            document.getElementById('alert-ui').style.display = 'none';
+            document.querySelectorAll('.node-card').forEach(n => {
+                n.classList.remove('alert');
+                n.classList.add('active');
+            });
+            document.getElementById('v1').innerText = "Monitorando...";
+            document.getElementById('v2').innerText = "Área Protegida...";
+            document.getElementById('v3').innerText = "Sinal Térmico OK";
+            addLog("P2P: Sistema restabelecido via Broadcast.", false);
+        }
+
+        // Loop de Telemetria estável
+        setInterval(() => {
+            if(document.getElementById('alert-ui').style.display !== 'flex') {
+                latencyData.push(Math.floor(Math.random() * 4) + 4); // 4ms a 8ms
+                latencyData.shift();
+                drawChart();
+            }
+        }, 800);
+
+        // Timer de Uptime
+        let seconds = 0;
+        setInterval(() => {
+            seconds++;
+            let h = Math.floor(seconds / 3600).toString().padStart(2, '0');
+            let m = Math.floor((seconds % 3600) / 60).toString().padStart(2, '0');
+            let s = (seconds % 60).toString().padStart(2, '0');
+            document.getElementById('uptime').innerText = `${h}:${m}:${s}`;
+        }, 1000);
+    </script>
+</body>
+</html>

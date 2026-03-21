@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>P2P Mesh Vision - Dashboard de Engenharia</title>
+    <style>
+        :root {
+            --bg: #0a0a0c;
+            --panel: #16161a;
+            --accent: #00f2ff;
+            --java: #f89820;
+            --js: #f7df1e;
+            --text: #e2e8f0;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        header {
+            width: 100%;
+            padding: 40px 0;
+            background: linear-gradient(to bottom, #111, var(--bg));
+            text-align: center;
+            border-bottom: 1px solid #222;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 2.2em;
+            letter-spacing: 2px;
+            color: var(--accent);
+            text-transform: uppercase;
+        }
+
+        .subtitle {
+            color: #64748b;
+            margin-top: 10px;
+            font-size: 0.9em;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            width: 90%;
+            max-width: 1200px;
+            padding: 40px 0;
+        }
+
+        .card {
+            background: var(--panel);
+            border: 1px solid #2d2d33;
+            border-radius: 12px;
+            padding: 25px;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            color: inherit;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            border-color: var(--accent);
+            box-shadow: 0 10px 30px rgba(0, 242, 255, 0.1);
+        }
+
+        .card::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; width: 4px; height: 100%;
+            background: var(--accent);
+        }
+
+        .card.java::before { background: var(--java); }
+        .card.js::before { background: var(--js); }
+
+        .card h3 {
+            margin: 0 0 10px 0;
+            font-size: 1.25em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card p {
+            font-size: 0.9em;
+            color: #94a3b8;
+            line-height: 1.5;
+            margin-bottom: 20px;
+            flex-grow: 1;
+        }
+
+        .tag {
+            font-size: 0.7em;
+            font-weight: bold;
+            text-transform: uppercase;
+            padding: 4px 8px;
+            border-radius: 4px;
+            background: #2d2d33;
+            width: fit-content;
+        }
+
+        .footer {
+            margin-top: auto;
+            padding: 40px;
+            color: #444;
+            font-size: 0.8em;
+            text-align: center;
+        }
+
+        .btn-view {
+            background: transparent;
+            border: 1px solid var(--accent);
+            color: var(--accent);
+            padding: 10px;
+            border-radius: 6px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 0.8em;
+        }
+
+        .card:hover .btn-view {
+            background: var(--accent);
+            color: #000;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>P2P Mesh Vision System</h1>
+        <div class="subtitle">Tese de Arquitetura: Barramento Analógico e Consenso Multimodal</div>
+    </header>
+<section style="max-width: 900px; margin: 20px auto; padding: 20px; background: #111; border-radius: 8px; border-left: 4px solid var(--accent); font-size: 0.95em; line-height: 1.6;">
+    <strong style="color: var(--accent); display: block; margin-bottom: 10px; font-size: 1.1em;">
+        PROJETO AVM: ARQUITETURA DE VISÃO MULTIMODAL DISTRIBUÍDA
+    </strong>
+    O <strong>AVM-Project-2026</strong> rompe com o processamento centralizado de imagem ao implementar uma 
+    <em>Rede Bridge P2P</em> baseada em <strong>WebSockets</strong>. Utilizando classes <strong>Java Nativo</strong> 
+    em dispositivos de borda (Edge Computing) para análise matemática pesada e <strong>JavaScript</strong> para 
+    renderização de consenso, o sistema garante latência ultrabaixa e precisão cirúrgica através de um 
+    <em>Barramento Analógico de Luz</em> compartilhado entre nós especialistas.
+</section>
+
+    <div class="grid">
+        
+        <!-- TESE TEÓRICA -->
+        <a href="tese_analitica.html" class="card">
+            <span class="tag">Documentação</span>
+            <h3>📄 Tese e Conceitos</h3>
+            <p>A base teórica da arquitetura. Explica a separação de IAs especialistas e o uso de barramento analógico para evitar poluição de dados.</p>
+            <div class="btn-view">ABRIR DOCUMENTAÇÃO</div>
+        </a>
+
+        <!-- PAINEL DE CONSENSO -->
+        <a href="simulador_p2p.html" class="card js">
+            <span class="tag" style="color: var(--js)">Frontend JS</span>
+            <h3>🖥️ Painel de Consenso</h3>
+            <p>Interface de visualização final. Onde o JavaScript recebe dados dos nós P2P e decide o veredito de segurança.</p>
+            <div class="btn-view">VER INTERFACE</div>
+        </a>
+
+        <!-- TELEMETRIA E REDE -->
+        <a href="simulador_final_p2p.html" class="card java">
+            <span class="tag" style="color: var(--java)">Infraestrutura</span>
+            <h3>📊 Telemetria P2P</h3>
+            <p>Simulador técnico de latência e tráfego de rede entre as classes Java nativas e o servidor Bridge.</p>
+            <div class="btn-view">MONITORAR REDE</div>
+        </a>
+
+        <!-- FLUXO DE DADOS -->
+        <a href="fluxo_dados_p2p.html" class="card">
+            <span class="tag">Conectividade</span>
+            <h3>⚡ Troca de Dados</h3>
+            <p>Visualização animada de como os pacotes JSON via WebSockets trafegam entre os servidores Android e o Hub.</p>
+            <div class="btn-view">VER FLUXO DE DADOS</div>
+        </a>
+
+        <!-- VISÃO SINCRONIZADA -->
+        <a href="visao_sincronizada.html" class="card java">
+            <span class="tag" style="color: var(--java)">Física Óptica</span>
+            <h3>👁️ Visão Sincronizada</h3>
+            <p>Demonstração de como múltiplos sensores observam a mesma fonte de luz analógica simultaneamente.</p>
+            <div class="btn-view">SIMULAR VISÃO</div>
+        </a>
+
+    </div>
+
+    <div class="footer">
+        Desenvolvido para demonstração de arquitetura de segurança crítica 2026.<br>
+        Java Nativo Engine | P2P WebSocket Bridge | JS Consensus Rendering.
+    </div>
+
+</body>
+</html>

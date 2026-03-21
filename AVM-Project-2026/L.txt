@@ -1,0 +1,66 @@
+5wUVWje0MuxlXUi1g
+
+### Por que isso é importante?
+Ao mencionar o **MikroTik**, o **Hotspot** e o **Bypass**, você demonstra que o projeto não é apenas "um código que roda no PC", mas uma solução de **Engenharia de Sistemas** pronta para ser instalada em um cliente real.
+
+Para mais detalhes sobre como configurar o bypass, você pode consultar o [Guia de IP Binding da MikroTik](https://help.mikrotik.com).
+
+
+
+
+
+# 🛡️ AVM-Project-2026 (Analytical Vision Mesh)
+
+**Arquitetura de Visão Multimodal Distribuída com Segurança de Rede via MikroTik (L1 Protection).**
+
+O AVM-2026 é um ecossistema de monitoramento analítico que integra processamento de borda (Edge Computing) em Java, visualização em tempo real via P2P WebSockets e uma infraestrutura de rede robusta baseada em RouterOS (MikroTik).
+
+---
+
+## 🏗️ Arquitetura do Sistema
+
+### 1. Camada de Segurança e Rede (MikroTik L1)
+A espinha dorsal do projeto reside em uma rede gerenciada por **MikroTik RouterOS**, configurada para isolar e proteger o tráfego analítico:
+*   **Hotspot Control:** O sistema utiliza um Hotspot como portal de controle de acesso.
+*   **IP/MAC Bypass:** Dispositivos de processamento (Nós Java) operam em **Bypass**, garantindo latência mínima e ignorando a autenticação de portal para manter a persistência da conexão P2P.
+*   **Segregação:** O MikroTik atua como a **Primeira Camada de Proteção**, filtrando conexões externas e isolando o barramento de dados dos nós de visão.
+
+### 2. Camada de Captura (Analogue Bus)
+Utiliza a luz física como barramento comum. Sensores distintos focam na mesma fonte analógica, permitindo redundância absoluta sem a necessidade de "retransmitir" pacotes de vídeo pesados entre os nós.
+
+### 3. Camada de Processamento (Java Native Engine)
+Cada nó da malha executa uma instância de processamento nativo:
+*   **Engine:** Java JDK 17+ focado em performance multithreading.
+*   **Veredito:** O processamento de IA (TensorFlow Lite/OpenCV) ocorre localmente em cada dispositivo de borda.
+
+### 4. Camada de Comunicação (P2P Bridge)
+A troca de dados de consenso ocorre via **WebSockets (WS)**:
+*   **Topologia:** Mesh P2P distribuída.
+*   **Bridge:** Os nós enviam apenas metadados e vetores de decisão para o dashboard, mantendo o tráfego da rede MikroTik extremamente leve.
+
+---
+
+## 🛠️ Especificações Técnicas
+
+### Infraestrutura de Rede
+- **Hardware:** MikroTik Routerboard (Série hAP/uMap ou superior).
+- **Protocolo:** Hotspot com regras de Walled Garden e IP Binding (Bypass).
+- **Segurança:** Firewall nativo RouterOS para bloqueio de invasão em nível de camada 2 e 3.
+
+### Software Stack
+- **Backend:** Java (Gerenciamento de Sockets e lógica de visão).
+- **Frontend:** JavaScript ES6+ (Dashboard de telemetria e visualização de consenso).
+- **Comunicação:** Protocolo WebSocket bidirecional.
+
+---
+
+## 📂 Estrutura de Arquivos
+```text
+AVM-Project-2026/
+├── index.html                # Console Central de Engenharia
+├── tese_analitica.html       # Documentação Teórica e Lógica
+├── simulador_p2p.html        # Interface de Consenso de Malha
+├── fluxo_dados_p2p.html      # Visualização da Bridge de Dados
+├── visao_sincronizada.html   # Simulação do Barramento Analógico
+└── README.md                 # Documentação Técnica do Projeto
+           # Este arquivo de documentação

@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>P2P Vision Mesh - Multi-Scenario Simulator</title>
+    <style>
+        :root { --bg: #0a0a0c; --panel: #16161a; --java: #f89820; --js: #f7df1e; --accent: #00f2ff; --danger: #ff4d4d; --safe: #00ff88; }
+        body { font-family: 'Segoe UI', monospace; background: var(--bg); color: #fff; margin: 0; display: flex; height: 100vh; overflow: hidden; }
+        
+        /* Sidebar: Logs da Bridge P2P */
+        .sidebar { width: 380px; background: var(--panel); border-right: 1px solid #333; padding: 20px; display: flex; flex-direction: column; }
+        .log-container { flex: 1; background: #000; border: 1px solid #222; padding: 12px; font-size: 0.8em; overflow-y: auto; color: #aaa; margin: 15px 0; border-radius: 4px; }
+        .log-entry { margin-bottom: 5px; border-bottom: 1px solid #111; padding-bottom: 2px; }
+
+        /* Dashboard Principal */
+        .main { flex: 1; padding: 25px; display: flex; flex-direction: column; gap: 20px; position: relative; }
+        
+        /* Grid de Nós (Dispositivos Java) */
+        .node-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+        .node-card { background: #1f1f23; border: 2px solid #333; padding: 15px; border-radius: 8px; text-align: left; position: relative; transition: 0.4s; }
+        .node-card.active { border-color: var(--safe); }
+        .node-card.alert { border-color: var(--danger); background: #2a1111; box-shadow: 0 0 15px rgba(255,0,0,0.3); }
+        .node-label { font-size: 0.7em; color: var(--java); font-weight: bold; }
+        .node-val { font-size: 1.1em; margin-top: 5px; color: #eee; }
+
+        /* Feed Visual (Analógico) */
+        .vision-canvas { flex: 1; background: #000; border-radius: 12px; position: relative; border: 1px solid #333; display: flex; align-items: center; justify-content: center; background-image: radial-gradient(#111 1px, transparent 1px); background-size: 20px 20px; }
+        .overlay { position: absolute; inset: 0; display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; pointer-events: none; z-index: 10; }
+        .overlay h2 { font-size: 3em; margin: 0; text-shadow: 0 0 20px #000; }
+        
+        /* Controles de Simulação */
+        .controls { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+        .btn { border: none; padding: 12px; border-radius: 5px; font-weight: bold; cursor: pointer; transition: 0.2s; color: #fff; text-transform: uppercase; font-size: 0.8em; }
+        .btn-sim { background: #333; border: 1px solid #444; }
+        .btn-sim:hover { background: #444; border-color: var(--accent); }
+        .btn-reset { background: var(--safe); color: #000; grid-column: span 4; margin-top: 10px; }
+        .btn-reset:hover { filter: brightness(1.2); }
+
+        .status-bar { font-size: 0.8em; color: #666; display: flex; justify-content: space-between; padding: 5px; }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <h2 style="margin:0; font-size: 1.2em; color: var(--accent);">P2P MESH BRIDGE</h2>
+        <div class="status-bar">
+            <span>DISPOSITIVOS: <b id="node-count">0</b></span>
+            <span>WS: <b style="color: var(--safe)">CONECTADO</b></span>
+        </div>
+        
+        <div class="log-container" id="p2p-log">
+            <div class="log-entry">> Inicializando classe Java Bridge...</div>
+            <div class="log-entry">> Aguardando handshake P2P via WebSocket...</div>
+        </div>
+
+        <div class="controls">
+            <button class="btn btn-sim" onclick="simulate('queda')">⚠️ Queda</button>
+            <button class="btn btn-sim" onclick="simulate('invasao')">🚷 Invasão</button>
+            <button class="btn btn-sim" onclick="simulate('saude')">❤️ Saúde</button>
+            <button class="btn btn-sim" onclick="simulate('incendio')">🔥 Fogo</button>
+            <button class="btn btn-reset" onclick="resetSystem()">♻️ Restabelecer Malha (System Reset)</button>
+        </div>
+    </div>
+
+    <div class="main">
+        <div class="node-grid">
+            <div class="node-card" id="n1">
+                <div class="node-label">NÓ 01: BIOMECÂNICA (JAVA)</div>
+                <div class="node-val" id="v1">Monitorando Vetores</div>
+            </div>
+            <div class="node-card" id="n2">
+                <div class="node-label">NÓ 02: SEGURANÇA PERIMETRAL</div>
+                <div class="node-val" id="v2">Área Protegida</div>
+            </div>
+            <div class="node-card" id="n3">
+                <div class="node-label">NÓ 03: ANÁLISE ESPECTRAL</div>
+                <div class="node-val" id="v3">Padrão Térmico Normal</div>
+            </div>
+        </div>
+
+        <div class="vision-canvas" id="canvas">
+            <div id="loading-text" style="color: #333;">[ FEED ANALÓGICO EM STANDBY ]</div>
+            
+            <div class="overlay" id="alert-ui">
+                <h2 id="alert-title">ALERTA CRÍTICO</h2>
+                <p id="alert-desc" style="font-family: sans-serif; font-weight: bold; background: rgba(0,0,0,0.7); padding: 10px; border-radius: 5px;"></p>
+            </div>
+        </div>
+
+        <div class="status-bar">
+            <span>LATÊNCIA P2P: <b>2ms</b></span>
+            <span>SISTEMA: <b id="sys-status">EM ESPERA</b></span>
+            <span>RENDERING: <b>JS / CANVAS</b></span>
+        </div>
+    </div>
+
+    <script>
+        const log = document.getElementById('p2p-log');
+        const nodes = [document.getElementById('n1'), document.getElementById('n2'), document.getElementById('n3')];
+        const vals = [document.getElementById('v1'), document.getElementById('v2'), document.getElementById('v3')];
+
+        function addLog(msg, type) {
+            const time = new Date().toLocaleTimeString();
+            const color = type === 'alert' ? 'var(--danger)' : 'var(--java)';
+            log.innerHTML += `<div class="log-entry" style="color: ${color}">[${time}] ${msg}</div>`;
+            log.scrollTop = log.scrollHeight;
+        }
+
+        function simulate(type) {
+            resetUI();
+            document.getElementById('sys-status').innerText = "PROCESSANDO EVENTO...";
+            document.getElementById('loading-text').style.display = "none";
+            
+            switch(type) {
+                case 'queda':
+                    triggerNode(0, "ALERTA: Queda brusca detectada", true);
+                    triggerNode(2, "Anomalia de movimento confirmada", true);
+                    showOverlay("PESSOA CAÍDA", "Consenso: Biomecânica + Espectral atingido.", "#ff4d4d");
+                    addLog("WS P2P: Nó 01 reportou vetor G-Force > 9.8m/s²", "alert");
+                    break;
+                case 'invasao':
+                    triggerNode(1, "ÁREA RESTRITA VIOLADA", true);
+                    showOverlay("INVASÃO DETECTADA", "Alerta enviado para central de monitoramento.", "#ff8800");
+                    addLog("WS P2P: Nó 02 identificou face não autorizada.", "alert");
+                    break;
+                case 'saude':
+                    triggerNode(0, "Ritmo Cardíaco: 140 BPM", true);
+                    triggerNode(2, "Temperatura corporal elevada", true);
+                    showOverlay("EMERGÊNCIA MÉDICA", "Sinais vitais fora do padrão de segurança.", "#3b82f6");
+                    addLog("WS P2P: Cross-check entre Nós 01 e 03 confirmou arritmia.", "alert");
+                    break;
+                case 'incendio':
+                    triggerNode(2, "FUMAÇA / CALOR DETECTADO", true);
+                    triggerNode(1, "Evacuação sugerida", true);
+                    showOverlay("FOGO / FUMAÇA", "Análise espectral confirmou radiação infravermelha.", "#ff0000");
+                    addLog("WS P2P: Nó 03 detectou variação térmica > 70°C", "alert");
+                    break;
+            }
+        }
+
+        function triggerNode(idx, msg, isAlert) {
+            nodes[idx].classList.add(isAlert ? 'alert' : 'active');
+            vals[idx].innerText = msg;
+        }
+
+        function showOverlay(title, desc, color) {
+            const overlay = document.getElementById('alert-ui');
+            overlay.style.display = 'flex';
+            overlay.style.color = color;
+            document.getElementById('alert-title').innerText = title;
+            document.getElementById('alert-desc').innerText = desc;
+            document.getElementById('canvas').style.borderColor = color;
+        }
+
+        function resetUI() {
+            nodes.forEach(n => { n.classList.remove('alert'); n.classList.remove('active'); });
+            vals[0].innerText = "Monitorando Vetores";
+            vals[1].innerText = "Área Protegida";
+            vals[2].innerText = "Padrão Térmico Normal";
+            document.getElementById('alert-ui').style.display = 'none';
+            document.getElementById('canvas').style.borderColor = "#333";
+        }
+
+        function resetSystem() {
+            resetUI();
+            document.getElementById('loading-text').style.display = "block";
+            document.getElementById('sys-status').innerText = "REINICIALIZANDO MALHA...";
+            addLog("COMANDO: Broadcast de restabelecimento enviado para todos os nós.", "java");
+            addLog("P2P: Classe Java 'BridgeManager' limpando buffers de cache...", "java");
+            
+            setTimeout(() => {
+                document.getElementById('sys-status').innerText = "SISTEMA PRONTO";
+                addLog("REDE RESTABELECIDA. Todos os nós operando em Bridge.", "java");
+            }, 1000);
+        }
+
+        // Inicialização simulada
+        window.onload = () => {
+            setTimeout(() => {
+                document.getElementById('node-count').innerText = "3";
+                nodes.forEach(n => n.classList.add('active'));
+                addLog("P2P: 3 Dispositivos Java detectados na sub-rede.", "java");
+                document.getElementById('sys-status').innerText = "SISTEMA PRONTO";
+            }, 1000);
+        }
+    </script>
+</body>
+</html>
