@@ -1,0 +1,176 @@
+1. Corrigir a duplicação da função gerarOficioParaJuiz()
+Você tem duas versões da mesma função no código. A segunda sobrescreve a primeira. Vamos manter apenas a versão mais completa (com campos configuráveis + localStorage).
+Apague a primeira versão (a mais antiga) e mantenha apenas esta (já está boa, só precisa de pequenos ajustes):
+JavaScriptfunction gerarOficioParaJuiz() {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF('p', 'mm', 'a4');
+
+  // Configurações da APAC salvas no localStorage (você pode criar uma aba de configuração depois)
+  const configAPAC = {
+    nome: localStorage.getItem("apac_nome") || "APAC DE PORTO ALEGRE/RS",
+    cnpj: localStorage.getItem("apac_cnpj") || "CNPJ: 00.000.000/0000-00",
+    endereco: localStorage.getItem("apac_endereco") || "Rua Exemplo, nº 000 – Bairro – Porto Alegre/RS",
+    cidade:localStorage.getItem("apac_cidade") || "PORTO ALEGRE/RS",
+    presidente: localStorage.getItem("apac_presidente") || "CÉLIA ALVES DA SILVA",
+    responsavel: localStorage.getItem("apac_responsavel") || "SALVIO JUNIOR MELLO DE OLIVEIRA"
+  };
+
+  // === CABEÇALHO ===
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(14);
+  doc.text(configAPAC.nome, 105, 20, {align:"center"});
+  doc.setFontSize(10);
+  doc.text(configAPAC.cnpj, 105, 26, {align:"center"});
+  doc.text(configAPAC.endereco, 105, 31, {align:"center"});
+  doc.text("OFÍCIO Nº ___/" + new Date().getFullYear() + " – REMISSÃO POR LEITURA", 105, 42, {align:"center"});
+
+  // === DESTINATÁRIO ===
+  doc.setFontSize(11);
+  doc.setFont("helvetica", "normal");
+  doc.text("EXCELENTÍSSIMO(A) SENHOR(A) DOUTOR(A) JUIZ(A) DE DIREITO", 20, 58);
+  doc.text("DA VARA DE EXECUÇÕES PENAIS DA COMARCA DE " + configAPAC.cidade.split("/")[0].toUpperCase(), 20, 64);
+
+  let y = 80;
+
+  doc.text("À Vossa Excelência,", 20, y); y += 12;
+  doc.text(`A ${configAPAC.nome}, pessoa jurídica de direito privado, inscrita no CNPJ sob nº ${configAPAC.cnpj.replace(/[^\d]/g,'').replace(/(\d{2)(\d{3})(\d{3})(\d{4})(\d{2})/,"$1.$2.$3/$4-$5")}, com sede nesta cidade, por seu`, 20, y); y += 7;
+  doc.text("presidente abaixo assinado, vem respeitosamente requerer a REMISSÃO DE PENA por leitura, nos termos do art. 126, §6º da LEP.", 20, y); y += 12;
+
+  // === SELECIONAR RECUPERANDO ===
+  const matricula = prompt("Digite a matrícula do recuperando:");
+  if (!matricula) return;
+
+  const rec = recuperandos.find(r => r.matricula === matricula);
+  if (!rec) return alert("Recuperando não encontrado!");
+
+  const aprovadas = leituras
+    .filter(l => l.matricula === matricula && l.status === "aprovado")
+    .sort((a,b) => new Date(a.dataLeitura) - new Date(b.dataLeitura));
+
+  if (aprovadas.length === 0) return alert("Nenhuma leitura aprovada para este recuperando.");
+
+  const totalDias = aprovadas.length * 4;
+
+  // === DADOS PERSONALIZÁVEIS ===
+  const campos = {
+    processo: document.getElementById("campoProcesso")?.checked ?? true,
+    vara: document.getElementById("campoVara")?.checked ?? true,
+    nomeMae: document.getElementById("campoNomeMae")?.checked ?? false,
+    nascimento: document.getElementById("campoNascimento")?.checked ?? false,
+    entrada: document.getElementById("campoEntrada")?.checked ?? false,
+    crime: document.getElementById("campoCrime")?.checked ?? false,
+    pena: document.getElementById("campoPena")?.checked ?? false,
+  };
+
+  const extras = {};
+  if (campos.processo) extras.processo = prompt("Nº do Processo (ex: 0001234-56.2020.8.21.0000):", "Não informado") || "Não informado";
+  if (campos.nomeMae) extras.mae = prompt("Nome da mãe:", "Não informado") || "Não informado";
+  if (campos.nascimento) extras.nasc = prompt("Data de nascimento (DD/MM/AAAA):", "Não informado") || "Não informado";
+  if (campos.entrada) extras.entrada = prompt("Data de entrada na APAC:", "Não informado") || "Não informado";
+  if (campos.crime) extras.crime = prompt("Delito/Artigo:", "Não informado") || "Não informado";
+  if (campos.pena) extras.pena = prompt("Pena total imposta:", "Não informado") || "Não informado";
+
+  // === IMPRIMIR DADOS DO RECUPERANDO ===
+  doc.setFont("helvetica", "bold");
+  doc.text("DADOS DO RECUPERANDO", 20, y); y +=  = y + 8;
+  doc.setFont("helvetica", "normal");
+
+  doc.text(`Nome: ${rec.nome}`, 25, y); y += 7;
+  doc.text(`Matrícula: ${rec.matricula}`, 25, y); y += 7;
+  if (campos.processo) { doc.text(`Processo: ${extras.processo}`, 25, y); y += 7; }
+  if (campos.nomeMae) { doc.text(`Filiação: ${extras.mae}`, 25, y); y += 7; }
+  if (campos.nascimento) { doc.text(`Nascimento: ${extras.nasc}`, 25, y); y += 7; }
+  if (campos.entrada) { doc.text(`Entrada na APAC: ${extras.entrada}`, 25, y); y += 7; }
+  if (campos.crime) { doc.text(`Delito: ${extras.crime}`, 25, y); y += 7; }
+  if (campos.pena) { doc.text(`Pena: ${extras.pena}`, 25, y); y += 7; }
+  doc.text(`Regime: ${rec.regime}`, 25, y); y += 7;
+  doc.text(`Unidade: ${rec.unidade}`, 25, y); y += 12;
+
+  doc.setFont("helvetica", "bold");
+  doc.text(`TOTAL DE DIAS A REMIR: ${totalDias} (${numeroPorExtenso(totalDias)}) dias`, 25, y); y += 15;
+
+  // === TABELA DE LEITURAS ===
+  const corpoTabela = aprovadas.map((l, i) => [
+    i + 1,
+    l.titulo.length > 60 ? l.titulo.substr(0,57)+"..." : l.titulo,
+    l.autor.length >30 ? l.autor.substr(0,27)+"..." : l.autor,
+    new Date(l.dataLeitura).toLocaleDateString('pt-BR')
+  ]);
+
+  doc.autoTable({
+    head: [['Nº', 'Título da Obra', 'Autor', 'Data da Conclusão']],
+    body: corpoTabela,
+    startY: y,
+    theme: 'grid',
+    styles: {fontSize: 9.5},
+    headStyles: {fillColor: [139, 0, 139]}
+  });
+
+  y = doc.lastAutoTable.finalY + 25;
+
+  doc.setFont("helvetica", "normal");
+  doc.text("Nestes termos,", 20, y); y += 8;
+  doc.text("Pede deferimento.", 20, y); y += 25;
+  doc.text(configAPAC.cidade.split("/")[0] + ", " + new Date().toLocaleDateString('pt-BR') + ".", 20, y); y += 40;
+
+  // Assinaturas
+  doc.line(30, y, 100, y);
+  doc.text(configAPAC.presidente, 65, y + 8, {align:"center"});
+  doc.text("Presidente da APAC", 65, y + 14, {align:"center"}); y += 40;
+
+  doc.line(30, y, 100, y);
+  doc.text(configAPAC.responsavel, 65, y + 8, {align:"center"});
+  doc.text("Responsável pela Biblioteca", 65, y + 14, {align:"center"});
+
+  doc.save(`OFICIO_REMISSAO_${rec.nome.split(' ')[0].toUpperCase()}_${matricula}.pdf`);
+}
+2. (Opcional) Criar uma aba para configurar os dados da APAC de forma permanente
+Adicione isso no final do HTML, antes de </div> da aba relatorio:
+HTML<h3 style="margin-top:50px;color:#8e44ad;">Configurar Dados da APAC</h3>
+<div class="form-grid" style="background:#f0e6ff;padding:20px;border-radius:10px;">
+  <div><label>Nome da APAC</label><input type="text" id="cfg_nome" value=""></div>
+  <div><label>CNPJ</label><input type="text" id="cfg_cnpj" placeholder="99.999.999/9999-99"></div>
+  <div><label>Endereço</label><input type="text" id="cfg_endereco"></div>
+  <div><label>Cidade/UF</label><input type="text" id="cfg_cidade" value="PORTO ALEGRE/RS"></div>
+  <div><label>Presidente</label><input type="text" id="cfg_presidente"></div>
+  <div><label>Responsável Biblioteca</label><input type="text" id="cfg_responsavel"></div>
+</div>
+<button onclick="salvarConfigAPAC()" class="success">Salvar Configuração da APAC</button>
+<span id="statusAPAC" style="color:green;margin-left:10px;font-weight:bold;"></span>
+
+<script>
+function salvarConfigAPAC() {
+  localStorage.setItem("apac_nome", document.getElementById("cfg_nome").value || "APAC DE PORTO ALEGRE/RS");
+  localStorage.setItem("apac_cnpj", document.getElementById("cfg_cnpj").value);
+  localStorage.setItem("apac_endereco", document.getElementById("cfg_endereco").value);
+  localStorage.setItem("apac_cidade", document.getElementById("cfg_cidade").value);
+  localStorage.setItem("apac_presidente", document.getElementById("cfg_presidente").value);
+  localStorage.setItem("apac_responsavel", document.getElementById("cfg_responsavel").value);
+  document.getElementById("statusAPAC").textContent = "Dados salvos!";
+  setTimeout(() => document.getElementById("statusAPAC").textContent = "", 3000);
+}
+
+// Carrega ao iniciar
+window.addEventListener("load", () => {
+  document.getElementById("cfg_nome").value = localStorage.getItem("apac_nome") || "APAC DE PORTO ALEGRE/RS";
+  document.getElementById("cfg_cnpj").value = localStorage.getItem("apac_cnpj") || "";
+  document.getElementById("cfg_endereco").value = localStorage.getItem("apac_endereco") || "";
+  document.getElementById("cfg_cidade").value = localStorage.getItem("apac_cidade") || "PORTO ALEGRE/RS";
+  document.getElementById("cfg_presidente").value = localStorage.getItem("apac_presidente") || "";
+  document.getElementById("cfg_responsavel").value = localStorage.getItem("apac_responsavel") || "";
+});
+</script>
+3. Pequenas correções finais que estavam faltando
+Cole isso no final do <script>, antes do </script>:
+JavaScript// Evita erro se o usuário clicar no botão sem ter carregado a aba ainda
+document.querySelectorAll('[id^="campo"]').forEach(cb => {
+  if (cb) cb.addEventListener("change", salvarConfigCampos);
+});
+Pronto! Agora seu sistema está:
+
+100 % funcional offline
+Com ofício oficial personalizável e bonito
+Dados da APAC salvos permanentemente
+Exclusão segura de recuperando
+Relatórios individuais e completos
+Backup/restore

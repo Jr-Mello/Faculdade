@@ -1,0 +1,108 @@
+1. Correções críticas (bugs que podem dar problema)
+JavaScript// Na função dev() → linha com Math.ceil((hoje-prev)/86400000)
+let dias = Math.ceil((hoje - prev) / 86400000);
+// Às vezes dá 0 mesmo com 1 dia de atraso por causa de horário
+// Corrija para:
+let dias = Math.floor((hoje.getTime() - prev.getTime()) / 86400000) + 1;
+if (dias < 1) dias = 0; // evita multa negativa
+JavaScript// Na importação Excel você está usando readAsArrayBuffer mas não converte corretamente
+reader.readAsArrayBuffer(file); // está certo
+// mas dentro do onload tem que usar Uint8Array:
+const wb = XLSX.read(new Uint8Array(ev.target.result), {type: "array"});
+2. Melhorias de usabilidade muito pedidas em APACs
+HTML<!-- Na aba Empréstimo, adicionar renovação -->
+<button class="e" onclick="renovar(this)" data-id="${e.id}" style="margin-left:10px">Renovar +15 dias</button>
+JavaScriptfunction renovar(btn) {
+  if(!confirm("Renovar empréstimo por mais 15 dias?")) return;
+  const id = +btn.dataset.id;
+  const e = emp.find(x => x.id === id);
+  if(!e || e.s !== "emprestado") return;
+  
+  const novaData = new Date(e.dp);
+  novaData.setDate(novaData.getDate() + 15);
+  e.dp = novaData.toISOString().slice(0,10);
+  put("emp", e);
+  alert("Renovado até " + novaData.toLocaleDateString("pt-BR"));
+  load();
+}
+3. Pagamento de multa (essencial!)
+Adicione na aba Multas:
+HTML<!-- Dentro do loop de multas (na função listAll ou nova função listMul) -->
+<button class="s" onclick="pagarMulta(${m.id})">Pagar</button>
+JavaScriptfunction pagarMulta(id) {
+  if(!confirm("Confirmar pagamento da multa?")) return;
+  const m = mul.find(x => x.id === id);
+  m.s = "pago";
+  m.dataPagamento = new Date().toISOString().slice(0,10);
+  put("mul", m);
+  load();
+}
+E melhore a listagem de multas:
+JavaScript// Na listAll() ou função específica
+mul.filter(m=>m.s==="pendente").forEach(m => {
+  $("lm").innerHTML += `<div style="background:#fff0f0;padding:12px;margin:8px 0;border-radius:8px">
+    <b>${m.nome}</b> – ${m.t}<br>
+    Atraso: ${m.dias} dia(s) → R$ ${m.val.toFixed(2)}<br>
+    <button class="s" onclick="pagarMulta(${m.id})">Marcar como Pago</button>
+  </div>`;
+});
+4. Ordenação inteligente nas listagens
+JavaScript// Ordenar empréstimos por data de devolução (os mais próximos do vencimento primeiro)
+atv.sort((a,b) => new Date(a.dp) - new Date(b.dp)).forEach(e => { ... }
+5. Busca mais poderosa nos recuperandos e livros
+HTML<!-- Na aba Recuperandos -->
+<input type="text" placeholder="Buscar recuperando..." onkeyup="buscarRec(this.value)" style="margin:10px 0;width:100%;padding:8px">
+JavaScriptfunction buscarRec(termo) {
+  termo = termo.toLowerCase();
+  const filtrados = rec.filter(r => r.nome.toLowerCase().includes(termo) || r.matricula.includes(termo));
+  $("lr").innerHTML = "";
+  filtrados.forEach(r => { /* mesmo código de montar div */ });
+}
+6. Relatório PDF mais bonito (com tabelas)
+Substitua a função pdf() por esta versão mais profissional:
+JavaScriptfunction pdf() {
+  const {jsPDF} = window.jspdf;
+  const doc = new jsPDF('p', 'mm', 'a4');
+  doc.setFont("helvetica");
+  doc.setFontSize(18);
+  doc.text("RELATÓRIO – BIBLIOTECA APAC", 105, 20, {align:"center"});
+  doc.setFontSize(11);
+  doc.text("Gerado em: " + new Date().toLocaleDateString("pt-BR"), 105, 30, {align:"center"});
+
+  let y = 50;
+  const linhas = [
+    ["Recuperandos cadastrados", $("r1").textContent],
+    ["Livros no acervo", $("r2").textContent],
+    ["Empréstimos ativos", $("r3").textContent],
+    ["Livros atrasados", $("r4").textContent],
+    ["Reservas ativas", $("r7").textContent],
+    ["Total de multas pendentes", "R$ " + $("r5").textContent],
+    ["Dias remidos por leitura", $("r6").textContent + " dias"]
+  ];
+
+  doc.autoTable({
+    startY: y,
+    head: [['Indicador', 'Quantidade']],
+    body: linhas,
+    theme: 'grid',
+    styles: {fontSize: 11, cellPadding: 4},
+    headStyles: {fillColor: [46, 82, 121]}
+  });
+
+  doc.save("relatorio_biblioteca_apac_" + new Date().toISOString().slice(0,10) + ".pdf");
+}
+(Necessário incluir jsPDF AutoTable:
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>)
+)
+7. Pequenas melhorias visuais e de segurança
+HTML<!-- Adicionar no <head> para ficar mais bonito -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap">
+<style>
+  body {font-family: 'Roboto', sans-serif; margin:20px; background:#f5f5f5;}
+  button {cursor:pointer; border:none; color:white; border-radius:6px; padding:10px 16px;}
+  .s {background:#4caf50;}
+  .i {background:#2196f3;}
+  .e {background:#ff9800;}
+  .d {background:#f44336;}
+  .red {background:#ffebee !important;}
+</style>

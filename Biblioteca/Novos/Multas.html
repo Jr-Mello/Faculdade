@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Biblioteca APAC - Empréstimos + Multas por Atraso</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<style>
+  :root{--primaria:#8e44ad;--sucesso:#27ae60;--atencao:#e67e22;--perigo:#c0392b;--info:#3498db}
+  body{font-family:Segoe UI,Arial,sans-serif;background:#f0f2f5;margin:0;padding:10px}
+  header{background:var(--primaria);color:#fff;padding:20px;text-align:center;border-radius:12px 12px 0 0}
+  h1{margin:0;font-size:1.8rem}
+  .container{max-width:1350px;margin:0 auto;background:#fff;border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,0.15);overflow:hidden}
+  .tabs{display:flex;flex-wrap:wrap;background:#2c3e50}
+  .tablink{padding:16px 20px;flex:1;text-align:center;color:#fff;border:none;cursor:pointer;font-weight:bold;transition:0.3s}
+  .tablink:hover{background:#34495e}
+  .tablink.active{background:var(--primaria)}
+  .tabcontent{padding:30px;display:none}
+  .form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px}
+  input,select,textarea{padding:12px;border:1px solid #ccc;border-radius:8px;width:100%;font-size:1rem;box-sizing:border-box}
+  button{padding:14px 28px;border:none;border-radius:8px;color:#fff;font-weight:bold;cursor:pointer;margin:8px 4px}
+  button:hover{opacity:0.9}
+  .success{background:var(--sucesso)}
+  .danger{background:var(--perigo)}
+  .warning{background:var(--atencao)}
+  .info{background:var(--info)}
+  .pdf{background:var(--primaria)}
+  .small{padding:8px 16px;font-size:0.9rem}
+  .badge{padding:6px 14px;border-radius:20px;color:#fff;font-weight:bold;font-size:0.85rem}
+  .multa-pendente{background:#e74c3c}
+  .multa-paga{background:#27ae60}
+  .atrasado{color:var(--perigo);font-weight:bold}
+  table{width:100%;border-collapse:collapse;margin:20px 0}
+  th{background:var(--primaria);color:#fff;padding:14px;text-align:left}
+  td{padding:12px;border:1px solid #ddd}
+  tr:nth-child(even){background:#f8f9fa}
+  .bloqueado{color:#c0392b;font-weight:bold}
+</style>
+</head>
+<body>
+<header>
+  <h1>Biblioteca APAC - Controle de Empréstimos + Multas</h1>
+  <p>Remissão por Leitura + Gestão Completa com Multas Automáticas</p>
+</header>
+
+<div class="container">
+  <div class="tabs">
+    <button class="tablink active" onclick="openTab(event,'recuperando')">Recuperandos</button>
+    <button class="tablink" onclick="openTab(event,'livros')">Acervo</button>
+    <button class="tablink" onclick="openTab(event,'emprestimo')">Empréstimo/Devolução</button>
+    <button class="tablink" onclick="openTab(event,'multas')">Multas</button>
+    <button class="tablink" onclick="openTab(event,'leitura')">Remissão</button>
+    <button class="tablink" onclick="openTab(event,'relatorio')">Relatórios</button>
+  </div>
+
+  <!-- RECUPERANDOS -->
+  <div id="recuperando" class="tabcontent" style="display:block;">
+    <h2>Cadastro de Recuperando</h2>
+    <div class="form-grid">
+      <div><label>Nome Completo *</label><input type="text" id="nomeRec"></div>
+      <div><label>Matrícula *</label><input type="text" id="matriculaRec"></div>
+      <div><label>Unidade</label><input type="text" id="unidadeRec" value="APAC de Porto Alegre/RS"></div>
+      <div><label>Regime</label><select id="regimeRec"><option>Fechado</option><option selected>Semiaberto</option><option>Aberto</option></select></div>
+    </div>
+    <button class="success" onclick="salvarRecuperando()">Salvar Recuperando</button>
+    <h3>Recuperandos (<span id="totalRec">0</span>)</h3>
+    <div id="listaRecuperandos"></div>
+  </div>
+
+  <!-- ACERVO -->
+  <div id="livros" class="tabcontent">
+    <h2>Acervo</h2>
+    <div class="form-grid">
+      <div><label>Título *</label><input type="text" id="tituloLivro"></div>
+      <div><label>Autor *</label><input type="text" id="autorLivro"></div>
+      <div><label>ISBN</label><input type="text" id="isbnLivro"></div>
+      <div><label>Ano</label><input type="number" id="anoLivro" value="2025"></div>
+      <div><label>Categoria</label><input type="text" id="categoriaLivro"></div>
+      <div><label>Exemplares</label><input type="number" id="quantidadeLivro" value="1" min="1"></div>
+    </div>
+    <button class="success" onclick="salvarLivro()">Adicionar Livro</button>
+    <button class="danger small" onclick="limparFormularioLivro()">Limpar</button>
+    <input type="text" id="buscaLivro" class="search-box" placeholder="Buscar título, autor..." onkeyup="filtrarLivros()">
+    <div id="listaLivros"></div>
+  </div>
+
+  <!-- EMPRÉSTIMO -->
+  <div id="emprestimo" class="tabcontent">
+    <h2>Empréstimo e Devolução</h2>
+    <div class="form-grid">
+      <div><label>Recuperando</label><select id="selectRecEmprestimo"></select></div>
+      <div><label>Livro Disponível</label><select id="selectLivroEmprestimo"><option value="">Selecione...</option></select></div>
+      <div><label>Data Empréstimo</label><input type="date" id="dataEmprestimo"></div>
+      <div><label>Prazo (dias)</label><input type="number" id="prazoDias" value="15" min="1"></div>
+    </div>
+    <button class="info" style="font-size:1.4rem;padding:18px 40px;" onclick="realizarEmprestimo()">Realizar Empréstimo</button>
+
+    <h3 style="margin-top:50px">Livros Emprestados Atualmente (<span id="totalEmprestados">0</span>)</h3>
+    <div id="listaEmprestimos"></div>
+  </div>
+
+  <!-- MULTAS -->
+  <div id="multas" class="tabcontent">
+    <h2>Controle de Multas por Atraso</h2>
+    <div style="background:#fff8e1;padding:20px;border-radius:10px;margin-bottom:20px">
+      <strong>Configuração de Multa:</strong><br>
+      <label><input type="number" id="valorMultaDia" value="1.00" step="0.10" style="width:100px"> R$ por dia de atraso</label>
+      <button class="success small" onclick="salvarValorMulta()">Salvar Valor</button>
+      <span id="statusMulta" style="margin-left:10px;color:green"></span>
+    </div>
+
+    <h3>Multas Pendentes (<span id="totalMultasPendentes">0</span>)</h3>
+    <div id="listaMultas"></div>
+  </div>
+
+  <!-- REMISSÃO -->
+  <div id="leitura" class="tabcontent">
+    <h2>Lançar Leitura Concluída (Remissão)</h2>
+    <div class="form-grid">
+      <div><label>Recuperando</label><select id="selectRecLeitura"></select></div>
+      <div><label>Livro Lido</label><select id="selectLivroLeitura"></select></div>
+      <div><label>Data Conclusão</label><input type="date" id="dataConclusao"></div>
+      <div style="grid-column:1/-1"><label>Resenha (mín. 10 linhas)</label><textarea id="resenhaLeitura" rows="8"></textarea></div>
+      <div><label>Status</label><select id="statusLeitura"><option value="aprovado">Aprovado (+4 dias)</option><option value="reprovado">Reprovado</option></select></div>
+    </div>
+    <button class="pdf" style="font-size:1.4rem;padding:18px 40px;" onclick="salvarLeituraRemissao()">Lançar Leitura</button>
+  </div>
+
+  <!-- RELATÓRIOS -->
+  <div id="relatorio" class="tabcontent">
+    <h2>Relatórios</h2>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:20px;margin:30px 0">
+      <div class="alert success"><strong>Recuperandos:</strong> <span id="r1">0</span></div>
+      <div class="alert success"><strong>Livros:</strong> <span id="r2">0</span></div>
+      <div class="alert success"><strong>Em empréstimo:</strong> <span id="r3">0</span></div>
+      <div class="alert success"><strong>Atrasados:</strong> <span id="r4">0</span></div>
+      <div class="alert success"><strong>Multas pendentes:</strong> R$ <span id="r5">0,00</span></div>
+      <div class="alert success"><strong>Dias remidos:</strong> <span id="r6">0</span></div>
+    </div>
+    <div style="text-align:center;margin:40px 0">
+      <button onclick="relatorioGeralPDF()" class="pdf" style="padding:20px 50px;font-size:1.5rem">Relatório Completo PDF</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// === CONFIGURAÇÃO INICIAL ===
+let db;
+let recuperandos = [], livros = [], emprestimos = [], leituras = [], multas = [];
+const VALOR_MULTA_DIA = () => parseFloat(localStorage.getItem("multa_valor_dia") || "1.00");
+
+const request = indexedDB.open("BibliotecaAPAC_Multas", 9);
+request.onupgradeneeded = e => {
+  db = e.target.result;
+  if (!db.objectStoreNames.contains("recuperandos")) db.createObjectStore("recuperandos", {keyPath: "matricula"});
+  if (!db.objectStoreNames.contains("livros")) db.createObjectStore("livros", {keyPath: "id", autoIncrement: true});
+  if (!db.objectStoreNames.contains("emprestimos")) db.createObjectStore("emprestimos", {keyPath: "id", autoIncrement: true});
+  if (!db.objectStoreNames.contains("leituras")) db.createObjectStore("leituras", {keyPath: "id", autoIncrement: true});
+  if (!db.objectStoreNames.contains("multas")) db.createObjectStore("multas", {keyPath: "id", autoIncrement: true});
+};
+request.onsuccess = e => { db = e.target.result; iniciar(); };
+
+// === INICIAR ===
+function iniciar() {
+  carregarTudo();
+  document.getElementById("dataEmprestimo").valueAsDate = new Date();
+  document.getElementById("dataConclusao").valueAsDate = new Date();
+  document.getElementById("valorMultaDia").value = VALOR_MULTA_DIA();
+}
+
+// === CARREGAR TODOS OS DADOS ===
+function carregarTudo() {
+  Promise.all([
+    db.transaction("recuperandos").objectStore("recuperandos").getAll(),
+    db.transaction("livros").objectStore("livros").getAll(),
+    db.transaction("emprestimos").objectStore("emprestimos").getAll(),
+    db.transaction("leituras").objectStore("leituras").getAll(),
+    db.transaction("multas").objectStore("multas").getAll()
+  ]).then(results => {
+    [recuperandos, livros, emprestimos, leituras, multas] = results.map(r => r.target.result || []);
+    atualizarTudo();
+  });
+}
+
+// === ATUALIZAR TODAS AS TELAS ===
+function atualizarTudo() {
+  carregarRecuperandos();
+  carregarLivros();
+  carregarEmprestimos();
+  carregarMultas();
+  atualizarEstatisticas();
+}
+
+// === RECUPERANDOS ===
+function salvarRecuperando() {
+  const nome = document.getElementById("nomeRec").value.trim().toUpperCase();
+  const matricula = document.getElementById("matriculaRec").value.trim();
+  if (!nome || !matricula) return alert("Preencha os campos!");
+  const rec = {matricula, nome, unidade: document.getElementById("unidadeRec").value, regime: document.getElementById("regimeRec").value};
+  db.transaction("recuperandos","readwrite").objectStore("recuperandos").put(rec).onsuccess = () => {
+    alert("Salvo!"); document.getElementById("nomeRec").value = document.getElementById("matriculaRec").value = ""; atualizarTudo();
+  };
+}
+
+function carregarRecuperandos() {
+  document.getElementById("totalRec").textContent = recuperandos.length;
+  const selects = ["selectRecEmprestimo","selectRecLeitura"];
+  selects.forEach(id => {
+    const sel = document.getElementById(id);
+    sel.innerHTML = "<option value=''>Selecione...</option>";
+    recuperandos.forEach(r => sel.innerHTML += `<option value="${r.matricula}">${r.nome} (${r.matricula})</option>`);
+  });
+  const div = document.getElementById("listaRecuperandos");
+  div.innerHTML = "";
+  recuperandos.forEach(r => {
+    const temMulta = multas.some(m => m.matricula === r.matricula && m.status === "pendente");
+    div.innerHTML += `
+      <div style="padding:16px;border-bottom:1px solid #eee;background:${temMulta?'#ffebee':''}">
+        <strong>${r.nome}</strong> • ${r.matricula}<br>
+        <small>${r.regime} | ${r.unidade}</small>
+        ${temMulta ? '<br><span class="badge multa-pendente">MULTA PENDENTE</span>' : ''}
+      </div>`;
+  });
+}
+
+// === LIVROS ===
+function salvarLivro() {
+  const titulo = document.getElementById("tituloLivro").value.trim();
+  const autor = document.getElementById("autorLivro").value.trim();
+  if (!titulo || !autor) return alert("Título e autor obrigatórios!");
+  const livro = {
+    titulo, autor,
+    isbn: document.getElementById("isbnLivro").value.trim() || "Sem ISBN",
+    ano: parseInt(document.getElementById("anoLivro").value) || new Date().getFullYear(),
+    categoria: document.getElementById("categoriaLivro").value.trim() || "Geral",
+    exemplaresTotal: parseInt(document.getElementById("quantidadeLivro").value),
+    exemplaresDisponiveis: parseInt(document.getElementById("quantidadeLivro").value)
+  }
+  db.transaction("livros","readwrite").objectStore("livros").add(livro).onsuccess = () => {
+    alert("Livro adicionado!"); limparFormularioLivro(); atualizarTudo();
+  };
+}
+
+function limparFormularioLivro() {
+  ["tituloLivro","autorLivro","isbnLivro","categoriaLivro"].forEach(id=>document.getElementById(id).value="");
+  document.getElementById("anoLivro").value = new Date().getFullYear();
+  document.getElementById("quantidadeLivro").value = "1";
+}
+
+function carLivros() {
+  document.getElementById("r2").textContent = livros.length;
+  atualizarSelectLivrosEmprestimo();
+  atualizarSelectLivrosLeitura();
+  const div = document.getElementById("listaLivros");
+  div.innerHTML = "";
+  livros.forEach(l => {
+    const status = l.exemplaresDisponiveis > 0 ? 
+      `<span class="badge" style="background:var(--sucesso)">${l.exemplaresDisponiveis}/${l.exemplaresTotal}</span>` :
+      `<span class="badge" style="background:var(--perigo)">Esgotado</span>`;
+    div.innerHTML += `
+      <div style="padding:16px;background:#f9f9f9;border-radius:8px;margin:8px 0">
+        <strong>${l.titulo}</strong> — ${l.autor}<br>
+        <small>${l.categoria} | ${l.ano}</small><br>${status}
+      </div>`;
+  });
+}
+
+function atualizarSelectLivrosEmprestimo() {
+  const sel = document.getElementById("selectLivroEmprestimo");
+  sel.innerHTML = "<option value=''>Selecione livro...</option>";
+  livros.filter(l => l.exemplaresDisponiveis > 0).forEach(l => {
+    sel.innerHTML += `<option value="${l.id}">${l.titulo} - ${l.autor} (${l.exemplaresDisponiveis} disp.)</option>`;
+  });
+}
+
+function atualizarSelectLivrosLeitura() {
+  const sel = document.getElementById("selectLivroLeitura");
+  sel.innerHTML = "<option value=''>Selecione...</option>";
+  livros.forEach(l => sel.innerHTML += `<option value="${l.id}">${l.titulo} - ${l.autor}</option>`);
+}
+
+// === EMPRÉSTIMOS ===
+function realizarEmprestimo() {
+  const matricula = document.getElementById("selectRecEmprestimo").value;
+  const livroId = parseInt(document.getElementById("selectLivroEmprestimo").value);
+  if (!matricula || !livroId) return alert("Selecione recuperando e livro!");
+
+  // Verifica multa pendente
+  if (multas.some(m => m.matricula === matricula && m.status === "pendente")) {
+    return alert("Este recuperando tem MULTA PENDENTE!\nNão é possível realizar novo empréstimo.");
+  }
+
+  const livro = livros.find(l => l.id === livroId);
+  if (livro.exemplaresDisponiveis <= 0) return alert("Sem exemplares!");
+
+  const dataEmp = document.getElementById("dataEmprestimo").value;
+  const prazo = parseInt(document.getElementById("prazoDias").value);
+  const dataPrev = new Date(dataEmp);
+  dataPrev.setDate(dataPrev.getDate() + prazo);
+
+  const emprestimo = {
+    matricula,
+    nomeRecuperando: recuperandos.find(r=>r.matricula===matricula).nome,
+    livroId,
+    titulo: livro.titulo,
+    autor: livro.autor,
+    dataEmprestimo: dataEmp,
+    dataPrevista: dataPrev.toISOString().slice(0,10),
+    dataDevolucao: null,
+    status: "emprestado"
+  };
+
+  livro.exemplaresDisponiveis--;
+  db.transaction("livros","readwrite").objectStore("livros").put(livro);
+  db.transaction("emprestimos","readwrite").objectStore("emprestimos").add(emprestimo).onsuccess = () => {
+    alert(`Empréstimo realizado!\nDevolver até: ${dataPrev.toLocaleDateString('pt-BR')}`);
+    atualizarTudo();
+  };
+}
+
+function devolverLivro(idEmp) {
+  if (!confirm("Confirmar devolução?")) return;
+
+  db.transaction(["emprestimos","livros","multas"],"readwrite").objectStore("emprestimos").get(idEmp).onsuccess = ev => {
+    const emp = ev.target.result;
+    const hoje = new Date();
+    const prevista = new Date(emp.dataPrevista);
+    emp.dataDevolucao = hoje.toISOString().slice(0,10);
+    emp.status = "devolvido";
+    db.transaction("emprestimos").objectStore("emprestimos").put(emp);
+
+    // Atualiza estoque
+    const livro = livros.find(l => l.id === emp.livroId);
+    if (livro) {
+      livro.exemplaresDisponiveis++;
+      db.transaction("livros").objectStore("livros").put(livro);
+    }
+
+    // === CALCULA E CRIA MULTA SE HOUVER ATRASO ===
+    if (hoje > prevista) {
+      const diasAtraso = Math.ceil((hoje - prevista) / (1000*60*60*24));
+      const valorMulta = diasAtraso * VALOR_MULTA_DIA();
+
+      const multa = {
+        matricula: emp.matricula,
+        nomeRecuperando: emp.nomeRecuperando,
+        emprestimoId: emp.id,
+        tituloLivro: emp.titulo,
+        diasAtraso,
+        valor: valorMulta,
+        dataMulta: new Date().toISOString().slice(0,10),
+        status: "pendente"
+      };
+      db.transaction("multas").objectStore("multas").add(multa);
+      alert(`Livro devolvido com ${diasAtraso} dia(s) de atraso!\nMulta gerada: R$ ${valorMulta.toFixed(2)}`);
+    } else {
+      alert("Livro devolvido no prazo!");
+    }
+    atualizarTudo();
+  };
+}
+
+function carregarEmprestimos() {
+  const ativos = emprestimos.filter(e => e.status === "emprestado");
+  document.getElementById("totalEmprestados").textContent = ativos.length;
+  document.getElementById("r3").textContent = ativos.length;
+  const div = document.getElementById("listaEmprestimos");
+  div.innerHTML = ativos.length === 0 ? "<p>Nenhum livro emprestado.</p>" : "";
+  ativos.forEach(emp => {
+    const atrasado = new Date() > new Date(emp.dataPrevista);
+    div.innerHTML += `
+      <div style="padding:18px;background:#fff;border-left:5px solid ${atrasado?'#c0392b':'#e67e22'};border-radius:8px;margin:10px 0">
+        <strong>${emp.titulo}</strong> — ${emp.autor}<br>
+        <small>${emp.nomeRecuperando} (${emp.matricula})<br>
+        Empréstimo: ${new Date(emp.dataEmprestimo).toLocaleDateString('pt-BR')} → 
+        <strong ${atrasado?'class="atrasado"':''}>Devolver até: ${new Date(emp.dataPrevista).toLocaleDateString('pt-BR')}</strong>
+        ${atrasado?' → ATRASADO!':''}</small><br>
+        <button class="success small" onclick="devolverLivro(${emp.id})">Devolver</button>
+      </div>`;
+  });
+}
+
+// === MULTAS ===
+function salvarValorMulta() {
+  const valor = parseFloat(document.getElementById("valorMultaDia").value);
+  if (isNaN(valor) || valor < 0) return alert("Valor inválido!");
+  localStorage.setItem("multa_valor_dia", valor.toFixed(2));
+  document.getElementById("statusMulta").textContent = "Valor salvo!";
+  setTimeout(() => document.getElementById("statusMulta").textContent = "", 3000);
+}
+
+function pagarMulta(idMulta) {
+  if (!confirm("Confirmar pagamento da multa?")) return;
+  db.transaction("multas","readwrite").objectStore("multas").get(idMulta).onsuccess = e => {
+    const m = e.target.result;
+    m.status = "paga";
+    m.dataPagamento = new Date().toISOString().slice(0,10);
+    db.transaction("multas").objectStore("multas").put(m).onsuccess = () => {
+      alert("Multa marcada como paga!");
+      atualizarTudo();
+    };
+  };
+}
+
+function carregarMultas() {
+  const pendentes = multas.filter(m => m.status === "pendente");
+  document.getElementById("totalMultasPendentes").textContent = pendentes.length;
+  const totalPendente = pendentes.reduce((s,m) => s + m.valor, 0);
+  document.getElementById("r5").textContent = totalPendente.toFixed(2);
+
+  const div = document.getElementById("listaMultas");
+  div.innerHTML = pendentes.length === 0 ? "<p>Nenhuma multa pendente.</p>" : "";
+  pendentes.forEach(m => {
+    div.innerHTML += `
+      <div style="padding:16px;background:#ffebee;border-radius:8px;margin:10px 0">
+        <strong>${m.nomeRecuperando}</strong> (${m.matricula})<br>
+        Livro: ${m.tituloLivro}<br>
+        <small>Atraso: ${m.diasAtraso} dia(s) → R$ ${m.valor.toFixed(2)}<br>
+        Gerada em: ${new Date(m.dataMulta).toLocaleDateString('pt-BR')}</small><br>
+        <button class="success small" onclick="pagarMulta(${m.id})">Marcar como Paga</button>
+      </div>`;
+  });
+}
+
+// === REMISSÃO ===
+function salvarLeituraRemissao() {
+  const matricula = document.getElementById("selectRecLeitura").value;
+  const livroId = parseInt(document.getElementById("selectLivroLeitura").value);
+  if (!matricula || !livroId) return alert("Selecione tudo!");
+
+  const linhas = document.getElementById("resenhaLeitura").value.trim().split('\n').filter(l=>l.trim().length>0);
+  if (linhas.length < 10) return alert("Resenha deve ter no mínimo 10 linhas!");
+
+  const leitura = {
+    matricula,
+    nomeRecuperando: recuperandos.find(r=>r.matricula===matricula).nome,
+    livroId,
+    titulo: livros.find(l=>l.id===livroId).titulo,
+    dataLeitura: document.getElementById("dataConclusao").value,
+    resenha: document.getElementById("resenhaLeitura").value.trim(),
+    status: document.getElementById("statusLeitura").value,
+    diasRemidos: document.getElementById("statusLeitura").value === "aprovado" ? 4 : 0
+  };
+
+  db.transaction("leituras","readwrite").objectStore("leituras").add(leitura).onsuccess = () => {
+    alert(leitura.status==="aprovado" ? "Aprovado! +4 dias" : "Registrado");
+    document.getElementById("resenhaLeitura").value = "";
+    atualizarTudo();
+  };
+}
+
+// === ESTATÍSTICAS ===
+function atualizarEstatisticas() {
+  const atrasados = emprestimos.filter(e => e.status==="emprestado" && new Date() > new Date(e.dataPrevista)).length;
+  document.getElementById("r4").textContent = atrasados;
+  const diasRemidos = leituras.filter(l=>l.status==="aprovado").reduce((s,l)=>s + l.diasRemidos, 0);
+  document.getElementById("r6").textContent = diasRemidos;
+}
+
+// === RELATÓRIO PDF (simplificado) ===
+function relatorioGeralPDF() {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  doc.setFontSize(16);
+  doc.text("RELATÓRIO GERAL - BIBLIOTECA APAC", 105, 20, {align:"center"});
+  doc.setFontSize(12);
+  doc.text(`Gerado em: ${new Date().toLocaleString('pt-BR')}`, 105, 30, {align:"center"});
+
+  let y = 50;
+  doc.text(`Total de recuperandos: ${recuperandos.length}`, 20, y); y += 10;
+  doc.text(`Livros no acervo: ${livros.length}`, 20, y); y += 10;
+  doc.text(`Em empréstimo: ${emprestimos.filter(e=>e.status==="emprestado").length}`, 20, y); y += 10;
+  doc.text(`Multas pendentes: R$ ${multas.filter(m=>m.status==="pendente").reduce((s,m)=>s+m.valor,0).toFixed(2)}`, 20, y); y += 10;
+  doc.text(`Dias remidos: ${leituras.filter(l=>l.status==="aprovado").length * 4}`, 20, y);
+
+  doc.save("Relatorio_Biblioteca_APAC.pdf");
+}
+
+// === ABAS ===
+function openTab(evt, tabName) {
+  document.querySelectorAll(".tabcontent").forEach(t=>t.style.display="none");
+  document.querySelectorAll(".tablink").forEach(t=>t.classList.remove("active"));
+  document.getElementById(tabName).style.display = "block";
+  evt.currentTarget.classList.add("active");
+}
+
+iniciar();
+</script>
+</body>
+</html>

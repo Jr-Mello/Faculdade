@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Sistema de Remissão por Leitura - APAC (Final)</title>
+  
+  <!-- jsPDF + autoTable -->
+<script src="./jspdf.umd.min.js"></script>
+  <script src="./jspdf.plugin.autotable.min.js"></script>
+  <style>
+    :root { --primary:#1a5276; --success:#27ae60; --danger:#e74c3c; --warning:#f39c12; --dark:#2c3e50; }
+    body {font-family:'Segoe UI',sans-serif;margin:0;background:#f0f2f5;color:#333;line-height:1.6;}
+    header {background:var(--primary);color:white;padding:2rem;text-align:center;box-shadow:0 4px 15px rgba(0,0,0,0.2);}
+    h1 {margin:0;font-size:2.1rem;}
+    h2 {color:var(--primary);border-bottom:3px solid var(--primary);padding-bottom:10px;margin-top:35px;}
+    .container {max-width:1350px;margin:auto;padding:20px;}
+    .tabs {display:flex;flex-wrap:wrap;background:#ddd;border-radius:10px 10px 0 0;overflow:hidden;}
+    .tablink {border:none;padding:18px 25px;background:#ccc;font-weight:600;cursor:pointer;flex:1;min-width:130px;transition:0.3s;text-align:center;}
+    .tablink:hover {background:#bbb;}
+    .tablink.active {background:var(--primary);color:white;}
+    .tabcontent {display:none;padding:35px;background:white;border-radius:0 10px 10px 10px;box-shadow:0 8px 25px rgba(0,0,0,0.12);min-height:620px;}
+    .form-grid {display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:22px;}
+    label {display:block;margin:12px 0 6px;font-weight:600;color:var(--dark);}
+    input,textarea,select {width:100%;padding:13px;border:1px solid #ccc;border-radius:7px;box-sizing:border-box;font-size:1rem;transition:0.3s;}
+    input:focus,select:focus,textarea:focus {border-color:var(--primary);outline:none;box-shadow:0 0 10px rgba(26,82,118,0.25);}
+    button {background:var(--success);color:white;border:none;padding:14px 28px;cursor:pointer;border-radius:7px;font-weight:600;margin:12px 12px 12px 0;transition:0.3s;}
+    button:hover {opacity:0.92;transform:translateY(-2px);box-shadow:0 5px 15px rgba(0,0,0,0.2);}
+    button.danger {background:var(--danger);}
+    button.pdf {background:#c0392b;}
+    button.warning {background:var(--warning);color:white;}
+    button.small {padding:9px 18px;font-size:0.95rem;}
+    table {width:100%;border-collapse:collapse;margin:25px 0;}
+    th {background:var(--primary);color:white;padding:15px;text-align:left;}
+    td {padding:13px;border-bottom:1px solid #eee;}
+    tr:hover {background:#f8f9fa;}
+    .search-box {padding:14px;width:100%;font-size:1.1rem;border-radius:7px;border:1px solid #ccc;margin-bottom:20px;}
+    .badge {padding:7px 14px;border-radius:25px;font-size:0.85rem;color:white;font-weight:600;}
+    .disponivel {background:#27ae60;}
+    .indisponivel {background:#e74c3c;}
+    .alert {padding:22px;margin:20px 0;border-radius:10px;font-weight:600;font-size:1.1rem;}
+    .success {background:#d4edda;color:#155724;border:1px solid #c3e6cb;}
+    .info {background:#d1ecf1;color:#0c5460;border:1px solid #bee5eb;}
+    @media (max-width:768px){.tablink{width:100%;}.form-grid{grid-template-columns:1fr;}}
+  </style>
+</head>
+<body>
+<header>
+  <h1>Sistema de Remissão por Leitura</h1>
+  <p>APAC • Art. 126, §6º da LEP • Relatórios em PDF</p>
+</header>
+
+<div class="container">
+  <div class="tabs">
+    <button class="tablink active" onclick="openTab(event,'recuperando')">Recuperandos</button>
+    <button class="tablink" onclick="openTab(event,'livros')">Acervo</button>
+    <button class="tablink" onclick="openTab(event,'leitura')">Lançar Leitura</button>
+    <button class="tablink" onclick="openTab(event,'relatorio')">Relatórios</button>
+  </div>
+
+  <!-- RECUPERANDOS -->
+  <div id="recuperando" class="tabcontent" style="display:block;">
+    <h2>Cadastro de Recuperando</h2>
+    <div class="form-grid">
+      <div><label>Nome Completo *</label><input type="text" id="nomeRec" required /></div>
+      <div><label>Matrícula *</label><input type="text" id="matriculaRec" required /></div>
+      <div><label>Unidade</label><input type="text" id="unidadeRec" value="APAC de Porto Alegre RS" /></div>
+      <div><label>Regime</label><select id="regimeRec"><option>Fechado</option><option selected>Semiaberto</option><option>Aberto</option></select></div>
+    </div>
+    <button onclick="salvarRecuperando()">Salvar Recuperando</button>
+    <h3>Cadastrados (<span id="totalRec">0</span>)</h3>
+    <div id="listaRecuperandos"></div>
+  </div>
+
+  <!-- LIVROS 
+
+ISBN (International Standard Book Number) é um número de identificação único para livros e outras publicações monográficas, como apostilas e artigos. Ele identifica o título, o autor, a edição, o país e a editora, facilitando a comercialização e a organização de publicações em livrarias e bibliotecas. No Brasil, a entidade responsável pela emissão do ISBN é a Câmara Brasileira do Livro (CBL).  
+-->
+  <div id="livros" class="tabcontent">
+    <h2>Cadastrar Livro</h2>
+    <div class="form-grid">
+      <div><label>Título *</label><input type="text" id="tituloLivro" required /></div>
+      <div><label>Autor *</label><input type="text" id="autorLivro" required /></div>
+      <div><label>ISBN</label><input type="text" id="isbnLivro" /></div>
+
+      <div><label>Ano</label><input type="number" id="anoLivro" value="2025" /></div>
+      <div><label>Categoria</label><input type="text" id="categoriaLivro" /></div>
+      <div><label>Quantidade</label><input type="number" id="quantidadeLivro" min="1" value="1" /></div>
+    </div>
+    <button onclick="salvarLivro()">Adicionar Livro</button>
+    <button class="danger small" onclick="limparFormularioLivro()">Limpar</button>
+    <h3>Buscar</h3>
+    <input type="text" id="buscaLivro" class="search-box" placeholder="Título, autor ou ISBN..." onkeyup="filtrarLivros()">
+    <div id="listaLivros"></div>
+  </div>
+
+  <!-- LEITURA -->
+  <div id="leitura" class="tabcontent">
+    <h2>Lançar Leitura</h2>
+    <div class="alert info">Máximo de 12 livros aprovados por ano • Resenha mínima: 10 linhas</div>
+    <div class="form-grid">
+      <div><label>Recuperando *</label><select id="selectRecuperando" required></select></div>
+      <div><label>Livro *</label><select id="selectLivro" required><option value="">Selecione...</option></select></div>
+      <div><label>Data da Leitura *</label><input type="date" id="dataLeitura" required /></div>
+      <div style="grid-column:span 2;"><label>Resenha (mín. 10 linhas)</label><textarea id="resenha" rows="10"></textarea></div>
+
+      <!--  <div style="grid-column:span 2;"><label>Resenha (mín. 10 linhas)</label><textarea id="resenha" rows="10" required></textarea></div>-->
+
+      <div><label>Status</label><select id="statusLeitura"><option value="aprovado">Aprovado (+4 dias)</option><option value="reprovado">Reprovado</option></select></div>
+    </div>
+    <button onclick="salvarLeitura()" style="font-size:1.3rem;padding:16px 32px;">Lançar Leitura</button>
+    <h3>Histórico</h3>
+    <div id="listaLeituras"></div>
+  </div>
+
+  <!-- RELATÓRIOS -->
+  <div id="relatorio" class="tabcontent">
+    <h2>Relatórios</h2>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px;">
+      <div class="alert success"><strong>Recuperandos:</strong> <span id="totalRecuperandos">0</span></div>
+      <div class="alert success"><strong>Livros:</strong> <span id="totalLivrosAcervo">0</span></div>
+      <div class="alert success"><strong>Leituras Aprovadas:</strong> <span id="totalLeiturasAprovadas">0</span></div>
+      <div class="alert success"><strong>Total de Dias Remidos:</strong> <span id="totalDiasRemidos">0</span> dias</div>
+    </div>
+
+    <div style="text-align:center;margin:40px 0;">
+      <button onclick="exportarRelatorioCompletoPDF()" class="pdf" style="font-size:1.4rem;padding:18px 40px;">
+        Exportar Relatório Completo em PDF
+      </button>
+    </div>
+<!-- Dentro da aba relatorio, logo abaixo do botão "Exportar Relatório Completo em PDF" -->
+<div style="text-align:center;margin:50px 0;">
+  <button onclick="gerarOficioParaJuiz()" class="pdf" style="font-size:1.5rem;padding:20px 50px;background:#8e44ad;color:white;">
+    Gerar Ofício + Relatório para o Juiz
+  </button>
+</div>
+<!-- Dentro da aba <div id="relatorio">, cole isso antes do botão "Gerar Ofício" -->
+<h3 style="margin-top:50px;color:#8e44ad;">Configurar Campos do Ofício para o Juiz</h3>
+<div class="form-grid" style="background:#f9f2ff;padding:20px;border-radius:10px;">
+  <div><label><input type="checkbox" id="campoProcesso" checked> Nº do Processo</label></div>
+  <div><label><input type="checkbox" id="campoVara" checked> Vara de Execução Penal</label></div>
+  <div><label><input type="checkbox" id="campoNomeMae"> Nome da Mãe</label></div>
+  <div><label><input type="checkbox" id="campoNascimento"> Data de Nascimento</label></div>
+  <div><label><input type="checkbox" id="campoEntrada"> Data de Entrada na APAC</label></div>
+  <div><label><input type="checkbox" id="campoCrime"> Artigo/Delito</label></div>
+  <div><label><input type="checkbox" id="campoPena"> Pena Total</label></div>
+</div>
+<button onclick="salvarConfigCampos()" class="warning" style="margin-top:10px;">Salvar Configuração</button>
+<span id="statusConfig" style="margin-left:10px;color:green;font-weight:bold;"></span>
+    <h3>Resumo por Recuperando</h3>
+    <div id="resumoPorPessoa"></div>
+
+    <div style="margin:40px 0;">
+      <button onclick="exportarJSON()">Backup JSON</button>
+      <button onclick="exportarCSV()">Exportar CSV</button>
+      <button class="warning" onclick="importarJSON()">Importar Backup</button>
+      <input type="file" id="fileInput" style="display:none" accept=".json" />
+    </div>
+  </div>
+</div>
+
+<script>
+// === IndexedDB ===
+let db;
+const request = indexedDB.open("RemissaoLeituraDB", 6);
+request.onupgradeneeded = e => {
+  db = e.target.result;
+  if (!db.objectStoreNames.contains("recuperandos")) db.createObjectStore("recuperandos", {keyPath: "matricula"});
+  if (!db.objectStoreNames.contains("livros")) db.createObjectStore("livros", {keyPath: "id", autoIncrement: true});
+  if (!db.objectStoreNames.contains("leituras")) db.createObjectStore("leituras", {keyPath: "id", autoIncrement: true});
+};
+request.onsuccess = e => { db = e.target.result; carregarTudo(); };
+
+// === Dados em memória ===
+let recuperandos = [], livros = [], leituras = [];
+
+// === Funções Auxiliares ===
+function validarResenha() {
+  const linhas = document.getElementById("resenha").value.trim().split('\n').filter(l => l.trim().length > 0);
+//  if (linhas.length <" 10) { alert(`Resenha deve ter no mínimo 10 linhas. Tem ${linhas.length}.`); return false; }
+  return true;
+}
+
+// === Recuperandos ===
+function salvarRecuperando() {
+  const nome = document.getElementById("nomeRec").value.trim().toUpperCase();
+  const matricula = document.getElementById("matriculaRec").value.trim();
+  if (!nome || !matricula) return alert("Preencha nome e matrícula!");
+  const rec = {matricula, nome, unidade: document.getElementById("unidadeRec").value, regime: document.getElementById("regimeRec").value};
+  db.transaction("recuperandos","readwrite").objectStore("recuperandos").put(rec).onsuccess = () => {
+    alert("Recuperando salvo!"); document.getElementById("nomeRec").value = ""; document.getElementById("matriculaRec").value = ""; carregarTudo();
+  };
+}
+
+// === Livros ===
+function salvarLivro() {
+  const titulo = document.getElementById("tituloLivro").value.trim();
+  const autor = document.getElementById("autorLivro").value.trim();
+  if (!titulo || !autor) return alert("Título e autor são obrigatórios!");
+  const livro = {
+    titulo, autor,
+    isbn: document.getElementById("isbnLivro").value.trim() || "Sem ISBN",
+    ano: document.getElementById("anoLivro").value || new Date().getFullYear(),
+    categoria: document.getElementById("categoriaLivro").value.trim() || "Geral",
+    quantidadeTotal: parseInt(document.getElementById("quantidadeLivro").value) || 1,
+    quantidadeDisponivel: parseInt(document.getElementById("quantidadeLivro").value) || 1
+  };
+  db.transaction("livros","readwrite").objectStore("livros").add(livro).onsuccess = () => {
+    alert("Livro adicionado!"); limparFormularioLivro(); carregarTudo();
+  };
+}
+function limparFormularioLivro() {
+  ["tituloLivro","autorLivro","isbnLivro","categoriaLivro"].forEach(id=>document.getElementById(id).value="");
+  document.getElementById("anoLivro").value = new Date().getFullYear();
+  document.getElementById("quantidadeLivro").value = "1";
+}
+function filtrarLivros() {
+  const termo = document.getElementById("buscaLivro").value.toLowerCase();
+  const filtrados = livros.filter(l => l.titulo.toLowerCase().includes(termo) || l.autor.toLowerCase().includes(termo) || (l.isbn && l.isbn.toLowerCase().includes(termo)));
+  exibirLivros(filtrados);
+}
+
+// === Leitura ===
+function salvarLeitura() {
+  if (!validarResenha()) return;
+  const matricula = document.getElementById("selectRecuperando").value;
+  const livroId = document.getElementById("selectLivro").value;
+  if (!matricula || !livroId) return alert("Selecione recuperando e livro!");
+  const livro = livros.find(l => l.id == livroId);
+  const data = document.getElementById("dataLeitura").value;
+  const ano = new Date(data).getFullYear();
+  const leiturasAno = leituras.filter(l => l.matricula === matricula && new Date(l.dataLeitura).getFullYear() === ano && l.status === "aprovado");
+  if (leiturasAno.length >= 12) return alert(`Limite de 12 livros aprovados em ${ano} atingido!`);
+  const jaLeu = leituras.some(l => l.matricula === matricula && l.livroId === parseInt(livroId));
+  if (jaLeu && !confirm("Este livro já foi registrado para este recuperando. Continuar?")) return;
+
+  const leitura = {
+    matricula, nomeRecuperando: recuperandos.find(r=>r.matricula===matricula)?.nome || "Desconhecido",
+    livroId: parseInt(livroId), titulo: livro.titulo, autor: livro.autor,
+    dataLeitura: data, resenha: document.getElementById("resenha").value.trim(),
+    status: document.getElementById("statusLeitura").value,
+    diasRemidos: document.getElementById("statusLeitura").value === "aprovado" ? 4 : 0
+  };
+  db.transaction("leituras","readwrite").objectStore("leituras").add(leitura).onsuccess = () => {
+    alert(leitura.status==="aprovado" ? "APROVADO! +4 dias" : "Registrado como reprovado");
+    document.getElementById("resenha").value = "";
+    document.getElementById("dataLeitura").valueAsDate = new Date();
+    carregarTudo();
+  };
+}
+
+// === PDF Completo ===
+function exportarRelatorioCompletoPDF() {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF('p','mm','a4');
+  doc.setFont("helvetica","bold"); doc.setFontSize(16);
+  doc.text("APAC - RELATÓRIO DE REMISSÃO POR LEITURA",105,25,{align:"center"});
+  doc.setFontSize(12); doc.setFont("helvetica","normal");
+  doc.text(`Gerado em: ${new Date().toLocaleString('pt-BR')}`,105,35,{align:"center"});
+  doc.setFontSize(11);
+  doc.text(`Recuperandos: ${recuperandos.length} • Livros: ${livros.length} • Aprovadas: ${leituras.filter(l=>l.status==="aprovado").length} • Total de dias: ${leituras.filter(l=>l.status==="aprovado").length*4}`,20,50);
+
+  const dados = recuperandos.map(r => {
+    const qtd = leituras.filter(l=>l.matricula===r.matricula && l.status==="aprovado").length;
+    return [r.nome, r.matricula, qtd, qtd*4];
+  });
+  doc.autoTable({head:[['Recuperando','Matrícula','Livros Lidos','Dias Remidos']], body:dados, startY:65, theme:'grid', headStyles:{fillColor:[26,82,118]}});
+
+  const y = doc.lastAutoTable.finalY + 30;
+  doc.text("_________________________________",60,y);
+  doc.text("Assinatura do Responsável",60,y+7);
+  doc.text(new Date().toLocaleDateString('pt-BR'),60,y+14);
+
+  doc.save(`Relatorio_APAC_${new Date().toISOString().slice(0,10)}.pdf`);
+}
+
+// === PDF Individual ===
+function gerarPDFIndividual(matricula) {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  const rec = recuperandos.find(r=>r.matricula===matricula);
+  const aprovadas = leituras.filter(l=>l.matricula===matricula && l.status==="aprovado").sort((a,b)=>new Date(a.dataLeitura)-new Date(b.dataLeitura));
+
+  doc.setFontSize(16); doc.setFont("helvetica","bold");
+  doc.text("RELATÓRIO INDIVIDUAL - REMISSÃO POR LEITURA",105,25,{align:"center"});
+  doc.setFontSize(12); doc.setFont("helvetica","normal");
+  doc.text(`Nome: ${rec.nome}`,20,45);
+  doc.text(`Matrícula: ${rec.matricula}`,20,52);
+  doc.text(`Unidade: ${rec.unidade}`,20,59);
+  doc.text(`Total de dias remidos: ${aprovadas.length*4}`,20,66);
+
+  const tabela = aprovadas.map((l,i)=>[i+1, l.titulo, l.autor, new Date(l.dataLeitura).toLocaleDateString('pt-BR')]);
+  doc.autoTable({head:[['Nº','Título','Autor','Data da retirada']], body:tabela, startY:80, theme:'grid', headStyles:{fillColor:[26,82,118]}});
+
+  const y = doc.lastAutoTable.finalY + 40;
+  doc.text("_________________________________",60,y);
+  doc.text("Assinatura do Responsável",60,y+7);
+
+  doc.save(`${rec.nome.split(' ')[0]}_${matricula}_remissao.pdf`);
+}
+
+// === Carregamento ===
+function carregarTudo() {
+  carregarRecuperandos(); carregarLivros(); carregarLeituras();
+  document.getElementById("dataLeitura").valueAsDate = new Date();
+}
+
+function carregarRecuperandos() {
+  db.transaction("recuperandos").objectStore("recuperandos").getAll().onsuccess = e => {
+    recuperandos = e.target.result;
+    document.getElementById("totalRec").textContent = recuperandos.length;
+    const lista = document.getElementById("listaRecuperandos");
+    const select = document.getElementById("selectRecuperando");
+    lista.innerHTML = ""; select.innerHTML = "<option value=''>Selecione...</option>";
+    recuperandos.forEach(r => {
+      const lidas = leituras.filter(l=>l.matricula===r.matricula && l.status==="aprovado").length;
+      lista.innerHTML += `<div style="padding:18px;border-bottom:1px solid #eee;background:${lidas>0?'#e8f5e9':'#fff'}">
+        <strong>${r.nome}</strong> • ${r.matricula}<br>
+        <small>${lidas} livros • ${lidas*4} dias remidos</small>
+      </div>`;
+      select.innerHTML += `<option value="${r.matricula}">${r.nome} (${r.matricula})</option>`;
+    });
+  };
+}
+
+function carregarLivros() {
+  db.transaction("livros").objectStore("livros").getAll().onsuccess = e => {
+    livros = e.target.result;
+    document.getElementById("totalLivrosAcervo").textContent = livros.length;
+    exibirLivros(livros);
+    atualizarSelectLivros();
+  };
+}
+
+function exibirLivros(lista = livros) {
+  const div = document.getElementById("listaLivros");
+  div.innerHTML = lista.length===0 ? "<p style='text-align:center;color:#777;'>Nenhum livro cadastrado.</p>" : "";
+  lista.forEach(livro => {
+    const badge = livro.quantidadeDisponivel>0 ? `<span class="badge disponivel">Disponível (${livro.quantidadeDisponivel})</span>` : `<span class="badge indisponivel">Indisponível</span>`;
+    div.innerHTML += `<div style="padding:18px;border:1px solid #eee;border-radius:8px;margin-bottom:12px;background:#fafafa;">
+      <strong>${livro.titulo}</strong> - ${livro.autor}<br>
+      <small>ISBN: ${livro.isbn!=="Sem ISBN"?livro.isbn:"Não informado"} | ${livro.ano} | ${livro.categoria}</small><br>
+      ${badge}
+      <div style="margin-top:12px;">
+        <button class="small danger" onclick="if(confirm('Excluir permanentemente?')) db.transaction('livros','readwrite').objectStore('livros').delete(${livro.id}).onsuccess=carregarTudo()">Excluir</button>
+      </div>
+    </div>`;
+  });
+}
+
+function atualizarSelectLivros() {
+  const select = document.getElementById("selectLivro");
+  select.innerHTML = "<option value=''>Selecione...</option>";
+  livros.filter(l=>l.quantidadeDisponivel>0).forEach(l => {
+    select.innerHTML += `<option value="${l.id}">${l.titulo} - ${l.autor}</option>`;
+  });
+}
+
+function carregarLeituras() {
+  db.transaction("leituras").objectStore("leituras").getAll().onsuccess = e => {
+    leituras = e.target.result.sort((a,b)=>new Date(b.dataLeitura)-new Date(a.dataLeitura));
+    const tabela = document.getElementById("listaLeituras");
+    tabela.innerHTML = `<table><tr><th>Data</th><th>Recuperando</th><th>Livro</th><th>Status</th><th>Dias</th></tr></table>`;
+    const tbody = document.createElement("tbody");
+    leituras.forEach(l => {
+      const row = tbody.insertRow();
+      row.style.background = l.status==="aprovado" ? "#d4edda" : "#f8d7da";
+      row.innerHTML = `<td>${new Date(l.dataLeitura).toLocaleDateString('pt-BR')}</td><td>${l.nomeRecuperando}</td><td>${l.titulo}</td><td>${l.status==="aprovado"?"Aprovado":"Reprovado"}</td><td>${l.diasRemidos}</td>`;
+    });
+    tabela.appendChild(tbody);
+    atualizarRelatorios();
+  };
+}
+
+function atualizarRelatorios() {
+  const aprovadas = leituras.filter(l=>l.status==="aprovado");
+  document.getElementById("totalRecuperandos").textContent = recuperandos.length;
+  document.getElementById("totalLivrosAcervo").textContent = livros.length;
+  document.getElementById("totalLeiturasAprovadas").textContent = aprovadas.length;
+  document.getElementById("totalDiasRemidos").textContent = aprovadas.length*4;
+
+  const resumo = document.getElementById("resumoPorPessoa");
+  resumo.innerHTML = `<table><tr><th>Recuperando</th><th>Livros</th><th>Dias</th><th>PDF</th></tr>`;
+  recuperandos.forEach(r => {
+    const qtd = leituras.filter(l=>l.matricula===r.matricula && l.status==="aprovado").length;
+    resumo.innerHTML += `<tr>
+     <td><button class="small pdf" onclick="gerarPDFIndividual('${r.matricula}')">PDF</button></td>
+      <td><strong>${r.nome}</strong><br><small>${r.matricula}</small></td>
+      <td>${qtd}<br></td>
+      <td><strong>${qtd*4}</strong></td>
+ 
+    </tr>`;
+  });
+  resumo.innerHTML += "</table>";
+}
+
+// === Backup/Import ===
+function exportarJSON() {
+  const dados = {recuperandos,livros,leituras,versao:"3.0"};
+  const blob = new Blob([JSON.stringify(dados,null,2)],{type:"application/json"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a"); a.href=url; a.download=`backup_apac_${new Date().toISOString().slice(0,10)}.json`; a.click();
+}
+function exportarCSV() {
+  let csv = "Data;Recuperando;Matrícula;Título;Autor;Status;Dias\n";
+  leituras.forEach(l=>csv+=`${l.dataLeitura};${l.nomeRecuperando};${l.matricula};${l.titulo};${l.autor};${l.status};${l.diasRemidos}\n`);
+  const blob = new Blob([csv],{type:"text/csv"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a"); a.href=url; a.download=`leituras_${new Date().toISOString().slice(0,10)}.csv`; a.click();
+}
+function importarJSON() { document.getElementById("fileInput").click(); }
+document.getElementById("fileInput").onchange = e => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try {
+      const dados = JSON.parse(ev.target.result);
+      const tx = db.transaction(["recuperandos","livros","leituras"],"readwrite");
+      tx.objectStore("recuperandos").clear();
+      tx.objectStore("livros").clear();
+      tx.objectStore("leituras").clear();
+      (dados.recuperandos||[]).forEach(r=>tx.objectStore("recuperandos").add(r));
+      (dados.livros||[]).forEach(l=>tx.objectStore("livros").add(l));
+      (dados.leituras||[]).forEach(l=>tx.objectStore("leituras").add(l));
+      tx.oncomplete = () => { alert("Backup restaurado!"); carregarTudo(); };
+    } catch(err) { alert("Erro ao importar: "+err.message); }
+  };
+  reader.readAsText(file);
+};
+
+// === Abas ===
+function openTab(evt, tabName) {
+  document.querySelectorAll(".tabcontent").forEach(t=>t.style.display="none");
+  document.querySelectorAll(".tablink").forEach(t=>t.classList.remove("active"));
+  document.getElementById(tabName).style.display="block";
+  evt.currentTarget.classList.add("active");
+  if (tabName==="leitura") atualizarSelectLivros();
+}
+
+
+// === RELATÓRIO OFICIAL PARA ENTREGA AO JUIZ (Padrão TJ) ===
+function gerarOficioParaJuiz() {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF('p', 'mm', 'a4');
+  
+  // Dados da APAC (ALTERE AQUI COM OS DADOS DA SUA APAC)
+  const nomeAPAC = "APAC DE PORTO ALEGRE/RS"; 
+  const cnpjAPAC = "CNPJ: 00.000.000/0000-00";
+  const enderecoAPAC = "Rua/Exemplo, nº 000 - Centro - [Cidade]/[UF]";
+  const presidente = "Presidente: CÉLIA";
+  const responsavelBiblio = "Responsável pela Biblioteca: Salvio Junior Mello de Oliveira";
+
+  // Cabeçalho oficial
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(12);
+  //doc.text(nomeAPAC, 105, 20, { align: "center" });
+  doc.text(nomeAPAC, 105, 20, { align: "center" });
+  doc.setFontSize(10);
+  doc.text(cnpjAPAC, 105, 26, { align: "center" });
+  doc.text(enderecoAPAC, 105, 31, { align: "center" });
+  doc.text("OFÍCIO Nº ___/2025 – REMISSÃO POR LEITURA", 105, 42, { align: "center" });
+
+  // Destinatário
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(11);
+  doc.text("EXCELENTÍSSIMO(A) SENHOR(A) DOUTOR(A) JUIZ(A) DE DIREITO", 20, 55);
+  doc.text("DA VARA DE EXECUÇÕES PENAIS DA COMARCA DE [CIDADE]/[UF]", 20, 61);
+
+  doc.setFontSize(11);
+  let y = 80;
+  doc.text(`À Vossa Excelência,`, 20, y); y += 10;
+  doc.text(`A ${nomeAPAC}, por seu presidente abaixo assinado, vem, respeitosamente,`, 20, y); y += 8;
+  //doc.text(`A APAC DE PORTO ALEGRE/RS, por seu presidente abaixo assinado, vem, respeitosamente,`, 20, y); y += 8;
+
+  doc.text(`com fundamento no art. 126, § 6º da Lei de Execução Penal (Lei nº 7.210/84),`, 20, y); y += 8;
+  doc.text(`informar que o(a) recuperando(a) abaixo relacionado(a) cumpriu os requisitos`, 20, y); y += 8;
+  doc.text(`para a remissão de pena por leitura de obra literária, conforme segue:`, 20, y); y += 15;
+
+  // Dados do recuperando (pergunta qual)
+  const matricula = prompt("Digite a matrícula do recuperando para o relatório ao juiz:");
+  if (!matricula) return;
+
+  const rec = recuperandos.find(r => r.matricula === matricula);
+  if (!rec) return alert("Recuperando não encontrado!");
+
+  const leiturasAprovadas = leituras
+    .filter(l => l.matricula === matricula && l.status === "aprovado")
+    .sort((a,b) => new Date(a.dataLeitura) - new Date(b.dataLeitura));
+
+  if (leiturasAprovadas.length === 0) return alert("Este recuperando não tem leituras aprovadas!");
+
+  const totalDias = leiturasAprovadas.length * 4;
+
+  // Dados do recuperando
+  doc.setFont("helvetica", "bold");
+  doc.text("DADOS DO RECUPERANDO", 20, y); y += 8;
+  doc.setFont("helvetica", "normal");
+  doc.text(`Nome: ${rec.nome}`, 25, y); y += 7;
+  doc.text(`Matrícula: ${rec.matricula}`, 25, y); y += 7;
+  doc.text(`Regime: ${rec.regime}`, 25, y); y += 7;
+  doc.text(`Unidade: ${rec.unidade}`, 25, y); y += 12;
+
+  doc.text(`Total de dias a remir: ${totalDias} (quatro) dias`, 25, y); y += 15;
+
+  // Tabela de livros
+  const tabela = leiturasAprovadas.map((l, i) => [
+    i + 1,
+    l.titulo,
+    l.autor,
+    new Date(l.dataLeitura).toLocaleDateString('pt-BR')
+  ]);
+
+  doc.autoTable({
+    head: [['Nº', 'Título da Obra', 'Autor', 'Data da Conclusão']],
+    body: tabela,
+    startY: y,
+    theme: 'grid',
+    headStyles: { fillColor: [26, 82, 118], textColor: [255,255,255] },
+    styles: { fontSize: 10 }
+  });
+
+  y = doc.lastAutoTable.finalY + 20;
+
+  doc.setFontSize(11);
+  doc.text("Nestes termos,", 20, y); y += 8;
+  doc.text("Pede deferimento.", 20, y); y += 20;
+
+  doc.text("[Cidade], " + new Date().toLocaleDateString('pt-BR') + ".", 20, y); y += 30;
+
+  doc.text("_____________________________________________", 20, y); y += 8;
+  doc.text(presidente, 20, y); y += 8;
+  doc.text("Presidente da APAC", 20, y); y += 20;
+
+  doc.text("_____________________________________________", 20, y); y += 8;
+  doc.text(responsavelBiblio, 20, y); y += 8;
+  doc.text("Responsável pela Biblioteca Prisional", 20, y);
+
+  // Salvar
+  doc.save(`Oficio_Remissao_${rec.nome.split(' ')[0]}_${matricula}_Juiz.pdf`);
+}
+// === RELATÓRIO OFICIAL PARA O JUIZ - COM CAMPOS PERSONALIZÁVEIS ===
+function gerarOficioParaJuiz() {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF('p', 'mm', 'a4');
+
+  // === CONFIGURAÇÕES DA APAC (ALTERE AQUI UMA VEZ SÓ) ===
+  const configAPAC = {
+    nome: localStorage.getItem("apac_nome") || "APAC DE [NOME DA CIDADE]",
+    cnpj: localStorage.getItem("apac_cnpj") || "CNPJ: 00.000.000/0000-00",
+    endereco: localStorage.getItem("apac_endereco") || "Rua Exemplo, 000 - Centro",
+    cidade: localStorage.getItem("apac_cidade") || "[CIDADE]/[UF]",
+    presidente: localStorage.getItem("apac_presidente") || "[NOME DO PRESIDENTE]",
+    responsavel: localStorage.getItem("apac_responsavel") || "[SEU NOME]"
+  };
+
+  // === Cabeçalho ===
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(13);
+  doc.text(configAPAC.nome.toUpperCase(), 105, 20, { align: "center" });
+  doc.setFontSize(10);
+  doc.text(configAPAC.cnpj, 105, 26, { align: "center" });
+  doc.text(configAPAC.endereco, 105, 31, { align: "center" });
+  doc.text(configAPAC.cidade, 105, 36, { align: "center" });
+  doc.setFontSize(12);
+  doc.text("OFÍCIO Nº ___/" + new Date().getFullYear() + " – REMISSÃO POR LEITURA", 105, 46, { align: "center" });
+
+  // === Destinatário ===
+  doc.setFontSize(11);
+  doc.setFont("helvetica", "normal");
+  doc.text("EXCELENTÍSSIMO(A) SENHOR(A) DOUTOR(A) JUIZ(A) DE DIREITO", 20, 58);
+  doc.text("DA VARA DE EXECUÇÕES PENAIS DA COMARCA DE " + configAPAC.cidade.split("/")[0], 20, 64);
+
+  let y = 80;
+
+  // === Saudação ===
+  doc.text("À Vossa Excelência,", 20, y); y += 12;
+  doc.text(`A APAC DE PORTO ALEGRE/RS, pessoa jurídica de direito privado, inscrita no ${configAPAC.cnpj},`, 20, y); y += 7;
+  //doc.text(`A ${configAPAC.nome}, pessoa jurídica de direito privado, inscrita no ${configAPAC.cnpj},`, 20, y); y += 7;
+  doc.text(`com sede nesta cidade, por seu presidente abaixo assinado, vem, respeitosamente, à presença`, 20, y); y += 7;
+  doc.text(`de Vossa Excelência, com fundamento no art. 126, § 6º da Lei nº 7.210/84 (LEP), requerer a`, 20, y); y += 7;
+  doc.text(`REMISSÃO DE PENA por leitura de obra literária, referente ao recuperando abaixo identificado:`, 20, y); y += 15;
+
+  // === Seleciona o recuperando ===
+  const matricula = prompt("Matrícula do recuperando:");
+  if (!matricula) return;
+  const rec = recuperandos.find(r => r.matricula === matricula);
+  if (!rec) return alert("Recuperando não encontrado!");
+
+  const aprovadas = leituras.filter(l => l.matricula === matricula && l.status === "aprovado")
+    .sort((a,b) => new Date(a.dataLeitura) - new Date(b.dataLeitura));
+  if (aprovadas.length === 0) return alert("Nenhuma leitura aprovada!");
+
+  const totalDias = aprovadas.length * 4;
+
+  // === DADOS PERSONALIZÁVEIS DO RECUPERANDO ===
+  doc.setFont("helvetica", "bold"); doc.text("DADOS DO RECUPERANDO", 20, y); y += 8;
+  doc.setFont("helvetica", "normal");
+
+  const camposConfig = {
+    processo: document.getElementById("campoProcesso").checked,
+    vara: document.getElementById("campoVara").checked,
+    nomeMae: document.getElementById("campoNomeMae").checked,
+    nascimento: document.getElementById("campoNascimento").checked,
+    entrada: document.getElementById("campoEntrada").checked,
+    crime: document.getElementById("campoCrime").checked,
+    pena: document.getElementById("campoPena").checked
+  };
+
+  // Você pode adicionar os campos extras no cadastro do recuperando depois
+  // Por enquanto, usa prompt para campos extras
+  const extras = {};
+  if (camposConfig.processo) extras.processo = prompt("Nº do Processo (ex: 0001234-56.2020.8.13.0000):") || "Não informado";
+  if (camposConfig.nomeMae) extras.mae = prompt("Nome da mãe:") || "Não informado";
+  if (camposConfig.nascimento) extras.nascimento = prompt("Data de nascimento (DD/MM/AAAA):") || "Não informado";
+  if (camposConfig.entrada) extras.entrada = prompt("Data de entrada na APAC:") || "Não informado";
+  if (camposConfig.crime) extras.crime = prompt("Artigo/Delito:") || "Não informado";
+  if (camposConfig.pena) extras.pena = prompt("Pena total:") || "Não informado";
+
+  // Exibe os campos selecionados
+  doc.text(`Nome: ${rec.nome}`, 25, y); y += 7;
+  doc.text(`Matrícula: ${rec.matricula}`, 25, y); y += 7;
+  if (camposConfig.processo) { doc.text(`Processo: ${extras.processo}`, 25, y); y += 7; }
+  if (camposConfig.nomeMae) { doc.text(`Filiação: ${extras.mae}`, 25, y); y += 7; }
+  if (camposConfig.nascimento) { doc.text(`Nasc.: ${extras.nascimento}`, 25, y); y += 7; }
+  if (camposConfig.entrada) { doc.text(`Entrada na APAC: ${extras.entrada}`, 25, y); y += 7; }
+  if (camposConfig.crime) { doc.text(`Delito: ${extras.crime}`, 25, y); y += 7; }
+  if (camposConfig.pena) { doc.text(`Pena: ${extras.pena}`, 25, y); y += 7; }
+  doc.text(`Regime: ${rec.regime}`, 25, y); y += 7;
+  doc.text(`Unidade: ${rec.unidade}`, 25, y); y += 12;
+
+  doc.setFont("helvetica", "bold");
+  doc.text(`TOTAL DE DIAS A REMIR: ${totalDias} (${numeroPorExtenso(totalDias)}) dias`, 25, y); y += 15;
+
+  // === Tabela de livros ===
+  const tabela = aprovadas.map((l, i) => [
+    i + 1,
+    l.titulo.length > 50 ? l.titulo.substring(0,47)+"..." : l.titulo,
+    l.autor.length > 30 ? l.autor.substring(0,27)+"..." : l.autor,
+    new Date(l.dataLeitura).toLocaleDateString('pt-BR')
+  ]);
+
+  doc.autoTable({
+    head: [['Nº', 'Título da Obra', 'Autor', 'Conclusão']],
+    body: tabela,
+    startY: y,
+    theme: 'grid',
+    styles: { fontSize: 9.5 },
+    headStyles: { fillColor: [139, 0, 139] }
+  });
+
+  y = doc.lastAutoTable.finalY + 25;
+
+  doc.setFont("helvetica", "normal");
+  doc.text("Nestes termos,", 20, y); y += 8;
+  doc.text("Pede deferimento.", 20, y); y += 25;
+  doc.text(configAPAC.cidade.split("/")[0] + ", " + new Date().toLocaleDateString('pt-BR') + ".", 20, y); y += 35;
+
+  doc.line(20, y, 100, y);
+  doc.text(configAPAC.presidente, 20, y + 8);
+  doc.text("Presidente da APAC", 20, y + 14); y += 30;
+
+  doc.line(20, y, 100, y);
+  doc.text(configAPAC.responsavel, 20, y + 8);
+  doc.text("Responsável pela Biblioteca", 20, y + 14);
+
+  doc.save(`OFICIO_${rec.nome.split(' ')[0].toUpperCase()}_${matricula}_JUIZ.pdf`);
+}
+
+// === Função auxiliar: número por extenso ===
+function numeroPorExtenso(n) {
+  const ext = ["zero","um","dois","três","quatro","cinco","seis","sete","oito","nove","dez","onze","doze","treze","quatorze","quinze","dezesseis","dezessete","dezoito","dezenove","vinte","vinte e um","vinte e dois","vinte e três","vinte e quatro","vinte e cinco","vinte e seis","vinte e sete","vinte e oito","vinte e nove","trinta","trinta e um","trinta e dois","trinta e três","trinta e quatro","trinta e cinco","trinta e seis","trinta e sete","trinta e oito","trinta e nove","quarenta","quarenta e um","quarenta e dois","quarenta e três","quarenta e quatro","quarenta e cinco","quarenta e seis","quarenta e sete","quarenta e oito"];
+  return n <= 48 ? ext[n] : n;
+}
+
+// === Salvar configuração dos campos ===
+function salvarConfigCampos() {
+  const campos = ["campoProcesso","campoVara","campoNomeMae","campoNascimento","campoEntrada","campoCrime","campoPena"];
+  campos.forEach(id => localStorage.setItem(id, document.getElementById(id).checked));
+  document.getElementById("statusConfig").textContent = "Configuração salva!";
+  setTimeout(() => document.getElementById("statusConfig").textContent = "", 3000);
+}
+
+// Carregar configuração ao iniciar
+window.onload = () => {
+  ["campoProcesso","campoVara","campoNomeMae","campoNascimento","campoEntrada","campoCrime","campoPena"].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.checked = localStorage.getItem(id) === "true";
+  });
+};
+
+
+lista.innerHTML += `
+  <div style="padding:18px;border-bottom:1px solid #eee;background:${lidas>0?'#e8f5e9':'#fff'};position:relative;">
+    <strong>${r.nome}</strong> • ${r.matricula}<br>
+    <small>${lidas} livros lidos • <strong>${lidas*4} dias remidos</strong></small>
+    
+    <!-- BOTÃO DE EXCLUIR RECUPERANDO -->
+    <button class="small danger" style="position:absolute;top:10px;right:10px;padding:6px 12px;"
+            onclick="confirmarExclusaoRecuperando('${r.matricula}', '${r.nome}')">
+      Excluir
+    </button>
+  </div>`;
+
+// === CONFIRMAÇÃO DE EXCLUSÃO DO RECUPERANDO ===
+function confirmarExclusaoRecuperando(matricula, nome) {
+  // Primeira confirmação
+  if (!confirm(`Tem certeza que deseja excluir o recuperando:\n\n${nome}\nMatrícula: ${matricula}\n\nEsta ação NÃO pode ser desfeita!`)) {
+    return;
+  }
+
+  // Segunda confirmação com senha simples de segurança
+  const senha = prompt("Para confirmar a exclusão, digite: EXCLUIR");
+  if (senha !== "EXCLUIR") {
+    alert("Exclusão cancelada. Palavra de segurança incorreta.");
+    return;
+  }
+
+  // Executa a exclusão
+  deletarRecuperando(matricula);
+}
+
+// === EXCLUIR RECUPERANDO + TODAS AS SUAS LEITURAS ===
+function deletarRecuperando(matricula) {
+  const tx = db.transaction(["recuperandos", "leituras"], "readwrite");
+
+  // Exclui o recuperando
+  const delRec = tx.objectStore("recuperandos").delete(matricula);
+
+  // Exclui todas as leituras dele
+  const leiturasStore = tx.objectStore("leituras");
+  const index = leiturasStore.index ? leiturasStore.index("matricula") : null;
+
+  if (index) {
+    // Se tiver índice por matrícula (mais rápido)
+    const range = IDBKeyRange.only(matricula);
+    index.openCursor(range).onsuccess = function(e) {
+      const cursor = e.target.result;
+      if (cursor) {
+        cursor.delete();
+        cursor.continue();
+      }
+    };
+  } else {
+    // Se não tiver índice, busca todas e deleta manualmente
+    leiturasStore.getAll().onsuccess = function(e) {
+      e.target.result
+        .filter(l => l.matricula === matricula)
+        .forEach(l => leiturasStore.delete(l.id));
+    };
+  }
+
+  tx.oncomplete = () => {
+    alert("Recuperando e todas as suas leituras foram excluídos permanentemente.");
+    carregarTudo(); // Atualiza tudo
+  };
+
+  tx.onerror = () => {
+    alert("Erro ao excluir. Tente novamente.");
+  };
+}
+</script>
+</body>
+</html>

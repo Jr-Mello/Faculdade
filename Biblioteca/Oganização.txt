@@ -1,0 +1,9 @@
+Fitro por nome do livro, nome do autor e genero
+Incluir a data da resenha
+A data da retirada com sistema de data de devolução
+Uma função especial para o dia da remissão pela leitura
+Incluir capa dos livros 
+Definir cor de genero
+Verde = Coleção/Séries
+Amarelo = Literatura
+Azul Marinho = Religião

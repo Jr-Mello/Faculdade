@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Biblioteca APAC + Excel</title>
+
+<!-- SheetJS (para Excel) -->
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<style>
+  body{font-family:Arial,sans-serif;margin:0;background:#f0f2f5;color:#333}
+  header{background:#1565c0;color:#fff;padding:15px;text-align:center}
+  .c{max-width:1200px;margin:auto;padding:10px}
+  .tabs button{background:#fff;color:#333;border:none;padding:12px 16px;cursor:pointer}
+  .tabs button.active,.tabs button:hover{background:#1565c0;color:#fff}
+  .tab{display:none;padding:15px;background:#fff;border-radius:8px;margin-top:10px}
+  input,select,textarea{width:100%;padding:8px;margin:5px 0;border:1px solid #ccc;border-radius:4px;box-sizing:border-box}
+  button{padding:10px 16px;margin:5px;border:none;border-radius:4px;cursor:pointer;font-weight:bold}
+  .s{background:#4caf50;color:#fff}.d{background:#e74c3c;color:#fff}
+  .i{background:#3498db;color:#fff}.e{background:#27ae60;color:#fff}
+  .g{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:15px}
+  .b{padding:4px 8px;background:#eee;border-radius:12px;font-size:0.8em}
+  .red{background:#ffebee}
+</style>
+</head>
+<body>
+<header><h1>Biblioteca APAC</h1><small>Empréstimos • Multas • Reservas • Remissão</small></header>
+<div class="c">
+
+<!-- BACKUP COM EXCEL -->
+<div style="background:#e8f5e9;padding:15px;border-radius:8px;text-align:center;margin:15px 0">
+  <h3>Backup e Restauração</h3>
+  <button class="s" onclick="expJSON()">JSON</button>
+  <button class="i" onclick="expXML()">XML</button>
+  <button class="e" onclick="expExcel()">EXCEL (.xlsx)</button>
+  <button class="d" onclick="impFile('.json,.xml,.xlsx')">Importar Backup</button>
+  <input type="file" id="f" style="display:none" accept=".json,.xml,.xlsx">
+  <p style="font-size:0.9em;margin-top:8px">Todos os dados serão salvos/restaurados</p>
+</div>
+
+<div class="tabs">
+  <button class="active" onclick="tab('rec')">Recuperandos</button>
+  <button onclick="tab('liv')">Acervo</button>
+  <button onclick="tab('emp')">Empréstimo</button>
+  <button onclick="tab('res')">Reservas</button>
+  <button onclick="tab('mul')">Multas</button>
+  <button onclick="tab('lei')">Remissão</button>
+  <button onclick="tab('rel')">Relatórios</button>
+</div>
+
+<!-- ABAS (mesmas do código anterior) -->
+<div id="rec" class="tab" style="display:block">
+  <h3>Cadastrar Recuperando</h3>
+  <div class="g"><input id="n1" placeholder="Nome*"><input id="m1" placeholder="Matrícula*">
+  <input id="u1" value="APAC Porto Alegre/RS"><select id="r1"><option>Fechado</option><option selected>Semiaberto</option><option>Aberto</option></select></div>
+  <button class="s" onclick="addRec()">Salvar</button>
+  <h4>Recuperandos (<span id="tr">0</span>)</h4><div id="lr"></div>
+</div>
+
+<div id="liv" class="tab">
+  <h3>Adicionar Livro</h3>
+  <div class="g"><input id="t" placeholder="Título*"><input id="a" placeholder="Autor*">
+  <input id="i" placeholder="ISBN"><input id="y" type="number" value="2025">
+  <input id="c" placeholder="Categoria"><input id="q" type="number" value="1" min="1"></div>
+  <button class="s" onclick="addLiv()">Adicionar</button>
+  <input type="text" placeholder="Buscar..." onkeyup="filLiv()" style="margin:10px 0">
+  <div id="ll"></div>
+</div>
+
+<div id="emp" class="tab">
+  <h3>Empréstimo</h3>
+  <div class="g"><select id="sr"></select><select id="sl"><option>Selecione livro disponível</option></select>
+  <input type="date" id="de"><input type="number" id="pd" value="15" min="1"></div>
+  <button class="i" style="padding:15px;font-size:1.2em" onclick="emp()">Realizar Empréstimo</button>
+  <h4>Emprestados (<span id="te">0</span>)</h4><div id="le"></div>
+</div>
+
+<div id="res" class="tab"><h3>Reservas</h3><div class="g"><select id="sr2"></select><select id="sl2"></select></div>
+  <button class="i" onclick="res()">Fazer Reserva</button><h4>Fila (<span id="trv">0</span>)</h4><div id="lr2"></div></div>
+
+<div id="mul" class="tab"><h3>Multas</h3>
+  <div style="background:#fff3e0;padding:15px;border-radius:8px">
+    Multa/dia: <input id="vm" type="number" step="0.1" value="1.00" style="width:100px">
+    <button class="s" onclick="localStorage.setItem('mv',vm.value);alert('Salvo')">Salvar</button>
+  </div>
+  <h4>Pendentes (<span id="tm">0</span>)</h4><div id="lm"></div>
+</div>
+
+<div id="lei" class="tab"><h3>Remissão por Leitura</h3>
+  <div class="g"><select id="sr3"></select><select id="sl3"></select><input type="date" id="dc"></div>
+  <textarea id="resenha" rows="8" placeholder="Resenha (mín. 10 linhas)"></textarea>
+  <select id="st"><option value="aprovado">Aprovado (+4 dias)</option><option value="reprovado">Reprovado</option></select>
+  <button class="s" onclick="lei()">Lançar</button>
+</div>
+
+<div id="rel" class="tab"><h3>Relatórios</h3>
+  <div class="g">
+    <div style="background:#e8f5e9;padding:10px"><strong>Recuperandos:</strong> <span id="r1">0</span></div>
+    <div style="background:#e8f5e9;padding:10px"><strong>Livros:</strong> <span id="r2">0</span></div>
+    <div><strong>Emprestados:</strong> <span id="r3">0</span></div>
+    <div style="background:#ffebee;padding:10px"><strong>Atrasados:</strong> <span id="r4">0</span></div>
+    <div><strong>Reservas:</strong> <span id="r7">0</span></div>
+    <div style="background:#ffebee;padding:10px"><strong>Multas:</strong> R$ <span id="r5">0</span></div>
+    <div style="background:#e8f5e9;padding:10px"><strong>Dias remidos:</strong> <span id="r6">0</span></div>
+  </div>
+  <button class="i" style="width:100%;padding:20px;margin-top:20px" onclick="pdf()">GERAR PDF</button>
+</div>
+
+</div>
+
+<script>
+let db, rec=[], liv=[], emp=[], res=[], mul=[], lei=[];
+const req = indexedDB.open("APAC",13);
+req.onupgradeneeded = e => { db = e.target.result;
+  ["rec","liv","emp","res","mul","lei"].forEach(s => db.createObjectStore(s, {keyPath: s==="rec"?"matricula":"id", autoIncrement: s!=="rec"}));
+};
+req.onsuccess = e => { db = e.target.result; load(); }
+
+function load() {
+  Promise.all([get("rec"),get("liv"),get("emp"),get("res"),get("mul"),get("lei")])
+    .then(r => { [rec,liv,emp,res,mul,lei] = r; up(); });
+}
+function get(s) { return new Promise(res => db.transaction(s).objectStore(s).getAll().onsuccess = e => res(e.target.result)); }
+function $(id) { return document.getElementById(id); }
+function up() { upSel(); listAll(); stat(); $("vm").value = localStorage.getItem("mv") || "1.00"; }
+function tab(t) { document.querySelectorAll(".tab").forEach(x=>x.style.display="none"); $(t).style.display="block"; }
+function upSel() {
+  ["sr","sr2","sr3"].forEach(id => { let s=$(id); s.innerHTML="<option>...</option>"; rec.forEach(r=>s.innerHTML+=`<option value="${r.matricula}">${r.nome} (${r.matricula})</option>`); });
+  let sl=$( "sl" ); sl.innerHTML="<option>Livros disponíveis</option>"; liv.filter(l=>l.d>0).forEach(l=>sl.innerHTML+=`<option value="${l.id}">${l.t} (${l.d} disp.)</option>`);
+  let sl2=$( "sl2" ); sl2.innerHTML="<option>Livros emprestados</option>"; liv.filter(l=>l.d===0).forEach(l=>sl2.innerHTML+=`<option value="${l.id}">${l.t}</option>`);
+  let sl3=$( "sl3" ); sl3.innerHTML="<option>Todos os livros</option>"; liv.forEach(l=>sl3.innerHTML+=`<option value="${l.id}">${l.t}</option>`);
+}
+
+// Funções principais (mesmas do anterior, só compactadas)
+function addRec() { let n=$("n1").value.trim().toUpperCase(), m=$("m1").value.trim(); if(!n||!m) return alert("Preencha!"); put("rec",{matricula:m,nome:n,unidade:$("u1").value,regime:$("r1").value}); load(); $("n1").value=$("m1").value=""; }
+function addLiv() { let t=$("t").value.trim(), a=$("a").value.trim(); if(!t||!a) return alert("Título e autor!"); let q=+$("q").value||1; put("liv",{t,a,isbn:$("i").value||"-",y:+$("y").value||2025,c:$("c").value||"Geral",tot:q,d:q}); load(); }
+function emp() { let mat=$("sr").value, id=+$("sl").value, p=+$("pd").value||15; if(!mat||!id) return alert("Selecione!"); if(mul.some(m=>m.matricula===mat&&m.s==="pendente")) return alert("Multa pendente!"); let l=liv.find(x=>x.id===id); let e={matricula:mat,nome:rec.find(r=>r.matricula===mat).nome,livroId:id,t:l.t,a:l.a,de:new Date().toISOString().slice(0,10),dp:new Date(Date.now()+p*86400000).toISOString().slice(0,10),s:"emprestado"}; l.d--; put("liv",l); put("emp",e); load(); }
+function res() { let mat=$("sr2").value, id=+$("sl2").value; if(!mat||!id) return alert("Selecione!"); if(mul.some(m=>m.matricula===mat&&m.s==="pendente")) return alert("Multa pendente!"); if(res.filter(r=>r.matricula===mat&&r.s==="ativa").length>=2) return alert("Máximo 2 reservas!"); let l=liv.find(x=>x.id===id); let r={matricula:mat,nome:rec.find(x=>x.matricula===mat).nome,livroId:id,t:l.t,a:l.a,data:new Date().toISOString().slice(0,10),s:"ativa",pos:res.filter(x=>x.livroId===id&&x.s==="ativa").length+1}; put("res",r); load(); }
+function lei() { let mat=$("sr3").value, id=+$("sl3").value; if(!mat||!id) return alert("Selecione!"); let linhas=$("resenha").value.trim().split("\n").filter(l=>l.trim()); if(linhas.length<10) return alert("Mínimo 10 linhas!"); let st=$("st").value; put("lei",{matricula:mat,nome:rec.find(r=>r.matricula===mat).nome,livroId:id,t:liv.find(l=>l.id===id).t,data:$("dc").value,resenha:$("resenha").value,s:st,dias:st==="aprovado"?4:0}); load(); $("resenha").value=""; }
+function put(s,o) { db.transaction(s,"readwrite").objectStore(s).put(o); }
+function dev(id) { if(!confirm("Devolver?")) return; let e=emp.find(x=>x.id===id), hoje=new Date(), prev=new Date(e.dp); e.s="devolvido"; let l=liv.find(x=>x.id===e.livroId); l.d++; put("liv",l); put("emp",e); if(hoje>prev) { let dias=Math.ceil((hoje-prev)/86400000), val=dias*(localStorage.getItem("mv")||1); put("mul",{matricula:e.matricula,nome:e.nome,empId:e.id,t:e.t,dias,val,data:hoje.toISOString().slice(0,10),s:"pendente"}); alert(`Atraso ${dias} dia(s)! Multa R$${val.toFixed(2)}`); } else alert("Devolvido no prazo!"); load(); }
+
+// Listagens e estatísticas
+function listAll() {
+  $("tr").textContent=rec.length; $("lr").innerHTML=""; rec.forEach(r=>$("lr").innerHTML+=`<div class="${mul.some(m=>m.matricula===r.matricula&&m.s==="pendente")?"red":""}" style="padding:10px;margin:5px;border-radius:6px"><b>${r.nome}</b> • ${r.matricula}</div>`);
+  $("ll").innerHTML=""; let busca=$("liv").querySelector("input[type=text]")?.value.toLowerCase()||""; liv.filter(l=>l.t.toLowerCase().includes(busca)||l.a.toLowerCase().includes(busca)).forEach(l=>$("ll").innerHTML+=`<div style="padding:10px;background:#f9f9f9;margin:5px;border-radius:6px"><b>${l.t}</b> — ${l.a}<br><small>${l.d}/${l.tot} disp.</small></div>`);
+  let atv=emp.filter(e=>e.s==="emprestado"); $("te").textContent=atv.length; $("le").innerHTML=""; atv.forEach(e=>{ let atr=new Date()>new Date(e.dp); $("le").innerHTML+=`<div style="padding:15px;border-left:5px solid ${atr?"#c00":"#e70"};margin:10px 0"><b>${e.t}</b><br>${e.nome} (${e.matricula})<br>Até: ${new Date(e.dp).toLocaleDateString()}${atr?" <b>ATRASADO</b>":""}<br><button class="s" onclick="dev(${e.id})">Devolver</button></div>`});
+}
+function stat() {
+  $("r1").textContent=rec.length; $("r2").textContent=liv.length;
+  $("r3").textContent=emp.filter(e=>e.s==="emprestado").length;
+  $("r4").textContent=emp.filter(e=>e.s==="emprestado"&&new Date()>new Date(e.dp)).length;
+  $("r7").textContent=res.filter(r=>r.s==="ativa").length;
+  $("r5").textContent=mul.filter(m=>m.s==="pendente").reduce((a,m)=>a+(m.val||0),0).toFixed(2);
+  $("r6").textContent=lei.filter(l=>l.s==="aprovado").length*4;
+}
+function pdf() { const {jsPDF}=window.jspdf; const doc=new jsPDF(); doc.setFontSize(16); doc.text("Relatório Biblioteca APAC",105,20,{align:"center"}); doc.text(new Date().toLocaleString(),105,30,{align:"center"}); let y=50; ["Recuperandos","Livros","Emprestados","Atrasados","Reservas","Multas R$","Dias Remidos"].forEach((t,i)=>{doc.text(`${t}: ${[$("r1").textContent,$("r2").textContent,$("r3").textContent,$("r4").textContent,$("r7").textContent,$("r5").textContent,$("r6").textContent][i]}`,20,y); y+=12}); doc.save("relatorio_apac.pdf"); }
+
+// BACKUP: JSON, XML e EXCEL
+function expJSON() { const data = {rec,liv,emp,res,mul,lei,mv:localStorage.getItem("mv")||1}; download(new Blob([JSON.stringify(data,null,2)],{type:"application/json"}), "backup_apac_"+new Date().toISOString().slice(0,10)+".json"); }
+function expXML() { let x=`<?xml version="1.0"?><apac><mv>${localStorage.getItem("mv")||1}</mv>`; ["rec","liv","emp","res","mul","lei"].forEach(s=>x+=`<${s}>`+window[s].map(i=>`<i>${Object.keys(i).map(k=>`<${k}>${i[k]}</${k}>`).join("")}</i>`).join("")+`</${s}>`); x+="</apac>"; download(new Blob([x],{type:"application/xml"}), "backup_apac_"+new Date().toISOString().slice(0,10)+".xml"); }
+function expExcel() {
+  const wb = XLSX.utils.book_new();
+  wb.Props = {Title: "Backup Biblioteca APAC", CreatedDate: new Date()};
+  ["Recuperandos","Livros","Empréstimos","Reservas","Multas","Leituras"].forEach((nome,i) => {
+    const dados = window[["rec","liv","emp","res","mul","lei"][i]];
+    const ws = XLSX.utils.json_to_sheet(dados.length ? dados : [{}]);
+    XLSX.utils.book_append_sheet(wb, ws, nome);
+  });
+  XLSX.writeFile(wb, "backup_biblioteca_apac_"+new Date().toISOString().slice(0,10)+".xlsx");
+  alert("Backup Excel gerado com sucesso!");
+}
+function download(blob, nome) { const url = URL.createObjectURL(blob); const a = document.createElement("a"); a.href = url; a.download = nome; a.click(); URL.revokeObjectURL(url); }
+
+// IMPORTAÇÃO (JSON, XML e EXCEL)
+function impFile(accept) { $("f").accept = accept; $("f").onchange = handleImport; $("f").click(); }
+function handleImport(e) {
+  const file = e.target.files[0]; if(!file) return;
+  const reader = new FileReader();
+  reader.onload = function(ev) {
+    try {
+      let data;
+      if(file.name.endsWith(".json")) {
+        data = JSON.parse(ev.target.result);
+      } else if(file.name.endsWith(".xml")) {
+        const parser = new DOMParser();
+        const xml = parser.parseFromString(ev.target.result, "text/xml");
+        data = {mv: xml.querySelector("mv")?.textContent || "1.00"};
+        ["rec","liv","emp","res","mul","lei"].forEach(s => {
+          data[s] = Array.from(xml.querySelectorAll(s+" i")).map(el => {
+            const o = {}; el.querySelectorAll("*").forEach(x => o[x.tagName] = x.textContent); return o;
+          });
+        });
+      } else if(file.name.endsWith(".xlsx")) {
+        const wb = XLSX.read(ev.target.result, {type: "array"});
+        data = {mv: localStorage.getItem("mv")||1};
+        ["Recuperandos","Livros","Empréstimos","Reservas","Multas","Leituras"].forEach((nome,i) => {
+          const ws = wb.Sheets[nome];
+          data[["rec","liv","emp","res","mul","lei"][i]] = ws ? XLSX.utils.sheet_to_json(ws) : [];
+        });
+      }
+      if(data) { localStorage.setItem("mv", data.mv||1); importarDados(data); }
+    } catch(err) { alert("Erro ao importar: " + err.message); }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function importarDados(d) {
+  if(!confirm("ATENÇÃO: Isso substituirá TODOS os dados atuais! Continuar?")) return;
+  const tx = db.transaction(["rec","liv","emp","res","mul","lei"],"readwrite");
+  tx.objectStore("rec").clear(); tx.objectStore("liv").clear(); tx.objectStore("emp").clear();
+  tx.objectStore("res").clear(); tx.objectStore("mul").clear(); tx.objectStore("lei").clear();
+  tx.oncomplete = () => {
+    const tx2 = db.transaction(["rec","liv","emp","res","mul","lei"],"readwrite");
+    ["rec","liv","emp","res","mul","lei"].forEach(s => (d[s]||[]).forEach(item => {
+      if(item.id) item.id = +item.id;
+      if(s==="liv") { item.tot = +item.tot; item.d = +item.d || item.tot; }
+      tx2.objectStore(s).add(item);
+    }));
+    tx2.oncomplete = () => { alert("Dados restaurados com sucesso!"); location.reload(); };
+  };
+}
+</script>
+</body>
+</html>
