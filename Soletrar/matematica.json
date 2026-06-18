@@ -1,0 +1,97 @@
+{
+  "words": [
+    {
+      "id": 1,
+      "problem": "5 + 3",
+      "answer": 8,
+      "level": "fácil",
+      "operation": "adição",
+      "explanation": "Adição de números simples: 5 + 3 = 8"
+    },
+    {
+      "id": 2,
+      "problem": "10 - 4",
+      "answer": 6,
+      "level": "fácil",
+      "operation": "subtração",
+      "explanation": "Subtração de números simples: 10 - 4 = 6"
+    },
+    {
+      "id": 3,
+      "problem": "7 × 6",
+      "answer": 42,
+      "level": "médio",
+      "operation": "multiplicação",
+      "explanation": "Multiplicação: 7 × 6 = 42"
+    },
+    {
+      "id": 4,
+      "problem": "48 ÷ 8",
+      "answer": 6,
+      "level": "médio",
+      "operation": "divisão",
+      "explanation": "Divisão: 48 ÷ 8 = 6"
+    },
+    {
+      "id": 5,
+      "problem": "25 × 3 + 40 ÷ 5",
+      "answer": 85,
+      "level": "difícil",
+      "operation": "operações mistas",
+      "explanation": "Operação mista: 25 × 3 = 75, 40 ÷ 5 = 8, 75 + 8 = 85"
+    }
+  ],
+  "score": 0,
+  "performanceData": [
+    {
+      "date": "2024/01/15 14:30",
+      "problem": "5 + 3",
+      "points": 8,
+      "level": "fácil",
+      "responseTime": 12.5
+    },
+    {
+      "date": "2024/01/15 14:32",
+      "problem": "10 - 4",
+      "points": 6,
+      "level": "fácil",
+      "responseTime": 18.3
+    }
+  ],
+  "responseTimeData": [
+    {
+      "date": "2024/01/15 14:30",
+      "problem": "5 + 3",
+      "time": 12.5,
+      "level": "fácil"
+    },
+    {
+      "date": "2024/01/15 14:32",
+      "problem": "10 - 4",
+      "time": 18.3,
+      "level": "fácil"
+    }
+  ],
+  "wordLogs": {
+    "5 + 3": {
+      "attempts": 1,
+      "successes": 1,
+      "totalTime": 12.5,
+      "bestTime": 12.5,
+      "lastAttempt": "2024/01/15 14:30",
+      "hintsUsed": 0,
+      "level": "fácil"
+    },
+    "10 - 4": {
+      "attempts": 1,
+      "successes": 0,
+      "totalTime": 0,
+      "bestTime": null,
+      "lastAttempt": "2024/01/15 14:32",
+      "hintsUsed": 0,
+      "level": "fácil"
+    }
+  },
+  "chartType": "line",
+  "chartTheme": "light"
+}

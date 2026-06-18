@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Soletrar - Jogo de Ortografia</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom"></script>
+    <link rel="stylesheet" href="./css/soletrar.css">
+    <style>
+        .help-content {
+            display: none;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+        .help-content.active {
+            display: block;
+        }
+        .speech-controls {
+            margin-top: 10px;
+        }
+        .project-info {
+            display: none;
+            padding: 20px;
+            background-color: #f0f8ff;
+            border-radius: 8px;
+            margin-top: 20px;
+            border-left: 4px solid #2196F3;
+        }
+        .project-info.active {
+            display: block;
+        }
+        .toggle-project-btn {
+            background-color: #2196F3;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: background-color 0.3s;
+        }
+        .toggle-project-btn:hover {
+            background-color: #1976D2;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="navbar">
+        <a onclick="showSection('game')">🎮 Jogo</a>
+        <a onclick="showSection('config')">⚙️ Configurações</a>
+        <a onclick="showSection('data')">📊 Dados e Desempenho</a>
+        <a onclick="showHelp()">❓ Ajuda</a>
+    </div>
+
+    <!-- Seção do Jogo -->
+    <div id="gameSection" class="container section active">
+        <h2>Jogo de Soletrar</h2>
+        <div class="score-display">Pontuação: <span id="score">0</span></div>
+        
+        <button class="btn btn-success" onclick="startGame()">Iniciar Jogo</button>
+        <button class="btn btn-warning" onclick="speakWord()">Ouvir Palavra</button>
+        <button class="btn btn-warning" onclick="nextWord()">Próxima Palavra</button>
+
+        <div id="gameArea" class="game-area" style="display: none;">
+            <div id="wordDisplay">_ _ _ _ _</div>
+            <input type="text" id="spellInput" placeholder="Digite a palavra aqui..." autocomplete="off">
+            <div id="feedback" class="feedback"></div>
+            <button class="btn" onclick="checkSpelling()">Verificar</button>
+        </div>
+    </div>
+
+    <!-- Seção de Configurações -->
+    <div id="configSection" class="container section">
+        <h2>Configurações</h2>
+        
+        <div style="margin-bottom: 30px;">
+            <h3>Lista de Palavras</h3>
+            <p>Importe ou exporte a lista de palavras usadas no jogo.</p>
+            <button class="btn" onclick="importWords()">Importar Palavras (JSON)</button>
+            <button class="btn" onclick="exportWords()">Exportar Palavras</button>
+            <input type="file" id="importFileInput" class="hidden-input" accept=".json" onchange="handleFileImport(event)">
+        </div>
+
+        <div style="margin-bottom: 30px;">
+            <h3>Dados do Jogo</h3>
+            <p>Salve ou restaure todo o progresso do jogo (pontuação, histórico, etc.).</p>
+            <button class="btn btn-success" onclick="exportCachedData()">Exportar Dados do Jogo</button>
+            <button class="btn btn-warning" onclick="importCachedData()">Importar Dados do Jogo</button>
+            <button class="btn btn-danger" onclick="clearCachedData()">Limpar Dados do Jogo</button>
+            <input type="file" id="importCacheFileInput" class="hidden-input" accept=".json" onchange="handleCacheFileImport(event)">
+        </div>
+    </div>
+
+    <!-- Seção de Dados -->
+    <div id="dataSection" class="container section">
+        <h2>Desempenho e Registros</h2>
+        
+        <div style="margin-bottom: 30px;">
+            <h3>Gráfico de Desempenho</h3>
+            <div class="chart-container">
+                <div class="chart-controls">
+                    <button onclick="toggleChartType()">Mudar Tipo de Gráfico</button>
+                    <button onclick="toggleChartTheme()">Mudar Tema</button>
+                    <button onclick="exportChart()">Exportar Gráfico</button>
+                </div>
+                <canvas id="performanceChart"></canvas>
+            </div>
+        </div>
+
+        <div>
+            <h3>Registros de Aprendizado</h3>
+            <div id="logsContainer"></div>
+        </div>
+    </div>
+
+    <!-- Seção de Ajuda -->
+    <div id="helpSection" class="container section">
+        <h2>Ajuda</h2>
+        <div class="help-content active">
+            <h3>Como Jogar</h3>
+            <p>Este jogo ajuda a desenvolver habilidades de digitação através da fonética e aumenta a agilidade na digitação.</p>
+            <h4>Instruções:</h4>
+            <ul>
+                <li>Clique em "Iniciar Jogo" para começar</li>
+                <li>Use o botão "Ouvir Palavra" para ouvir a palavra que deve ser digitada</li>
+                <li>Escute atentamente os sons das letras e tipe a palavra</li>
+                <li>Clique em "Verificar" para confirmar sua resposta</li>
+                <li>Use "Próxima Palavra" para pular para a próxima palavra</li>
+            </ul>
+            <h4>Dicas:</h4>
+            <ul>
+                <li>Concentre-se nos sons das letras, não apenas na memorização</li>
+                <li>Pratique regularmente para melhorar sua velocidade e precisão</li>
+                <li>Comece com palavras curtas e vá aumentando a dificuldade</li>
+            </ul>
+        </div>
+        
+        <div class="speech-controls">
+            <button class="btn" onclick="toggleHelpSpeech()">🔊 Ativar Narração</button>
+            <button class="toggle-project-btn" onclick="toggleProjectInfo()">
+                📚 Sobre o Sistema Prisional e Educação
+            </button>
+        </div>
+
+        <div id="projectInfo" class="project-info">
+            <h4>Inovação Tecnológica na Educação Carcerária</h4>
+            <p>Nosso projeto representa uma revolução na educação de pessoas privadas de liberdade, utilizando tecnologia de ponta para promover a ressocialização através do aprendizado. A integração de Inteligência Artificial e Edge Computing permite a criação de uma plataforma educacional adaptativa que funciona mesmo em ambientes com restrições de internet.</p>
+
+            <h4>Impacto Social e Transformação Educacional</h4>
+            <p>Através de nossa solução, conseguimos levar educação personalizada e de qualidade a instituições prisionais, superando as barreiras tecnológicas e de segurança. A plataforma atua como um tutor inteligente, adaptando o conteúdo em tempo real às necessidades de cada aluno, tornando o aprendizado mais efetivo e significativo.</p>
+
+            <h4>Tecnologia a Serviço da Ressocialização</h4>
+            <p>Nossa solução utiliza IA avançada para processar dados educacionais e comportamentais, permitindo uma abordagem personalizada do ensino. O sistema funciona de forma offline, sincronizando quando possível, garantindo continuidade no aprendizado independentemente das condições de conectividade.</p>
+
+            <h4>Resultados e Benefícios</h4>
+            <p>Implementações iniciais mostraram melhora significativa no engajamento e nos resultados de aprendizado. Os alunos demonstram maior motivação e progresso mais rápido, preparando-se melhor para o retorno à sociedade com habilidades educacionais sólidas e autoconfiança renovada.</p>
+
+            <p><strong>Palavras-chave:</strong> Educação Carcerária, Inteligência Artificial, Edge Computing, EAD, Ressocialização, APAC, Inclusão Digital, Aprendizado Adaptativo.</p>
+        </div>
+    </div>
+
+    <script src="Soletr.js"></script>
+    <script src="Soletr-config.js"></script>
+    <script src="./modules/Soletrar-config.js"></script>
+    <script>
+        function toggleProjectInfo() {
+            const projectInfo = document.getElementById('projectInfo');
+            projectInfo.classList.toggle('active');
+        }
+    </script>
+</body>
+</html>

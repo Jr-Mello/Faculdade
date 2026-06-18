@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Soletrar - Jogo de Ortografia</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom"></script>
+    <link rel="stylesheet" href="soletrar.css">
+   <style>
+        
+    </style>
+</head>
+<body>
+
+    <div class="navbar">
+        <a onclick="showSection('game')">🎮 Jogo</a>
+       <!--<a onclick="showSection('config')">⚙️ Configurações</a>-->
+        <a onclick="showSection('data')">📊 Dados e Desempenho</a>
+        
+    </div>
+
+    <!-- Seção do Jogo -->
+    <div id="gameSection" class="container section active">
+        <h2>Jogo de Soletrar</h2>
+        <div class="score-display">Pontuação: <span id="score">0</span></div>
+        
+        <button class="btn btn-success" onclick="startGame()">Iniciar Jogo</button>
+        <button class="btn btn-warning" onclick="speakWord()">Ouvir Palavra</button>
+        <button class="btn btn-warning" onclick="nextWord()">Próxima Palavra</button>
+
+        <div id="gameArea" class="game-area" style="display: none;">
+            <div id="wordDisplay">_ _ _ _ _</div>
+            <input type="text" id="spellInput" placeholder="Digite a palavra aqui..." autocomplete="off">
+            <div id="feedback" class="feedback"></div>
+            <button class="btn" onclick="checkSpelling()">Verificar</button>
+        </div>
+    </div>
+
+    <!-- Seção de Configurações -->
+    <div id="configSection" class="container section">
+        <h2>Configurações</h2>
+        
+        <div style="margin-bottom: 30px;">
+            <h3>Lista de Palavras</h3>
+            <p>Importe ou exporte a lista de palavras usadas no jogo.</p>
+            <button class="btn" onclick="importWords()">Importar Palavras (JSON)</button>
+            <button class="btn" onclick="exportWords()">Exportar Palavras</button>
+            <input type="file" id="importFileInput" class="hidden-input" accept=".json" onchange="handleFileImport(event)">
+        </div>
+
+        <div style="margin-bottom: 30px;">
+            <h3>Dados do Jogo</h3>
+            <p>Salve ou restaure todo o progresso do jogo (pontuação, histórico, etc.).</p>
+            <button class="btn btn-success" onclick="exportCachedData()">Exportar Dados do Jogo</button>
+            <button class="btn btn-warning" onclick="importCachedData()">Importar Dados do Jogo</button>
+            <button class="btn btn-danger" onclick="clearCachedData()">Limpar Dados do Jogo</button>
+            <input type="file" id="importCacheFileInput" class="hidden-input" accept=".json" onchange="handleCacheFileImport(event)">
+        </div>
+    </div>
+
+    <!-- Seção de Dados -->
+    <div id="dataSection" class="container section">
+        <h2>Desempenho e Registros</h2>
+        
+        <div style="margin-bottom: 30px;">
+            <h3>Gráfico de Desempenho</h3>
+            <div class="chart-container">
+                <canvas id="performanceChart"></canvas>
+            </div>
+        </div>
+
+        <div>
+            <h3>Registros de Aprendizado</h3>
+            <div id="logsContainer"></div>
+        </div>
+    </div>
+
+    <script>
+        // Função para alternar entre as seções da página
+        function showSection(sectionName) {
+            document.querySelectorAll('.section').forEach(el => el.classList.remove('active'));
+            document.getElementById(sectionName + 'Section').classList.add('active');
+        }
+    </script>
+
+    <script src="Soletr.js"></script>
+    <script src="Soletr-config.js"></script>
+    <script src="./modules/Soletrar-config.js"></script>
+
+</body>
+</html>
