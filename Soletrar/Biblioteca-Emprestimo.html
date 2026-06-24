@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<title>Biblioteca APAC • Remissão + Empréstimos</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+  body{font-family:Arial,sans-serif;background:#f0f2f5;margin:0;padding:10px}
+  header{background:#1a5276;color:#fff;padding:20px;text-align:center;border-radius:12px 12px 0 0}
+  h1,h2{color:#1a5276}
+  .container{max-width:1300px;margin:0 auto;background:#fff;border-radius:12px;box-shadow:0 6px 25px rgba(0,0,0,0.15);overflow:hidden}
+  .tabs{display:flex;flex-wrap:wrap;background:#2c3e50}
+  .tablink{padding:16px;flex:1;text-align:center;color:#fff;border:none;cursor:pointer;font-weight:bold}
+  .tablink:hover{background:#34495e}
+  .tablink.active{background:#8e44ad}
+  .tabcontent{padding:30px;display:none}
+  .form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px}
+  input,select,textarea{padding:12px;border:1px solid #ccc;border-radius:8px;width:100%;font-size:1rem}
+  button{padding:14px 28px;border:none;border-radius:8px;color:#fff;font-weight:bold;cursor:pointer;margin:8px 4px}
+  button:hover{opacity:0.9}
+  .success{background:#27ae60}
+  .danger{background:#e74c3c}
+  .warning{background:#f39c12}
+  .info{background:#3498db}
+  .pdf{background:#8e44ad}
+  .small{padding:8px 16px;font-size:0.9rem}
+  .badge{padding:5px 12px;border-radius:20px;color:#fff;font-size:0.8rem}
+  .emprestado{background:#e67e22}
+  .atrasado{background:#c0392b}
+  .disponivel{background:#27ae60}
+  table{width:100%;border-collapse:collapse;margin:20px 0}
+  th{background:#8e44ad;color:#fff;padding:12px}
+  td{padding:10px;border:1px solid #ddd}
+  tr:nth-child(even){background:#f8f9fa}
+  .atraso{color:#c0392b;font-weight:bold}
+  .search-box{padding:14px;width:100%;max-width:600px;border-radius:8px;border:1px solid #ccc;font-size:1.1rem}
+  .chart-container{position:relative;height:300px;margin:20px 0}
+</style>
+</head>
+<body>
+<header>
+  <h1>Biblioteca APAC - Controle de Empréstimos e Remissão</h1>
+  <p>Art. 126, §6º LEP • Sistema Completo Offline</p>
+</header>
+
+<div class="container">
+  <div class="tabs">
+    <button class="tablink active" onclick="openTab(event,'recuperando')">Recuperandos</button>
+    <button class="tablink" onclick="openTab(event,'livros')">Acervo</button>
+    <button class="tablink" onclick="openTab(event,'emprestimo')">Empréstimo/Devolução</button>
+    <button class="tablink" onclick="openTab(event,'leitura')">Lançar Leitura</button>
+    <button class="tablink" onclick="openTab(event,'relatorio')">Relatórios</button>
+  </div>
+
+  <!-- RECUPERANDOS -->
+  <div id="recuperando" class="tabcontent" style="display:block;">
+    <h2>Cadastro de Recuperando</h2>
+    <div class="form-grid">
+      <div><label>Nome Completo *</label><input type="text" id="nomeRec" required></div>
+      <div><label>Matrícula *</label><input type="text" id="matriculaRec" required></div>
+      <div><label>Unidade</label><input type="text" id="unidadeRec" value="APAC de Porto Alegre/RS"></div>
+      <div><label>Regime</label><select id="regimeRec"><option>Fechado</option><option selected>Semiaberto</option><option>Aberto</option></select></div>
+    </div>
+    <button class="success" onclick="salvarRecuperando()">Salvar Recuperando</button>
+    <h3 style="margin-top:30px">Recuperandos Cadastrados (<span id="totalRec">0</span>)</h3>
+    <div id="listaRecuperandos"></div>
+  </div>
+
+  <!-- ACERVO -->
+  <div id="livros" class="tabcontent">
+    <h2>Acervo de Livros</h2>
+    <div class="form-grid">
+      <div><label>Título *</label><input type="text" id="tituloLivro"></div>
+      <div><label>Autor *</label><input type="text" id="autorLivro"></div>
+      <div><label>ISBN</label><input type="text" id="isbnLivro"></div>
+      <div><label>Ano</label><input type="number" id="anoLivro" value="2025"></div>
+      <div><label>Categoria</label><input type="text" id="categoriaLivro"></div>
+      <div><label>Exemplares</label><input type="number" id="quantidadeLivro" value="1" min="1"></div>
+ 81     </div>
+ 82     <button class="success" onclick="salvarLivro()">Adicionar Livro</button>
+ 83     <button class="danger small" onclick="limparFormularioLivro()">Limpar</button>
+ 84     <h3>Buscar no Acervo</h3>
+ 85     <input type="text" id="buscaLivro" class="search-box" placeholder="Digite título, autor ou ISBN..." onkeyup="filtrarLivros()">
+ 86     <div id="listaLivros"></div>
+ 87   </div>
+ 88  
+  <!-- EMPRÉSTIMO / DEVOLUÇÃO -->
+  <div id="emprestimo" class="tabcontent">
+    <h2>Empréstimo e Devolução de Livros</h2>
+    <div class="form-grid">
+      <div><label>Recuperando</label><select id="selectRecEmprestimo"></select></div>
+      <div><label>Livro Disponível</label><select id="selectLivroEmprestimo"><option value="">Selecione...</option></select></div>
+      <div><label>Data do Empréstimo</label><input type="date" id="dataEmprestimo" value=""></div>
+      <div><label>Prazo (dias)</label><input type="number" id="prazoDias" value="15" min="1" max="30"></div>
+ 97     </div>
+ 98     <button class="info" style="font-size:1.3rem;padding:16px 32px;" onclick="realizarEmprestimo()">Realizar Empréstimo</button>
+
+    <h3 style="margin-top:40px">Livros Emprestados ( <span id="totalEmprestados">0</span> )</h3>
+    <div id="listaEmprestimos"></div>
+  </div>
+
+  <!-- LANÇAR LEITURA (remissão) -->
+  <div id="leitura" class="tabcontent">
+    <h2>Lançar Leitura Concluída (Remissão)</h2>
+    <div class="form-grid">
+      <div><label>Recuperando</label><select id="selectRecLeitura"></select></div>
+      <div><label>Livro Lido</label><select id="selectLivroLeitura"></select></div>
+      <div><label>Data da Conclusão</label><input type="date" id="dataConclusao"></div>
+      <div style="grid-column:1/-1"><label>Resenha (mín. 10 linhas)</label><textarea id="resenhaLeitura" rows="8"></textarea></div>
+      <div><label>Status</label><select id="statusLeitura"><option value="aprovado">Aprovado (+4 dias)</option><option value="reprovado">Reprovado</option></select></div>
+    </div>
+    <button class="pdf" style="font-size:1.3rem;padding:16px 40px;" onclick="salvarLeituraRemissao()">Lançar Leitura</button>
+    <h3>Histórico de Leituras</h3>
+    <div id="listaLeituras"></div>
+  </div>
+
+  <!-- RELATÓRIOS -->
+  <div id="relatorio" class="tabcontent">
+    <h2>Relatórios e Ofícios</h2>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:20px;margin:30px 0">
+      <div class="alert success"><strong>Recuperandos:</strong> <span id="totalRecRel">0</span></div>
+      <div class="alert success"><strong>Livros no acervo:</strong> <span id="totalLivrosRel">0</span></div>
+      <div class="alert success"><strong>Em empréstimo:</strong> <span id="totalEmprestimoRel">0</span></div>
+      <div class="alert success"><strong>Atrasados:</strong> <span id="totalAtrasados">0</span></div>
+      <div class="alert success"><strong>Leituras aprovadas:</strong> <span id="totalLeiturasAprovadas">0</span></div>
+      <div class="alert success"><strong>Dias remidos:</strong> <span id="totalDiasRemidos">0</span> dias</div>
+    </div>
+
+    <div style="text-align:center;margin:40px 0">
+      <button onclick="relatorioCompletoPDF()" class="pdf" style="padding:18px 40px;font-size:1.4rem">Relatório Geral PDF</button>
+      <button onclick="gerarOficioJuiz()" class="pdf" style="padding:20px 50px;font-size:1.5rem;background:#8e44ad">Ofício para o Juiz</button>
+      <button onclick="exportarDadosJSON()" class="info" style="padding:18px 40px;font-size:1.2rem">Exportar Dados JSON</button>
+      <button onclick="importarDadosJSON()" class="warning" style="padding:18px 40px;font-size:1.2rem">Importar Dados JSON</button>
+      <button onclick="exportarCache()" class="success" style="padding:18px 40px;font-size:1.2rem">Exportar Cache</button>
+      <input type="file" id="inputImportJSON" accept=".json" style="display:none" onchange="processarImportacaoJSON(event)">
+    </div>
+
+    <h3>Gráficos e Estatísticas</h3>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(400px,1fr));gap:20px;margin:30px 0">
+      <div class="chart-container">
+        <canvas id="leiturasChart"></canvas>
+      </div>
+      <div class="chart-container">
+        <canvas id="emprestimosChart"></canvas>
+      </div>
+    </div>
+
+    <h3>Resumo por Recuperando</h3>
+    <div id="resumoPessoa"></div>
+  </div>
+</div>
+
+<script>
+// === IndexedDB ===
+let db;
+const request = indexedDB.open("BibliotecaAPAC", 8);
+request.onupgradeneeded = e => {
+  db = e.target.result;
+  if (!db.objectStoreNames.contains("recuperandos")) db.createObjectStore("recuperandos", {keyPath: "matricula"});
+  if (!db.objectStoreNames.contains("livros")) db.createObjectStore("livros", {keyPath: "id", autoIncrement: true});
+  if (!db.objectStoreNames.contains("emprestimos")) db.createObjectStore("emprestimos", {keyPath: "id", autoIncrement: true});
+  if (!db.objectStoreNames.contains("leituras")) db.createObjectStore("leituras", {keyPath: "id", autoIncrement: true});
+};
+request.onsuccess = e => { db = e.target.result; iniciar(); };
+
+// Dados em memória
+let recuperandos = [], livros = [], emprestimos = [], leituras = [];
+
+// === INICIAR ===
+function iniciar() {
+  carregarTudo();
+  document.getElementById("dataEmprestimo").valueAsDate = new Date();
+  document.getElementById("dataConclusao").valueAsDate = new Date();
+}
+
+// === FUNÇÕES PRINCIPAIS ===
+function carregarTudo() {
+  carregarRecuperandos();
+  carregarLivros();
+  carregarEmprestimos();
+  carregarLeituras();
+  atualizarEstatisticas();
+  atualizarGraficos();
+}
+
+// === RECUPERANDOS ===
+function salvarRecuperando() {
+  const nome = document.getElementById("nomeRec").value.trim().toUpperCase();
+  const matricula = document.getElementById("matriculaRec").value.trim();
+  if (!nome || !matricula) return alert("Nome e matrícula obrigatórios!");
+  const rec = {matricula, nome, unidade: document.getElementById("unidadeRec").value, regime: document.getElementById("regimeRec").value};
+  db.transaction("recuperandos","readwrite").objectStore("recuperandos").put(rec).onsuccess = () => {
+    alert("Salvo!"); limparCampos("nomeRec","matriculaRec"); carregarTudo();
+  };
+}
+
+// === LIVROS ===
+function salvarLivro() {
+  const titulo = document.getElementById("tituloLivro").value.trim();
+  const autor = document.getElementById("autorLivro").value.trim();
+  if (!titulo || !autor) return alert("Título e autor obrigatórios!");
+  const livro = {
+    titulo, autor,
+    isbn: document.getElementById("isbnLivro").value.trim() || "Sem ISBN",
+    ano: parseInt(document.getElementById("anoLivro").value) || new Date().getFullYear(),
+    categoria: document.getElementById("categoriaLivro").value.trim() || "Geral",
+    exemplaresTotal: parseInt(document.getElementById("quantidadeLivro").value),
+    exemplaresDisponiveis: parseInt(document.getElementById("quantidadeLivro").value)
+  };
+  db.transaction("livros","readwrite").objectStore("livros").add(livro).onsuccess = () => {
+    alert("Livro adicionado!"); limparFormularioLivro(); carregarTudo();
+  };
+}
+
+function limparFormularioLivro() {
+  ["tituloLivro","autorLivro","isbnLivro","categoriaLivro"].forEach(id => document.getElementById(id).value = "");
+  document.getElementById("anoLivro").value = new Date().getFullYear();
+  document.getElementById("quantidadeLivro").value = 1;
+}
+
+// === EMPRÉSTIMOS ===
+function realizarEmprestimo() {
+  const matricula = document.getElementById("selectRecEmprestimo").value;
+  const livroId = parseInt(document.getElementById("selectLivroEmprestimo").value);
+  if (!matricula || !livroId) return alert("Selecione recuperando e livro!");
+
+  const livro = livros.find(l => l.id === livroId);
+  if (livro.exemplaresDisponiveis <= 0) return alert("Sem exemplares disponíveis!");
+
+  const prazo = parseInt(document.getElementById("prazoDias").value);
+  const dataEmprestimo = document.getElementById("dataEmprestimo").value;
+  const dataDevolucao = new Date(dataEmprestimo);
+  dataDevolucao.setDate(dataDevolucao.getDate() + prazo);
+
+  const emprestimo = {
+    matricula,
+    nomeRecuperando: recuperandos.find(r=>r.matricula===matricula).nome,
+    livroId,
+    titulo: livro.titulo,
+    autor: livro.autor,
+    dataEmprestimo,
+    dataPrevista: dataDevolucao.toISOString().slice(0,10),
+    dataDevolucao: null,
+    status: "emprestado"
+  };
+
+  // Atualiza quantidade disponível
+  livro.exemplaresDisponiveis--;
+  db.transaction("livros","readwrite").objectStore("livros").put(livro);
+
+  db.transaction("emprestimos","readwrite").objectStore("emprestimos").add(emprestimo).onsuccess = () => {
+    alert(`Empréstimo realizado!\nDevolver até: ${dataDevolucao.toLocaleDateString('pt-BR')}`);
+    carregarTudo();
+  };
+}
+
+function devolverLivro(idEmprestimo) {
+  if (!confirm("Confirmar devolução do livro?")) return;
+  db.transaction("emprestimos","readwrite").objectStore("emprestimos").get(idEmprestimo).onsuccess = e => {
+    const emp = e.target.result;
+    emp.dataDevolucao = new Date().toISOString().slice(0,10);
+    emp.status = "devolvido";
+    db.transaction("emprestimos","readwrite").objectStore("emprestimos").put(emp);
+
+    const livro = livros.find(l => l.id === emp.livroId);
+    if (livro) {
+      livro.exemplaresDisponiveis++;
+      db.transaction("livros","readwrite").objectStore("livros").put(livro);
+    }
+    carregarTudo();
+  };
+}
+
+// === LEITURAS (REMISSÃO) ===
+function salvarLeituraRemissao() {
+  const matricula = document.getElementById("selectRecLeitura").value;
+  const livroId = parseInt(document.getElementById("selectLivroLeitura").value);
+  if (!matricula || !livroId) return alert("Selecione recuperando e livro!");
+
+  const resenha = document.getElementById("resenhaLeitura").value.trim();
+  if (resenha.split('\n').filter(l=>l.trim()).length < 10) return alert("Resenha deve ter no mínimo 10 linhas!");
+
+  const leitura = {
+    matricula,
+    nomeRecuperando: recuperandos.find(r=>r.matricula===matricula).nome,
+    livroId,
+    titulo: livros.find(l=>l.id===livroId).titulo,
+    dataLeitura: document.getElementById("dataConclusao").value,
+    resenha,
+    status: document.getElementById("statusLeitura").value,
+    diasRemidos: document.getElementById("statusLeitura").value === "aprovado" ? 4 : 0
+  };
+
+  db.transaction("leituras","readwrite").objectStore("leituras").add(leitura).onsuccess = () => {
+    alert(leitura.status === "aprovado" ? "Aprovado! +4 dias" : "Registrado");
+    document.getElementById("resenhaLeitura").value = "";
+    carregarTudo();
+  };
+}
+
+// === CARREGAMENTO DAS LISTAS ===
+function carregarRecuperandos() {
+  db.transaction("recuperandos").objectStore("recuperandos").getAll().onsuccess = e => {
+    recuperandos = e.target.result;
+    document.getElementById("totalRec").textContent = recuperandos.length;
+    ["selectRecEmprestimo","selectRecLeitura"].forEach(id => {
+      const sel = document.getElementById(id);
+      sel.innerHTML = "<option value=''>Selecione...</option>";
+      recuperandos.forEach(r => sel.innerHTML += `<option value="${r.matricula}">${r.nome} (${r.matricula})</option>`);
+    });
+    exibirRecuperandos();
+  };
+}
+
+function carregarLivros() {
+  db.transaction("livros").objectStore("livros").getAll().onsuccess = e => {
+    livros = e.target.result;
+    document.getElementById("totalLivrosRel").textContent = livros.length;
+    exibirLivros();
+    atualizarSelectLivrosEmprestimo();
+    atualizarSelectLivrosLeitura();
+  };
+}
+
+function exibirLivros() {
+  const div = document.getElementById("listaLivros");
+  div.innerHTML = "";
+  livros.forEach(l => {
+    const status = l.exemplaresDisponiveis > 0 ? 
+      `<span class="badge disponivel">Disponível (${l.exemplaresDisponiveis}/${l.exemplaresTotal})</span>` :
+      `<span class="badge emprestado">Emprestado</span>`;
+    div.innerHTML += `
+      <div style="padding:16px;border:1px solid #ddd;border-radius:8px;margin:10px 0;background:#fafafa">
+        <strong>${l.titulo}</strong> - ${l.autor}<br>
+        <small>${l.isbn} | ${l.ano} | ${l.categoria}</small><br>${status}
+        <button class="small danger" onclick="excluirLivro(${l.id})">Excluir</button>
+      </div>`;
+  });
+}
+
+function atualizarSelectLivrosEmprestimo() {
+  const sel = document.getElementById("selectLivroEmprestimo");
+  sel.innerHTML = "<option value=''>Selecione...</option>";
+  livros.filter(l => l.exemplaresDisponiveis > 0).forEach(l => {
+    sel.innerHTML += `<option value="${l.id}">${l.titulo} - ${l.autor} (${l.exemplaresDisponiveis} disp.)</option>`;
+  });
+}
+
+function carregarEmprestimos() {
+  db.transaction("emprestimos").objectStore("emprestimos").getAll().onsuccess = e => {
+    emprestimos = e.target.result;
+    document.getElementById("totalEmprestados").textContent = emprestimos.filter(e=>e.status==="emprestado").length;
+    exibirEmprestimos();
+  };
+}
+
+function exibirEmprestimos() {
+  const div = document.getElementById("listaEmprestimos");
+  div.innerHTML = "<h4>Livros emprestados atualmente:</h4>";
+  const ativos = emprestimos.filter(e => e.status === "emprestado");
+  if (ativos.length === 0) { div.innerHTML += "<p>Nenhum livro emprestado no momento.</p>"; return; }
+
+  ativos.forEach(emp => {
+    const hoje = new Date();
+    const prevista = new Date(emp.dataPrevista);
+    const atrasado = hoje > prevista;
+    div.innerHTML += `
+      <div style="padding:16px;border-left:5px solid ${atrasado?'#c0392b':'#e67e22'};background:#fff9e6;margin:10px 0;border-radius:8px">
+        <strong>${emp.titulo}</strong> - ${emp.autor}<br>
+        <small>Recuperando: ${emp.nomeRecuperando} (${emp.matricula})<br>
+        Empréstimo: ${new Date(emp.dataEmprestimo).toLocaleDateString('pt-BR')} → 
+        Devolver até: <strong ${atrasado?'class="atraso"':''}>${prevista.toLocaleDateString('pt-BR')}</strong>
+        ${atrasado?' → <strong class="atraso">ATRASADO!</strong>' : ''}</small><br>
+        <button class="success small" onclick="devolverLivro(${emp.id})">Devolver Agora</button>
+      </div>`;
+  });
+}
+
+// === RELATÓRIOS E ESTATÍSTICAS ===
+function atualizarEstatisticas() {
+  const atrasados = emprestimos.filter(e => e.status==="emprestado" && new Date() > new Date(e.dataPrevista)).length;
+  document.getElementById("totalAtrasados").textContent = atrasados;
+  const aprovadas = leituras.filter(l=>l.status==="aprovado").length;
+  document.getElementById("totalLeiturasAprovadas").textContent = aprovadas;
+  document.getElementById("totalDiasRemidos").textContent = aprovadas * 4;
+  document.getElementById("totalRecRel").textContent = recuperandos.length;
+  document.getElementById("totalEmprestimoRel").textContent = emprestimos.filter(e=>e.status==="emprestado").length;
+  exibirResumoPessoa();
+}
+
+// === GRÁFICOS ===
+let leiturasChart, emprestimosChart;
+
+function atualizarGraficos() {
+  // Gráfico de Leituras
+  const leiturasCtx = document.getElementById('leiturasChart').getContext('2d');
+  if (leiturasChart) leiturasChart.destroy();
+  
+  const leiturasPorMes = {};
+  leituras.forEach(l => {
+    const mes = new Date(l.dataLeitura).toLocaleDateString('pt-BR', {month: 'long', year: 'numeric'});
+    leiturasPorMes[mes] = (leiturasPorMes[mes] || 0) + 1;
+  });
+
+  leiturasChart = new Chart(leiturasCtx, {
+    type: 'bar',
+    data: {
+      labels: Object.keys(leiturasPorMes),
+      datasets: [{
+        label: 'Livros Lidos',
+        data: Object.values(leiturasPorMes),
+        backgroundColor: '#27ae60',
+        borderColor: '#27ae60',
+        borderWidth: 1
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        title: {
+          display: true,
+          text: 'Estatística de Leituras'
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: {
+            stepSize: 1
+          }
+        }
+      }
+    }
+  });
+
+  // Gráfico de Empréstimos
+  const emprestimosCtx = document.getElementById('emprestimosChart').getContext('2d');
+  if (emprestimosChart) emprestimosChart.destroy();
+
+  const statusEmprestimos = {
+    'Empréstimo': emprestimos.filter(e => e.status === 'emprestado').length,
+    'Devolvido': emprestimos.filter(e => e.status === 'devolvido').length,
+    'Atrasado': emprestimos.filter(e => e.status === 'emprestado' && new Date() > new Date(e.dataPrevista)).length
+  };
+
+  emprestimosChart = new Chart(emprestimosCtx, {
+    type: 'doughnut',
+    data: {
+      labels: Object.keys(statusEmprestimos),
+      datasets: [{
+        data: Object.values(statusEmprestimos),
+        backgroundColor: [
+          '#e67e22',
+          '#27ae60',
+          '#c0392b'
+        ]
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        title: {
+          display: true,
+          text: 'Status dos Empréstimos'
+        }
+      }
+    }
+  });
+}
+
+// === ABAS ===
+function openTab(evt, tabName) {
+  document.querySelectorAll(".tabcontent").forEach(t=>t.style.display="none");
+  document.querySelectorAll(".tablink").forEach(t=>t.classList.remove("active"));
+  document.getElementById(tabName).style.display="block";
+  evt.currentTarget.classList.add("active");
+  if (tabName === "emprestimo") carregarEmprestimos();
+}
+
+// === FUNÇÕES AUXILIARES ===
+function limparCampos(...ids) {
+  ids.forEach(id => document.getElementById(id).value = "");
+}
+
+function excluirLivro(id) {
+  if (!confirm("Tem certeza que deseja excluir este livro?")) return;
+  db.transaction("livros","readwrite").objectStore("livros").delete(id).onsuccess = () => {
+    alert("Livro excluído!");
+    carregarTudo();
+  };
+}
+
+function exibirRecuperandos() {
+  const div = document.getElementById("listaRecuperandos");
+  div.innerHTML = "";
+  if (recuperandos.length === 0) { div.innerHTML = "<p>Nenhum recuperando cadastrado.</p>"; return; }
+  recuperandos.forEach(r => {
+    div.innerHTML += `
+      <div style="padding:16px;border:1px solid #ddd;border-radius:8px;margin:10px 0;background:#fafafa">
+        <strong>${r.nome}</strong> - Matrícula: ${r.matricula}<br>
+        <small>Unidade: ${r.unidade} | Regime: ${r.regime}</small>
+      </div>`;
+  });
+}
+
+function filtrarLivros() {
+  const termo = document.getElementById("buscaLivro").value.trim().toLowerCase();
+  const div = document.getElementById("listaLivros");
+  div.innerHTML = "";
+  const filtrados = livros.filter(l => 
+    l.titulo.toLowerCase().includes(termo) || 
+    l.autor.toLowerCase().includes(termo) || 
+    l.isbn.toLowerCase().includes(termo)
+  );
+  if (filtrados.length === 0) { div.innerHTML = "<p>Nenhum livro encontrado.</p>"; return; }
+  filtrados.forEach(l => {
+    const status = l.exemplaresDisponiveis > 0 ? 
+      `<span class="badge disponivel">Disponível (${l.exemplaresDisponiveis}/${l.exemplaresTotal})</span>` :
+      `<span class="badge emprestado">Emprestado</span>`;
+    div.innerHTML += `
+      <div style="padding:16px;border:1px solid #ddd;border-radius:8px;margin:10px 0;background:#fafafa">
+        <strong>${l.titulo}</strong> - ${l.autor}<br>
+        <small>${l.isbn} | ${l.ano} | ${l.categoria}</small><br>${status}
+        <button class="small danger" onclick="excluirLivro(${l.id})">Excluir</button>
+      </div>`;
+  });
+}
+
+function atualizarSelectLivrosLeitura() {
+  const sel = document.getElementById("selectLivroLeitura");
+  sel.innerHTML = "<option value=''>Selecione...</option>";
+  livros.forEach(l => {
+    sel.innerHTML += `<option value="${l.id}">${l.titulo} - ${l.autor}</option>`;
+  });
+}
+
+function carregarLeituras() {
+  db.transaction("leituras").objectStore("leituras").getAll().onsuccess = e => {
+    leituras = e.target.result;
+    exibirLeituras();
+    atualizarEstatisticas();
+  };
+}
+
+function exibirLeituras() {
+  const div = document.getElementById("listaLeituras");
+  div.innerHTML = "";
+  if (leituras.length === 0) { div.innerHTML = "<p>Nenhuma leitura registrada.</p>"; return; }
+  leituras.forEach(l => {
+    div.innerHTML += `
+      <div style="padding:16px;border:1px solid #ddd;border-radius:8px;margin:10px 0;background:#fafafa">
+        <strong>${l.titulo}</strong> - ${l.nomeRecuperando}<br>
+        <small>Data: ${new Date(l.dataLeitura).toLocaleDateString('pt-BR')} | Status: <span class="badge ${l.status==='aprovado'?'disponivel':'atrasado'}">${l.status}</span> | Dias remidos: ${l.diasRemidos}</small>
+      </div>`;
+  });
+}
+
+function exibirResumoPessoa() {
+  const div = document.getElementById("resumoPessoa");
+  div.innerHTML = "";
+  if (recuperandos.length === 0) { div.innerHTML = "<p>Nenhum recuperando cadastrado.</p>"; return; }
+  recuperandos.forEach(r => {
+    const leiturasRec = leituras.filter(l => l.matricula === r.matricula && l.status === "aprovado");
+    const diasRemidos = leiturasRec.length * 4;
+    div.innerHTML += `
+      <div style="padding:16px;border:1px solid #ddd;border-radius:8px;margin:10px 0;background:#fafafa">
+        <strong>${r.nome}</strong> (${r.matricula})<br>
+        <small>Leituras aprovadas: ${leiturasRec.length} | Dias remidos: ${diasRemidos}</small>
+      </div>`;
+  });
+}
+
+function relatorioCompletoPDF() {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  doc.setFontSize(18);
+  doc.text("Biblioteca APAC - Relatório Geral", 14, 22);
+  doc.setFontSize(12);
+  doc.text(`Data: ${new Date().toLocaleDateString('pt-BR')}`, 14, 30);
+  
+  doc.autoTable({
+    startY: 35,
+    head: [['Recuperandos', 'Matrícula', 'Regime']],
+    body: recuperandos.map(r => [r.nome, r.matricula, r.regime])
+  });
+  
+  doc.autoTable({
+    startY: doc.lastAutoTable.finalY + 10,
+    head: [['Livro', 'Autor', 'Disponíveis']],
+    body: livros.map(l => [l.titulo, l.autor, `${l.exemplaresDisponiveis}/${l.exemplaresTotal}`])
+  });
+  
+  doc.save("relatorio_biblioteca_apac.pdf");
+}
+
+function gerarOficioJuiz() {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  doc.setFontSize(16);
+  doc.text("Ofício para o Juiz - Remissão por Leitura", 14, 22);
+  doc.setFontSize(12);
+  const hoje = new Date().toLocaleDateString('pt-BR');
+  doc.text(`Porto Alegre, ${hoje}`, 14, 30);
+  doc.text("Ilmo. Sr. Juiz de Direito,", 14, 40);
+  doc.text("Encaminhamos a lista de recuperandos que obtiveram remição pelo estudo/leitura,", 14, 50);
+  doc.text("conforme Art. 126, §6º da LEP.", 14, 56);
+  
+  const aprovados = leituras.filter(l => l.status === "aprovado");
+  doc.autoTable({
+    startY: 65,
+    head: [['Recuperando', 'Livro', 'Data', 'Dias Remidos']],
+    body: aprovados.map(a => [a.nomeRecuperando, a.titulo, new Date(a.dataLeitura).toLocaleDateString('pt-BR'), a.diasRemidos])
+  });
+  
+  doc.text("Atenciosamente,", 14, doc.lastAutoTable.finalY + 20);
+  doc.save("oficio_juiz_apac.pdf");
+}
+
+// === IMPORTAÇÃO E EXPORTAÇÃO ===
+function exportarDadosJSON() {
+  const dados = {
+    recuperandos: recuperandos,
+    livros: livros,
+    emprestimos: emprestimos,
+    leituras: leituras
+  };
+  const json = JSON.stringify(dados, null, 2);
+  const blob = new Blob([json], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `biblioteca_apac_dados_${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function importarDadosJSON() {
+  document.getElementById("inputImportJSON").click();
+}
+
+function processarImportacaoJSON(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  
+  if (!confirm("ATENÇÃO: A importação substituirá todos os dados atuais. Deseja continuar?")) {
+    event.target.value = "";
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const dados = JSON.parse(e.target.result);
+      
+      const stores = ["recuperandos", "livros", "emprestimos", "leituras"];
+      const promises = stores.map(storeName => {
+        return new Promise((resolve, reject) => {
+          const tx = db.transaction(storeName, "readwrite");
+          const store = tx.objectStore(storeName);
+          store.clear();
+          
+          const items = dados[storeName] || [];
+          items.forEach(item => store.put(item));
+          
+          tx.oncomplete = resolve;
+          tx.onerror = reject;
+        });
+      });
+      
+      Promise.all(promises).then(() => {
+        alert("Dados importados com sucesso!");
+        carregarTudo();
+      }).catch(err => {
+        alert("Erro ao importar dados: " + err);
+      });
+      
+    } catch (err) {
+      alert("Arquivo JSON inválido!");
+    }
+    event.target.value = "";
+  };
+  reader.readAsText(file);
+}
+
+function exportarCache() {
+  const stores = ["recuperandos", "livros", "emprestimos", "leituras"];
+  const dados = {};
+  
+  const promises = stores.map(storeName => {
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(storeName, "readonly");
+      const store = tx.objectStore(storeName);
+      const req = store.getAll();
+      req.onsuccess = () => {
+        dados[storeName] = req.result;
+        resolve();
+      };
+      req.onerror = reject;
+    });
+  });
+  
+  Promise.all(promises).then(() => {
+    const json = JSON.stringify(dados, null, 2);
+    const blob = new Blob([json], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `biblioteca_apac_cache_${new Date().toISOString().slice(0,10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }).catch(err => {
+    alert("Erro ao exportar cache: " + err);
+  });
+}
+
+// Executa ao carregar
+iniciar();
+</script>
+</body>
+</html>
+
+
+
