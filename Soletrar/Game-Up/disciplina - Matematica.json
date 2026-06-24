@@ -1,0 +1,54 @@
+{
+  "subjectName": "Matemática",
+  "subjectColor": "#e74c3c",
+  "subjectIcon": "🧮",
+  "imported": true,
+  "description": "Uma jornada pelo mundo da Matemática, desde os fundamentos da aritmética até o cálculo avançado.",
+  "htmlContent": "<div class='custom-subject-content' data-subject='Matemática'><h2>Conteúdo de Apoio</h2><p>Este HTML será injetado na página. Aqui você pode colocar fórmulas, tabelas de derivadas ou links para calculadoras online.</p><div class='question-item' data-question='Quanto é 15 + 27?' data-answer='42' data-subject='Matemática' style='border-left-color: #e74c3c;'><strong>Aritmética Básica:</strong> Adição simples.</div><div class='question-item' data-question='Qual é o resultado de 8 x 7?' data-answer='56' data-subject='Matemática'><strong>Tabuada:</strong> Multiplicação fundamental.</div><div class='question-item' data-question='Na equação 2x + 6 = 14, qual é o valor de x?' data-answer='4' data-subject='Matemática'><strong>Álgebra:</strong> Equação de primeiro grau.</div><div class='question-item' data-question='Qual é a derivada da função f(x) = 3x<sup>2</sup> + 2x?' data-answer='6x+2' data-subject='Matemática'><strong>Cálculo Diferencial:</strong> Derivada de funções polinomiais.</div><h2>📚 Base Teórica de Matemática</h2><h3>1. Áreas Clássicas da Matemática</h3><ul><li><strong>Aritmética:</strong> Estuda os números e as operações fundamentais (adição, subtração, multiplicação e divisão).</li><li><strong>Álgebra:</strong> Introduz letras e símbolos para generalizar operações e resolver equações, focando em estruturas e relações.</li><li><strong>Geometria:</strong> Estuda as formas, tamanhos, posições no espaço e as propriedades das figuras geométricas.</li><li><strong>Trigonometria:</strong> Ramo da geometria que analisa as relações entre os lados e os ângulos dos triângulos.</li></ul><h3>2. Eixos na Educação Básica (BNCC)</h3><ul><li><strong>Números:</strong> Foca na compreensão do sistema numérico e das operações.</li><li><strong>Álgebra:</strong> Estuda os padrões e a resolução de equações algébricas.</li><li><strong>Geometria:</strong> Foca no reconhecimento e propriedades do espaço e das formas.</li><li><strong>Grandezas e Medidas:</strong> Envolve o estudo de comprimentos, áreas, volumes, massa e tempo.</li><li><strong>Probabilidade e Estatística:</strong> Estuda a coleta, organização e análise de dados, além do cálculo de chances.</li></ul><h3>3. Matemática Avançada / Superior</h3><ul><li><strong>Cálculo:</strong> Estuda taxas de variação e acumulação (derivadas e integrais).</li><li><strong>Análise Matemática:</strong> Fundamentação rigorosa do cálculo.</li><li><strong>Teoria dos Conjuntos:</strong> Base dos fundamentos da matemática moderna.</li><li><strong>Teoria dos Números:</strong> Estudo puro das propriedades dos números inteiros.</li></ul></div>",
+
+  "customJsContent": "document.addEventListener('DOMContentLoaded', () => { const questions = document.querySelectorAll('.question-item'); let currentIndex = 0; function showQuestion(index) { questions.forEach((q, i) => { q.style.display = i === index ? 'block' : 'none'; }); if (questions[index]) { const text = questions[index].getAttribute('data-question'); if ('speechSynthesis' in window) { window.speechSynthesis.cancel(); const utterance = new SpeechSynthesisUtterance(text); utterance.lang = 'pt-BR'; window.speechSynthesis.speak(utterance); } } } if (questions.length > 0) { showQuestion(0); } document.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); if (currentIndex < questions.length - 1) { currentIndex++; showQuestion(currentIndex); } else { window.speechSynthesis.cancel(); } } }); });",
+  "questions": [
+    {
+      "topic": "Tópico 1: Fundamentos (Aritmética)",
+      "difficulty": "easy",
+      "type": "text_input",
+      "question": "Quanto é 15 + 27?",
+      "answer": "42",
+      "hint": "Soma os valores unitários e depois as dezenas.",
+      "explanation": "15 + 27 = 42. Esta é uma operação básica de adição.",
+      "customHtmlContent": "<div class='question-item' data-question='Quanto é 15 + 27?' data-answer='42' data-subject='Matemática' style='border-left-color: #e74c3c;'><strong>Aritmética Básica:</strong> Adição simples.</div>"
+    },
+    {
+      "topic": "Tópico 1: Fundamentos (Aritmética)",
+      "difficulty": "easy",
+      "type": "multiple_choice",
+      "question": "Qual é o resultado de 8 x 7?",
+      "options": ["54", "56", "64", "49"],
+      "answer": "56",
+      "hint": "Lembre-se da tabuada do 8.",
+      "explanation": "8 multiplicado por 7 é igual a 56.",
+      "customHtmlContent": "<div class='question-item' data-question='Qual é o resultado de 8 x 7?' data-answer='56' data-subject='Matemática'><strong>Tabuada:</strong> Multiplicação fundamental.</div>"
+    },
+    {
+      "topic": "Tópico 2: Intermediário (Álgebra e Geometria)",
+      "difficulty": "medium",
+      "type": "text_input",
+      "question": "Na equação 2x + 6 = 14, qual é o valor de x?",
+      "answer": "4",
+      "hint": "Isole o x subtraindo 6 e depois dividindo por 2.",
+      "explanation": "Subtraindo 6 de ambos os lados: 2x = 8. Dividindo por 2: x = 4.",
+      "customHtmlContent": "<div class='question-item' data-question='Na equação 2x + 6 = 14, qual é o valor de x?' data-answer='4' data-subject='Matemática'><strong>Álgebra:</strong> Equação de primeiro grau.</div>"
+    },
+    {
+      "topic": "Tópico 3: Avançado (Cálculo e Análise)",
+      "difficulty": "hard",
+      "type": "text_input",
+      "question": "Qual é a derivada da função f(x) = 3x<sup>2</sup> + 2x?",
+      "answer": "6x+2",
+      "hint": "Aplique a regra do tombo (regra da potência) a cada termo.",
+      "explanation": "A derivada de 3x<sup>2</sup> é 6x e a derivada de 2x é 2. Portanto, f'(x) = 6x + 2.",
+      "customHtmlContent": "<div class='question-item' data-question='Qual é a derivada da função f(x) = 3x<sup>2</sup> + 2x?' data-answer='6x+2' data-subject='Matemática'><strong>Cálculo Diferencial:</strong> Derivada de funções polinomiais.</div>"
+    }
+  ]
+}
+

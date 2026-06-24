@@ -1,0 +1,953 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aprenda Jogo - Multi-Disciplinas</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* Existing styles */
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 20px; background-color: #f5f7fa; color: #333; }
+        .container { max-width: 900px; margin: 0 auto; background: #fff; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        h1, h2, h3 { color: #2c3e50; text-align: center; }
+        .section { display: none; } .section.active { display: block; }
+        .nav-buttons { display: flex; justify-content: center; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+        button { background-color: #3498db; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-size: 14px; transition: background 0.3s; }
+        button:hover { background-color: #2980b9; }
+        button.secondary { background-color: #95a5a6; } button.secondary:hover { background-color: #7f8c8d; }
+        button.danger { background-color: #e74c3c; } button.danger:hover { background-color: #c0392b; }
+        button.nav-active { background-color: #2980b9; box-shadow: inset 0 2px 4px rgba(0,0,0,0.2); }
+        .game-area { text-align: center; margin-top: 20px; }
+        
+        /* Subject Selection Panel */
+        .subject-panel { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; }
+        .subject-card { background: #eef2f7; padding: 15px; border-radius: 8px; text-align: center; transition: transform 0.2s; }
+        .subject-card.active { transform: scale(1.05); box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        .subject-card h3 { margin: 0 0 10px; color: white; padding: 5px 10px; border-radius: 15px; display: inline-block; }
+        .subject-controls { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; }
+        .subject-count { font-size: 0.9em; color: #7f8c8d; }
+        .subject-toggle { position: relative; width: 50px; height: 24px; background: #bdc3c7; border-radius: 12px; cursor: pointer; transition: background 0.3s; }
+        .subject-toggle.active { background: #27ae60; }
+        .subject-toggle::after { content: ''; position: absolute; width: 20px; height: 20px; background: white; border-radius: 50%; top: 2px; left: 2px; transition: transform 0.3s; }
+        .subject-toggle.active::after { transform: translateX(26px); }
+
+        /* Config Panel */
+        .config-panel { background: #eef2f7; padding: 15px; border-radius: 8px; margin-bottom: 20px; text-align: left; }
+        .config-panel h3 { text-align: left; margin-top: 0; font-size: 1.2em; }
+        .config-group { margin-bottom: 10px; display: flex; flex-wrap: wrap; gap: 15px; align-items: center;}
+        .config-group label { font-weight: bold; margin-right: 10px; }
+        select { padding: 8px; border-radius: 6px; border: 1px solid #bdc3c7; }
+
+        /* Question Display */
+        #questionCategory { display: inline-block; padding: 5px 10px; border-radius: 15px; color: white; font-weight: bold; font-size: 0.9em; margin-bottom: 10px; }
+        .cat-portugues { background-color: #27ae60; } .cat-matematica { background-color: #e67e22; } .cat-ingles { background-color: #9b59b6; } .cat-ciencias { background-color: #3498db; }
+        
+        #wordDisplay { font-size: 2.5em; margin: 20px 0; color: #2c3e50; display: flex; justify-content: center; gap: 12px; min-height: 60px; align-items: center; }
+        .letter-box { width: 40px; height: 50px; border-bottom: 3px solid #2980b9; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+        #questionText { font-size: 1.5em; margin-bottom: 20px; color: #2c3e50; font-weight: bold; }
+        
+        #spellInput { font-size: 1.5em; padding: 10px; width: 80%; max-width: 400px; text-align: center; border: 2px solid #bdc3c7; border-radius: 6px; }
+        #spellInput:focus { border-color: #3498db; outline: none; }
+        .feedback { font-size: 1.2em; margin: 15px 0; font-weight: bold; min-height: 1.5em; }
+        .feedback.success { color: #27ae60; } .feedback.error { color: #e74c3c; }
+        .score-board { font-size: 1.5em; margin-bottom: 20px; }
+        .controls { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 20px; }
+        .chart-controls { display: flex; justify-content: center; gap: 10px; margin-bottom: 15px; }
+        .chart-btn { background-color: #2ecc71; } .chart-btn:hover { background-color: #27ae60; }
+        .log-entry { background: #ecf0f1; padding: 10px; border-radius: 6px; margin-bottom: 8px; text-align: left; }
+        .help-content { line-height: 1.6; background: #eef2f7; padding: 20px; border-radius: 8px; }
+        .speech-controls { text-align: center; margin-bottom: 15px; }
+        input[type="file"] { display: none; }
+        .player-info { display: flex; justify-content: space-between; align-items: center; background: #eef2f7; padding: 10px 20px; border-radius: 8px; margin-bottom: 20px; }
+        .player-info span { font-weight: bold; color: #2c3e50; }
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.4); justify-content: center; align-items: center; }
+        .modal.active { display: flex; }
+        .modal-content { background-color: #fefefe; padding: 30px; border-radius: 12px; width: 90%; max-width: 400px; text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
+        .modal-content input { width: 80%; padding: 10px; margin: 15px 0; border: 2px solid #bdc3c7; border-radius: 6px; font-size: 16px; text-align: center; }
+        .modal-content input:focus { border-color: #3498db; outline: none; }
+        .player-list { list-style: none; padding: 0; margin: 15px 0; max-height: 150px; overflow-y: auto; }
+        .player-list li { padding: 8px; cursor: pointer; border-radius: 4px; transition: background 0.2s; }
+        .player-list li:hover { background-color: #ecf0f1; }
+
+        /* English pronunciation training */
+        .pronunciation-controls { display: flex; justify-content: center; gap: 10px; margin: 15px 0; flex-wrap: wrap; }
+        .pronunciation-controls button { background-color: #9b59b6; padding: 8px 16px; border-radius: 6px; font-size: 14px; transition: background 0.3s; }
+        .pronunciation-controls button:hover { background-color: #8e44ad; }
+        .phonetic-display { font-size: 1.2em; color: #2c3e50; margin: 10px 0; font-style: italic; min-height: 1.5em; }
+        .speed-control { display: flex; align-items: center; justify-content: center; gap: 10px; margin: 10px 0; }
+        .speed-control input[type="range"] { width: 200px; }
+
+        /* New Custom Subject Content Styles */
+        #customSubjectContainer { background: #fafafa; border: 2px dashed #bdc3c7; border-radius: 8px; padding: 20px; margin-top: 20px; display: none; }
+        #customSubjectContainer h2 { margin-top: 0; color: #2c3e50; }
+        .question-item { background: #fff; padding: 10px; border-left: 4px solid #3498db; margin-bottom: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Aprenda Jogo</h1>
+        
+        <div id="playerInfoBar" class="player-info" style="display: none;">
+            <span>Jogador: <span id="currentPlayerName"></span></span>
+            <button class="secondary" onclick="logoutPlayer()" style="padding: 5px 15px; font-size: 12px;">Trocar Jogador</button>
+        </div>
+
+        <div class="nav-buttons">
+            <button id="navGame" class="nav-active" onclick="showSection('game')">Jogo</button>
+            <button id="navChart" onclick="showSection('chart')">Gráfico</button>
+            <button id="navLogs" onclick="showSection('logs')">Logs</button>
+            <button id="navHelp" onclick="showSection('help')">Ajuda</button>
+        </div>
+
+        <!-- Game Section -->
+        <div id="gameSection" class="section active">
+            <div class="score-board">Pontuação: <span id="score">0</span></div>
+
+            <div class="subject-panel" id="subjectPanel"></div>
+
+            <div class="config-panel">
+                <h3>Configurações da Partida</h3>
+                <div class="config-group">
+                    <label>Dificuldade:</label>
+                    <select id="difficultySelect" onchange="saveConfig()">
+                        <option value="easy">Fácil</option>
+                        <option value="medium" selected>Médio</option>
+                        <option value="hard">Difícil</option>
+                    </select>
+                </div>
+            </div>
+
+            <button onclick="startGame()">Iniciar Jogo</button>
+            <button onclick="speakWord()">🔊 Ouvir Pergunta</button>
+            
+            <div id="gameArea" class="game-area" style="display: none;">
+                <div id="questionCategory"></div>
+                <div id="questionText"></div>
+                <div id="wordDisplay"></div>
+                <div id="phoneticDisplay" class="phonetic-display"></div>
+                <div class="pronunciation-controls">
+                    <button onclick="speakWord()">🔊 Repetir</button>
+                    <button onclick="slowPronunciation()">🐌 Devagar</button>
+                    <button onclick="fastPronunciation()">🚀 Rápido</button>
+                </div>
+                <div class="speed-control">
+                    <label>Velocidade:</label>
+                    <input type="range" id="speechRate" min="0.5" max="2" step="0.1" value="1">
+                    <span id="rateValue">1.0x</span>
+                </div>
+                <input type="text" id="spellInput" autocomplete="off" placeholder="Digite sua resposta aqui...">
+                <div id="feedback" class="feedback"></div>
+                <div class="controls">
+                    <button onclick="checkSpelling()">Verificar</button>
+                    <button onclick="nextWord()" id="nextButton" style="display: none;">Próxima</button>
+                </div>
+            </div>
+
+            <!-- Custom Subject Container (DOM Injection) -->
+            <div id="customSubjectContainer">
+                <h2 id="customSubjectTitle">Matéria Importada</h2>
+                <div id="customSubjectContent"></div>
+            </div>
+
+            <div class="controls" style="margin-top: 30px;">
+                <button class="secondary" onclick="importWords('portugues')">Importar Português</button>
+                <button class="secondary" onclick="importWords('ingles')">Importar Inglês</button>
+                <!-- NEW BUTTON FOR HTML/JSON IMPORT -->
+                <button class="secondary" onclick="importCustomSubject()" style="background-color: #8e44ad;">Importar Matéria (HTML/JSON)</button>
+                <button class="secondary" onclick="exportPlayerData()">Exportar Jogador</button>
+                <button class="secondary" onclick="importCachedData()">Importar Dados</button>
+                <button class="danger" onclick="clearSubjectData()">Limpar Disciplina</button>
+                <button class="danger" onclick="clearCachedData()">Limpar Tudo</button>
+            </div>
+            <input type="file" id="importFileInput" accept=".json" onchange="handleFileImport(event)" style="display:none;">
+            <input type="file" id="importCacheFileInput" accept=".json" onchange="handleCacheFileImport(event)" style="display:none;">
+            <!-- NEW FILE INPUT FOR HTML/JSON -->
+            <input type="file" id="importCustomSubjectInput" accept=".json" onchange="handleCustomSubjectImport(event)" style="display:none;">
+        </div>
+
+        <!-- Chart Section -->
+        <div id="chartSection" class="section">
+            <h2>Desempenho</h2>
+            <div id="chartContainer">
+                <div class="chart-controls">
+                    <button onclick="toggleChartType()" class="chart-btn">Trocar Tipo</button>
+                    <button onclick="toggleChartTheme()" class="chart-btn">Trocar Tema</button>
+                    <button onclick="exportChart()" class="chart-btn">Exportar</button>
+                </div>
+                <div style="position: relative; height: 400px; width: 100%;"><canvas id="performanceChart"></canvas></div>
+            </div>
+        </div>
+
+        <!-- Logs Section -->
+        <div id="logsSection" class="section">
+            <h2>Registro de Aprendizado</h2>
+            <div class="config-group">
+                <label>Filtrar por disciplina:</label>
+                <select id="subjectFilter" onchange="updateLogsDisplay()">
+                    <option value="all">Todas</option>
+                    <option value="portugues">Português</option>
+                    <option value="matematica">Matemática</option>
+                    <option value="ingles">Inglês</option>
+                    <option value="ciencias">Ciências</option>
+                    <option value="custom">Matéria Importada</option>
+                </select>
+            </div>
+            <div id="logsContainer"></div>
+        </div>
+
+        <!-- Help Section -->
+        <div id="helpSection" class="section">
+            <h2>Ajuda</h2>
+            <div class="speech-controls"><button onclick="toggleHelpSpeech()">🔊 Ativar Narração</button></div>
+            <div class="help-content">
+                <p>Bem-vindo ao Sistema de Aprendizado Multidisciplinar!</p>
+                <p>Selecione as disciplinas que deseja praticar e configure a dificuldade antes de iniciar.</p>
+                <ul>
+                    <li><strong>🇧🇷 Português:</strong> Soletração de palavras.</li>
+                    <li><strong>🧮 Matemática:</strong> Equações matemáticas.</li>
+                    <li><strong>🇺🇸 Inglês:</strong> Tradução de vocabulário e pronúncia.</li>
+                    <li><strong>🔬 Ciências:</strong> Conhecimentos gerais e biologia.</li>
+                    <li><strong>📚 Matéria Importada:</strong> Carregue um JSON com HTML contendo <code>data-question</code> e <code>data-answer</code>.</li>
+                </ul>
+                <p>Você pode importar suas próprias listas de palavras para cada disciplina usando os botões de importação.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Player Modal -->
+    <div id="playerModal" class="modal active">
+        <div class="modal-content">
+            <h2>Cadastro de Jogador</h2>
+            <input type="text" id="playerNameInput" placeholder="Digite seu nome..." autocomplete="off">
+            <button onclick="registerPlayer()">Entrar</button>
+            <div id="existingPlayersSection" style="display: none; margin-top: 20px;">
+                <h3>Jogadores Existentes</h3>
+                <ul id="playerList" class="player-list"></ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- State Variables ---
+        let currentPlayer = localStorage.getItem('spellingGameCurrentUser') || "";
+        let words = { portugues: [], matematica: [], ingles: [], ciencias: [], custom: [] };
+        let currentQuestion = { type: '', prompt: '', answer: '', category: '' };
+        let score = 0;
+        let performanceData = [];
+        let performanceChart = null;
+        let startTime = 0;
+        let responseTimeData = [];
+        let wordLogs = {};
+        let chartType = 'line';
+        let chartTheme = 'light';
+        let isWaitingForNext = false;
+        let config = { difficulty: 'medium', activeSubjects: ['portugues', 'matematica', 'ingles', 'ciencias'] };
+        let speechRate = 1;
+        let wordRevealed = false; // New state to track if word is revealed
+        const MAX_HISTORY_SIZE = 100;
+
+        // --- Custom Subject Data ---
+        let customSubjectName = "Matéria Importada";
+        let customSubjectColor = "#e74c3c"; // Default red
+
+        // --- English Pronunciation Data ---
+        const pronunciationData = {
+            "dog": "dɔːg", "cat": "kæt", "house": "haʊs", "car": "kɑːr", "tree": "triː",
+            "water": "ˈwɔːtər", "fire": "ˈfaɪər", "earth": "ɜːrθ", "air": "er", "sun": "sʌn",
+            "moon": "muːn", "star": "stɑːr", "computer": "kəmˈpjuːtər", "book": "bʊk"
+        };
+
+        // --- Subject Registry ---
+        const subjectRegistry = {
+            portugues: { name: "Português", color: "cat-portugues", generator: generatePortugueseQuestion, defaultWords: ["bola", "gato", "sol", "mesa", "borboleta", "elefante", "girassol", "computador", "paralelepípedo", "extraordinário", "inconstitucional", "conhecimento"] },
+            matematica: { name: "Matemática", color: "cat-matematica", generator: generateMathQuestion },
+            ingles: { name: "Inglês", color: "cat-ingles", generator: generateEnglishQuestion, defaultWords: ["dog", "cat", "house", "car", "tree", "water", "fire", "earth", "air", "sun", "moon", "star", "computer", "book"] },
+            ciencias: { name: "Ciências", color: "cat-ciencias", generator: generateScienceQuestion },
+            custom: { name: customSubjectName, color: "cat-custom", generator: generateCustomQuestion }
+        };
+
+        // --- Question Generators ---
+        function generateMathQuestion() {
+            const diff = config.difficulty;
+            let a, b;
+            const ops = [
+                { symbol: '+', func: (a, b) => a + b },
+                { symbol: '-', func: (a, b) => a - b },
+                { symbol: '×', func: (a, b) => a * b }
+            ];
+            if (diff === 'easy') { a = Math.floor(Math.random() * 10) + 1; b = Math.floor(Math.random() * 10) + 1; }
+            else if (diff === 'medium') { a = Math.floor(Math.random() * 50) + 10; b = Math.floor(Math.random() * 50) + 10; }
+            else { a = Math.floor(Math.random() * 100) + 50; b = Math.floor(Math.random() * 100) + 50; }
+            
+            const op = ops[Math.floor(Math.random() * ops.length)];
+            if (op.symbol === '-' && b > a) [a, b] = [b, a];
+            if (op.symbol === '×' && diff === 'hard') { a = Math.floor(Math.random() * 15) + 5; b = Math.floor(Math.random() * 15) + 5; }
+            
+            return { type: 'math', category: 'Matemática', prompt: `Quanto é ${a} ${op.symbol} ${b}?`, answer: op.func(a, b).toString() };
+        }
+
+        function generateEnglishQuestion() {
+            const vocab = {
+                easy: [ {pt: "Cachorro", en: "Dog"}, {pt: "Gato", en: "Cat"}, {pt: "Sol", en: "Sun"} ],
+                medium: [ {pt: "Irmã", en: "Sister"}, {pt: "Escola", en: "School"}, {pt: "Amigo", en: "Friend"} ],
+                hard: [ {pt: "Desenvolvimento", en: "Development"}, {pt: "Conhecimento", en: "Knowledge"} ]
+            };
+            const word = vocab[config.difficulty][Math.floor(Math.random() * vocab[config.difficulty].length)];
+            return { type: 'english', category: 'Inglês', prompt: `Traduza para o inglês: ${word.pt}`, answer: word.en.toLowerCase() };
+        }
+
+        function generatePortugueseQuestion() {
+            const pool = words.portugues.length > 0 ? words.portugues : subjectRegistry.portugues.defaultWords;
+            const word = pool[Math.floor(Math.random() * pool.length)];
+            return { type: 'portuguese', category: 'Português', prompt: "Ouça a palavra:", answer: word.toLowerCase() };
+        }
+
+        function generateScienceQuestion() {
+            const questions = {
+                easy: [ {q: "Qual o nome do nosso planeta?", a: "terra"}, {q: "O que nasce primeiro, a galinha ou o ovo? (responda ovo)", a: "ovo"} ],
+                medium: [ {q: "Qual o nome do processo que as plantas usam para fazer comida?", a: "fotossintese"}, {q: "Qual gás respiramos?", a: "oxigenio"} ],
+                hard: [ {q: "Qual a fórmula química da água?", a: "h2o"}, {q: "Qual o nome da força que nos prende ao chão?", a: "gravidade"} ]
+            };
+            const qObj = questions[config.difficulty][Math.floor(Math.random() * questions[config.difficulty].length)];
+            return { type: 'science', category: 'Ciências', prompt: qObj.q, answer: qObj.a };
+        }
+
+        // NEW: Generator for Custom Imported Subject
+        function generateCustomQuestion() {
+            if (words.custom.length === 0) return { type: 'error', category: 'Erro', prompt: 'Nenhuma matéria importada ainda!', answer: '' };
+            const qObj = words.custom[Math.floor(Math.random() * words.custom.length)];
+            return { type: 'custom', category: customSubjectName, prompt: qObj.question, answer: qObj.answer.toLowerCase() };
+        }
+
+        function getNextQuestion() {
+            const active = config.activeSubjects;
+            if (active.length === 0) return { type: 'error', category: 'Erro', prompt: 'Selecione ao menos uma disciplina nas configurações!', answer: '' };
+            const chosenSubjectKey = active[Math.floor(Math.random() * active.length)];
+            return subjectRegistry[chosenSubjectKey].generator();
+        }
+
+        // --- Core Logic ---
+        function getPlayerKey(key) { return currentPlayer ? `spellingGame_${currentPlayer}_${key}` : `spellingGame_${key}`; }
+
+        function loadPlayerData() {
+            words = JSON.parse(localStorage.getItem(getPlayerKey('Words'))) || { portugues: [], matematica: [], ingles: [], ciencias: [], custom: [] };
+            score = parseInt(localStorage.getItem(getPlayerKey('Score'))) || 0;
+            performanceData = JSON.parse(localStorage.getItem(getPlayerKey('PerformanceData'))) || [];
+            responseTimeData = JSON.parse(localStorage.getItem(getPlayerKey('ResponseTimeData'))) || [];
+            wordLogs = JSON.parse(localStorage.getItem(getPlayerKey('WordLogs'))) || {};
+            chartType = localStorage.getItem(getPlayerKey('ChartType')) || 'line';
+            chartTheme = localStorage.getItem(getPlayerKey('ChartTheme')) || 'light';
+            config = JSON.parse(localStorage.getItem(getPlayerKey('Config'))) || { difficulty: 'medium', activeSubjects: Object.keys(subjectRegistry) };
+            speechRate = parseFloat(localStorage.getItem(getPlayerKey('SpeechRate'))) || 1;
+            wordRevealed = false; // Reset wordRevealed state when loading data
+            
+            // Load custom subject settings
+            customSubjectName = localStorage.getItem(getPlayerKey('CustomSubjectName')) || "Matéria Importada";
+            customSubjectColor = localStorage.getItem(getPlayerKey('CustomSubjectColor')) || "#e74c3c";
+            subjectRegistry.custom.name = customSubjectName;
+
+            document.getElementById('score').innerText = score;
+            document.getElementById('speechRate').value = speechRate;
+            document.getElementById('rateValue').textContent = speechRate.toFixed(1) + 'x';
+            updateLogsDisplay();
+            updateCombinedChart();
+            applyConfigToUI();
+            updateSubjectPanel();
+        }
+
+        function applyConfigToUI() {
+            document.getElementById('difficultySelect').value = config.difficulty;
+            updateSubjectPanel();
+        }
+
+        function updateSubjectPanel() {
+            const panel = document.getElementById('subjectPanel');
+            panel.innerHTML = '';
+            
+            for (const [key, subject] of Object.entries(subjectRegistry)) {
+                const card = document.createElement('div');
+                card.className = `subject-card ${config.activeSubjects.includes(key) ? 'active' : ''}`;
+                
+                const header = document.createElement('h3');
+                header.className = subject.color;
+                header.textContent = subject.name;
+                // Apply custom color dynamically
+                if (key === 'custom') {
+                    header.style.backgroundColor = customSubjectColor;
+                }
+                
+                const controls = document.createElement('div');
+                controls.className = 'subject-controls';
+                
+                const count = document.createElement('div');
+                count.className = 'subject-count';
+                count.textContent = key === 'custom' ? `${words.custom.length} perguntas` : `${words[key].length} palavras`;
+                
+                const toggle = document.createElement('div');
+                toggle.className = `subject-toggle ${config.activeSubjects.includes(key) ? 'active' : ''}`;
+                toggle.onclick = () => toggleSubject(key);
+                
+                controls.appendChild(count);
+                controls.appendChild(toggle);
+                card.appendChild(header);
+                card.appendChild(controls);
+                panel.appendChild(card);
+            }
+        }
+
+        function toggleSubject(subjectKey) {
+            const index = config.activeSubjects.indexOf(subjectKey);
+            if (index > -1) {
+                config.activeSubjects.splice(index, 1);
+            } else {
+                config.activeSubjects.push(subjectKey);
+            }
+            saveConfig();
+            updateSubjectPanel();
+        }
+
+        function saveConfig() {
+            config.difficulty = document.getElementById('difficultySelect').value;
+            speechRate = parseFloat(document.getElementById('speechRate').value);
+            saveDataToCache();
+        }
+
+        function registerPlayer() {
+            const name = document.getElementById('playerNameInput').value.trim();
+            if (name === "") return alert("Por favor, digite um nome válido.");
+            selectPlayer(name);
+        }
+
+        function selectPlayer(name) {
+            currentPlayer = name.toLowerCase();
+            localStorage.setItem('spellingGameCurrentUser', currentPlayer);
+            let players = JSON.parse(localStorage.getItem('spellingGamePlayers')) || [];
+            if (!players.includes(currentPlayer)) {
+                players.push(currentPlayer);
+                localStorage.setItem('spellingGamePlayers', JSON.stringify(players));
+            }
+            document.getElementById('playerModal').classList.remove('active');
+            document.getElementById('playerInfoBar').style.display = 'flex';
+            document.getElementById('currentPlayerName').innerText = currentPlayer;
+            loadPlayerData();
+        }
+
+        function logoutPlayer() {
+            if (performanceChart) { performanceChart.destroy(); performanceChart = null; }
+            document.getElementById('playerInfoBar').style.display = 'none';
+            document.getElementById('playerModal').classList.add('active');
+            document.getElementById('playerNameInput').value = '';
+            updatePlayerList();
+        }
+
+        function updatePlayerList() {
+            const players = JSON.parse(localStorage.getItem('spellingGamePlayers')) || [];
+            const listElement = document.getElementById('playerList');
+            const sectionElement = document.getElementById('existingPlayersSection');
+            if (players.length > 0) {
+                sectionElement.style.display = 'block';
+                listElement.innerHTML = '';
+                players.forEach(player => {
+                    const li = document.createElement('li');
+                    li.textContent = player;
+                    li.onclick = () => selectPlayer(player);
+                    listElement.appendChild(li);
+                });
+            } else { sectionElement.style.display = 'none'; }
+        }
+
+        if (currentPlayer) {
+            document.getElementById('playerModal').classList.remove('active');
+            document.getElementById('playerInfoBar').style.display = 'flex';
+            document.getElementById('currentPlayerName').innerText = currentPlayer;
+            loadPlayerData();
+        } else { updatePlayerList(); }
+
+        function saveDataToCache() {
+            if (performanceData.length > MAX_HISTORY_SIZE) performanceData = performanceData.slice(-MAX_HISTORY_SIZE);
+            if (responseTimeData.length > MAX_HISTORY_SIZE) responseTimeData = responseTimeData.slice(-MAX_HISTORY_SIZE);
+            localStorage.setItem(getPlayerKey('Words'), JSON.stringify(words));
+            localStorage.setItem(getPlayerKey('Score'), score.toString());
+            localStorage.setItem(getPlayerKey('PerformanceData'), JSON.stringify(performanceData));
+            localStorage.setItem(getPlayerKey('ResponseTimeData'), JSON.stringify(responseTimeData));
+            localStorage.setItem(getPlayerKey('WordLogs'), JSON.stringify(wordLogs));
+            localStorage.setItem(getPlayerKey('ChartType'), chartType);
+            localStorage.setItem(getPlayerKey('ChartTheme'), chartTheme);
+            localStorage.setItem(getPlayerKey('Config'), JSON.stringify(config));
+            localStorage.setItem(getPlayerKey('SpeechRate'), speechRate.toString());
+            localStorage.setItem(getPlayerKey('CustomSubjectName'), customSubjectName);
+            localStorage.setItem(getPlayerKey('CustomSubjectColor'), customSubjectColor);
+        }
+
+        function clearSubjectData() {
+            if (!confirm('Tem certeza de que deseja limpar o progresso da disciplina selecionada?')) return;
+            const filter = document.getElementById('subjectFilter').value;
+            if (filter === 'all') {
+                if (!confirm('Isso limpará TODOS os dados de todas disciplinas. Continuar?')) return;
+                ['Words', 'Score', 'PerformanceData', 'ResponseTimeData', 'WordLogs', 'ChartType', 'ChartTheme', 'Config', 'SpeechRate', 'CustomSubjectName', 'CustomSubjectColor']
+                    .forEach(k => localStorage.removeItem(getPlayerKey(k)));
+                words = { portugues: [], matematica: [], ingles: [], ciencias: [], custom: [] };
+                score = 0; performanceData = []; responseTimeData = []; wordLogs = {};
+                config = { difficulty: 'medium', activeSubjects: Object.keys(subjectRegistry) };
+                speechRate = 1; customSubjectName = "Matéria Importada"; customSubjectColor = "#e74c3c";
+            } else {
+                words[filter] = [];
+                const regKey = filter === 'custom' ? customSubjectName : subjectRegistry[filter].name;
+                const logs = Object.keys(wordLogs).filter(k => wordLogs[k].category === regKey);
+                logs.forEach(k => delete wordLogs[k]);
+                performanceData = performanceData.filter(d => d.category !== regKey);
+                responseTimeData = responseTimeData.filter(d => d.category !== regKey);
+            }
+            document.getElementById('score').innerText = score;
+            document.getElementById('gameArea').style.display = 'none';
+            document.getElementById('feedback').innerText = '';
+            document.getElementById('wordDisplay').innerHTML = '';
+            document.getElementById('phoneticDisplay').innerHTML = '';
+            if (performanceChart) { performanceChart.destroy(); performanceChart = null; }
+            updateLogsDisplay();
+            updateSubjectPanel();
+            saveDataToCache();
+        }
+
+        function clearCachedData() {
+            if (!confirm('Tem certeza de que deseja apagar TODOS os dados?')) return;
+            ['Words', 'Score', 'PerformanceData', 'ResponseTimeData', 'WordLogs', 'ChartType', 'ChartTheme', 'Config', 'SpeechRate', 'CustomSubjectName', 'CustomSubjectColor']
+                .forEach(k => localStorage.removeItem(getPlayerKey(k)));
+            words = { portugues: [], matematica: [], ingles: [], ciencias: [], custom: [] };
+            score = 0; performanceData = []; responseTimeData = []; wordLogs = {};
+            config = { difficulty: 'medium', activeSubjects: Object.keys(subjectRegistry) };
+            speechRate = 1; customSubjectName = "Matéria Importada"; customSubjectColor = "#e74c3c";
+            document.getElementById('score').innerText = 0;
+            document.getElementById('gameArea').style.display = 'none';
+            document.getElementById('feedback').innerText = '';
+            document.getElementById('wordDisplay').innerHTML = '';
+            document.getElementById('phoneticDisplay').innerHTML = '';
+            document.getElementById('customSubjectContainer').style.display = 'none';
+            if (performanceChart) { performanceChart.destroy(); performanceChart = null; }
+            updateLogsDisplay();
+            updateSubjectPanel();
+        }
+
+        function exportPlayerData() {
+            if (!currentPlayer) return alert("Nenhum jogador logado.");
+            const players = JSON.parse(localStorage.getItem('spellingGamePlayers')) || [];
+            downloadJSON({ playerName: currentPlayer, playersList: players, gameData: { words, score, performanceData, responseTimeData, wordLogs, chartType, chartTheme, config, speechRate, customSubjectName, customSubjectColor } }, `game_player_${currentPlayer}.json`);
+        }
+
+        function downloadJSON(data, filename) {
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+
+        function importCachedData() { document.getElementById('importCacheFileInput').click(); }
+        function importWords(subjectKey) {
+            document.getElementById('importFileInput').click();
+            document.getElementById('importFileInput').dataset.subject = subjectKey;
+        }
+
+        function handleCacheFileImport(event) {
+            readFile(event, (jsonData) => {
+                const g = jsonData.gameData || jsonData;
+                words = g.words || { portugues: [], matematica: [], ingles: [], ciencias: [], custom: [] };
+                score = g.score || 0;
+                performanceData = g.performanceData || [];
+                responseTimeData = g.responseTimeData || [];
+                wordLogs = g.wordLogs || {};
+                config = g.config || config;
+                speechRate = g.speechRate || 1;
+                customSubjectName = g.customSubjectName || "Matéria Importada";
+                customSubjectColor = g.customSubjectColor || "#e74c3c";
+                if (jsonData.playerName) {
+                    let players = JSON.parse(localStorage.getItem('spellingGamePlayers')) || [];
+                    if (!players.includes(jsonData.playerName)) {
+                        players.push(jsonData.playerName);
+                        localStorage.setItem('spellingGamePlayers', JSON.stringify(players));
+                    }
+                    selectPlayer(jsonData.playerName);
+                }
+                saveDataToCache();
+                document.getElementById('score').innerText = score;
+                document.getElementById('speechRate').value = speechRate;
+                document.getElementById('rateValue').textContent = speechRate.toFixed(1) + 'x';
+                updateLogsDisplay();
+                updateCombinedChart();
+                updateSubjectPanel();
+                alert("Dados importados com sucesso!");
+            });
+        }
+
+        function handleFileImport(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            if (file.size > 1024 * 1024) return alert("Erro: O arquivo deve ter no máximo 1MB.");
+            
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const jsonData = JSON.parse(e.target.result);
+                    if (Array.isArray(jsonData) && jsonData.every(item => typeof item === 'string')) {
+                        const subjectKey = event.target.dataset.subject || 'portugues';
+                        words[subjectKey] = jsonData;
+                        saveDataToCache();
+                        updateSubjectPanel();
+                        alert(`Lista de ${subjectRegistry[subjectKey].name} importada com sucesso!`);
+                    } else {
+                        alert("Erro: O arquivo JSON deve conter um array de strings.");
+                    }
+                } catch (err) {
+                    alert("Erro ao ler o arquivo JSON: " + err.message);
+                }
+            };
+            reader.readAsText(file);
+            event.target.value = '';
+        }
+
+        // --- NEW: Custom Subject Import Logic ---
+        function importCustomSubject() {
+            document.getElementById('importCustomSubjectInput').click();
+        }
+
+        function handleCustomSubjectImport(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const jsonData = JSON.parse(e.target.result);
+                    if (!jsonData.htmlContent || !jsonData.subjectName) {
+                        return alert("Erro: O JSON deve conter 'subjectName' e 'htmlContent'.");
+                    }
+
+                    // 1. Update Subject Info
+                    customSubjectName = jsonData.subjectName;
+                    customSubjectColor = jsonData.subjectColor || "#e74c3c";
+                    subjectRegistry.custom.name = customSubjectName;
+
+                    // 2. Inject HTML into DOM
+                    const container = document.getElementById('customSubjectContainer');
+                    const contentDiv = document.getElementById('customSubjectContent');
+                    contentDiv.innerHTML = jsonData.htmlContent;
+                    document.getElementById('customSubjectTitle').innerText = customSubjectName;
+                    container.style.display = 'block';
+
+                    // 3. Scrape DOM to extract questions
+                    const questionElements = contentDiv.querySelectorAll('[data-question][data-answer]');
+                    if (questionElements.length === 0) {
+                        return alert("Nenhuma pergunta encontrada. Certifique-se de usar os atributos data-question e data-answer no HTML.");
+                    }
+
+                    words.custom = [];
+                    questionElements.forEach(el => {
+                        words.custom.push({
+                            question: el.getAttribute('data-question'),
+                            answer: el.getAttribute('data-answer').toLowerCase()
+                        });
+                    });
+
+                    // 4. Ensure custom subject is active and save
+                    if (!config.activeSubjects.includes('custom')) {
+                        config.activeSubjects.push('custom');
+                    }
+                    
+                    saveDataToCache();
+                    updateSubjectPanel();
+                    alert(`Matéria "${customSubjectName}" importada com sucesso! ${words.custom.length} perguntas encontradas.`);
+
+                } catch (err) {
+                    alert("Erro ao processar o arquivo JSON: " + err.message);
+                }
+            };
+            reader.readAsText(file);
+            event.target.value = '';
+        }
+
+        function readFile(event, onSuccess) {
+            const file = event.target.files[0];
+            if (!file) return;
+            if (file.size > 1024 * 1024) return alert("Erro: O arquivo deve ter no máximo 1MB.");
+            const reader = new FileReader();
+            reader.onload = (e) => { try { onSuccess(JSON.parse(e.target.result)); } catch (err) { alert("Erro ao ler o arquivo JSON: " + err.message); } };
+            reader.readAsText(file);
+            event.target.value = '';
+        }
+
+        function startGame() {
+            if(config.activeSubjects.length === 0) return alert("Selecione ao menos uma disciplina nas configurações!");
+            document.getElementById('gameArea').style.display = 'block';
+            nextWord();
+        }
+
+        function nextWord() {
+            isWaitingForNext = false;
+            wordRevealed = false; // Reset word revealed state
+            currentQuestion = getNextQuestion();
+            if(currentQuestion.type === 'error') { alert(currentQuestion.prompt); return; }
+            
+            const catEl = document.getElementById('questionCategory');
+            const textEl = document.getElementById('questionText');
+            const displayEl = document.getElementById('wordDisplay');
+            const phoneticEl = document.getElementById('phoneticDisplay');
+            const inputEl = document.getElementById('spellInput');
+            
+            const subKey = Object.keys(subjectRegistry).find(k => subjectRegistry[k].name === currentQuestion.category);
+            catEl.className = subKey ? subjectRegistry[subKey].color : '';
+            catEl.textContent = currentQuestion.category;
+
+            // Apply custom color if it's the custom subject
+            if (subKey === 'custom') {
+                catEl.style.backgroundColor = customSubjectColor;
+            } else {
+                catEl.style.backgroundColor = '';
+            }
+
+            textEl.innerText = currentQuestion.prompt;
+            inputEl.value = "";
+            document.getElementById('feedback').innerText = "";
+            inputEl.focus();
+            startTime = new Date().getTime();
+
+            if (currentQuestion.type === 'portuguese') {
+                displayEl.innerHTML = ''; // Clear display initially
+                inputEl.placeholder = "Digite a palavra...";
+                speakWord();
+            } else if (currentQuestion.type === 'english') {
+                displayEl.innerHTML = '';
+                phoneticEl.textContent = pronunciationData[currentQuestion.answer] || '';
+                inputEl.placeholder = "Digite a palavra em inglês...";
+                speakWord();
+            } else {
+                displayEl.innerHTML = '';
+                phoneticEl.textContent = '';
+                inputEl.placeholder = currentQuestion.type === 'math' ? "Digite o número..." : "Digite a resposta...";
+            }
+
+            initializeWordLog(currentQuestion.answer);
+            wordLogs[currentQuestion.answer].attempts++;
+            wordLogs[currentQuestion.answer].category = currentQuestion.category;
+            updateLogsDisplay();
+            saveDataToCache();
+        }
+
+        function initializeWordLog(key) {
+            if (!wordLogs[key]) wordLogs[key] = { attempts: 0, successes: 0, totalTime: 0, bestTime: Infinity, category: '' };
+        }
+
+        function updateLogsDisplay() {
+            const logsContainer = document.getElementById('logsContainer');
+            if (!logsContainer) return;
+            
+            const filter = document.getElementById('subjectFilter').value;
+            let html = '';
+            
+            for (const [key, log] of Object.entries(wordLogs)) {
+                const matchesFilter = filter === 'all' || 
+                                     (filter === 'custom' ? log.category === customSubjectName : subjectRegistry[filter].name === log.category);
+
+                if (log.attempts > 0 && matchesFilter) {
+                    const successRate = ((log.successes / log.attempts) * 100).toFixed(1);
+                    const avgTime = log.successes > 0 ? (log.totalTime / log.successes).toFixed(1) : 0;
+                    const catBadge = log.category ? `<span style="font-size:0.8em; color:#7f8c8d;">(${log.category})</span>` : '';
+                    html += `<div class="log-entry"><strong>${key}</strong> ${catBadge} - Tentativas: ${log.attempts} | Sucesso: ${successRate}% | Tempo: ${avgTime}s</div>`;
+                }
+            }
+            
+            logsContainer.innerHTML = html || '<p>Nenhum registro ainda.</p>';
+        }
+
+        function checkSpelling() {
+            if (isWaitingForNext) return;
+            const userInput = document.getElementById('spellInput').value.trim().toLowerCase();
+            if (!userInput) return;
+            
+            const feedbackElement = document.getElementById('feedback');
+            const endTime = new Date().getTime();
+            const responseTime = (endTime - startTime) / 1000;
+            let pointsEarned = 0;
+
+            if (userInput === currentQuestion.answer.toLowerCase()) {
+                pointsEarned = calculateScore(responseTime);
+                score += pointsEarned;
+                document.getElementById('score').innerText = score;
+                feedbackElement.innerText = `Correto! +${pointsEarned} pontos (${responseTime.toFixed(1)}s)`;
+                feedbackElement.className = "feedback success";
+                
+                wordLogs[currentQuestion.answer].successes++;
+                wordLogs[currentQuestion.answer].totalTime += responseTime;
+                if (responseTime < wordLogs[currentQuestion.answer].bestTime) {
+                    wordLogs[currentQuestion.answer].bestTime = responseTime;
+                }
+            } else {
+                feedbackElement.innerText = `Incorreto! A resposta era: ${currentQuestion.answer}`;
+                feedbackElement.className = "feedback error";
+            }
+
+            // Reveal the word after checking the answer
+            if (currentQuestion.type === 'portuguese') {
+                document.getElementById('wordDisplay').innerHTML = `<div class="letter-box">${currentQuestion.answer}</div>`;
+            }
+
+            const now = new Date();
+            const dateStr = now.toLocaleDateString('pt-BR') + " " + now.toLocaleTimeString('pt-BR', {hour: '2-digit', minute: '2-digit'});
+            performanceData.push({ date: dateStr, word: currentQuestion.answer, points: pointsEarned, category: currentQuestion.category });
+            responseTimeData.push({ date: dateStr, word: currentQuestion.answer, time: responseTime });
+
+            updateCombinedChart();
+            updateLogsDisplay();
+            saveDataToCache();
+
+            document.getElementById('nextButton').style.display = 'inline-block';
+            isWaitingForNext = true;
+        }
+
+        function speakWord() {
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+                const utterance = new SpeechSynthesisUtterance();
+                
+                if (currentQuestion.type === 'portuguese') {
+                    utterance.lang = 'pt-BR';
+                    utterance.rate = 0.8;
+                    utterance.text = currentQuestion.answer;
+                } else if (currentQuestion.type === 'english') {
+                    utterance.lang = 'en-US';
+                    utterance.rate = speechRate;
+                    utterance.text = currentQuestion.answer;
+                } else {
+                    utterance.lang = 'pt-BR';
+                    utterance.rate = 0.9;
+                    utterance.text = currentQuestion.prompt.replace('×', 'vezes');
+                }
+                
+                window.speechSynthesis.speak(utterance);
+            }
+        }
+
+        function slowPronunciation() {
+            speechRate = 0.6;
+            document.getElementById('speechRate').value = speechRate;
+            document.getElementById('rateValue').textContent = speechRate.toFixed(1) + 'x';
+            speakWord();
+        }
+
+        function fastPronunciation() {
+            speechRate = 1.4;
+            document.getElementById('speechRate').value = speechRate;
+            document.getElementById('rateValue').textContent = speechRate.toFixed(1) + 'x';
+            speakWord();
+        }
+
+        function calculateScore(t) {
+            if (t <= 5) return 10;
+            if (t <= 10) return 8;
+            if (t <= 15) return 6;
+            if (t <= 20) return 4;
+            return 2;
+        }
+
+        function toggleChartType() {
+            const types = ['line', 'bar', 'radar', 'doughnut'];
+            chartType = types[(types.indexOf(chartType) + 1) % types.length];
+            saveDataToCache();
+            updateCombinedChart();
+        }
+
+        function toggleChartTheme() {
+            chartTheme = chartTheme === 'light' ? 'dark' : 'light';
+            saveDataToCache();
+            updateCombinedChart();
+        }
+
+        function exportChart() {
+            const url = document.getElementById('performanceChart').toDataURL('image/png');
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `chart_${Date.now()}.png`;
+            a.click();
+        }
+
+        function updateCombinedChart() {
+            const canvas = document.getElementById('performanceChart');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            
+            const labels = performanceData.map(d => `${d.date} (${d.word})`);
+            const pointsData = performanceData.map(d => d.points);
+            const timeData = responseTimeData.map(d => d.time);
+            
+            const textColor = chartTheme === 'dark' ? '#ffffff' : '#333333';
+            const gridColor = chartTheme === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
+
+            if (performanceChart) performanceChart.destroy();
+
+            let configChart = {};
+            const axisOptions = {
+                yPoints: { type: 'linear', position: 'left', beginAtZero: true, max: 10, ticks: { color: textColor }, grid: { color: gridColor }, title: { display: true, text: 'Pontuação', color: textColor } },
+                yTime: { type: 'linear', position: 'right', beginAtZero: true, ticks: { color: textColor }, grid: { drawOnChartArea: false }, title: { display: true, text: 'Segundos', color: textColor } },
+                x: { ticks: { color: textColor, maxRotation: 45 }, grid: { color: gridColor } }
+            };
+
+            if (chartType === 'line' || chartType === 'bar') {
+                configChart = { type: chartType, data: { labels, datasets: [{ label: 'Pontuação', data: pointsData, yAxisID: 'yPoints', backgroundColor: chartType === 'bar' ? pointsData.map(d => d >= 8 ? '#27ae60' : d > 0 ? '#f1c40f' : '#e74c3c') : 'rgba(41,128,185,0.2)', borderColor: '#2980b9' }, { label: 'Tempo (s)', data: timeData, yAxisID: 'yTime', backgroundColor: 'rgba(230,126,34,0.6)', borderColor: '#e67e22' }] }, options: { scales: axisOptions } };
+            } else if (chartType === 'radar') {
+                configChart = { type: 'radar', data: { labels, datasets: [{ label: 'Pontuação', data: pointsData, borderColor: '#2980b9', backgroundColor: 'rgba(41,128,185,0.2)' }, { label: 'Tempo (s)', data: timeData, borderColor: '#e67e22', backgroundColor: 'rgba(230,126,34,0.2)' }] }, options: { scales: { r: { ticks: { color: textColor, backdropColor: 'transparent' }, grid: { color: gridColor }, pointLabels: { color: textColor } } } } };
+            } else if (chartType === 'doughnut') {
+                configChart = { type: 'doughnut', data: { labels, datasets: [{ label: 'Pontuação', data: pointsData, backgroundColor: pointsData.map(d => d >= 8 ? '#27ae60' : d > 0 ? '#f1c40f' : '#e74c3c') }, { label: 'Tempo (s)', data: timeData, backgroundColor: timeData.map(() => 'rgba(230,126,34,0.6)') }] } };
+            }
+
+            performanceChart = new Chart(ctx, {
+                ...configChart,
+                options: { responsive: true, maintainAspectRatio: false, ...configChart.options, plugins: { legend: { labels: { color: textColor } }, title: { display: true, text: 'Desempenho Multidisciplinar', color: textColor } } }
+            });
+        }
+
+        document.getElementById('spellInput').addEventListener('keypress', (e) => { 
+            if (e.key === 'Enter') {
+                if (!isWaitingForNext) checkSpelling();
+                else { nextWord(); document.getElementById('nextButton').style.display = 'none'; }
+            }
+        });
+
+        document.getElementById('playerNameInput').addEventListener('keypress', (e) => { if (e.key === 'Enter') registerPlayer(); });
+
+        document.getElementById('speechRate').addEventListener('input', (e) => {
+            speechRate = parseFloat(e.target.value);
+            document.getElementById('rateValue').textContent = speechRate.toFixed(1) + 'x';
+        });
+
+        function showSection(sectionName) {
+            document.querySelectorAll('.section').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.nav-buttons button').forEach(el => el.classList.remove('nav-active'));
+            document.getElementById(sectionName + 'Section').classList.add('active');
+            document.getElementById('nav' + sectionName.charAt(0).toUpperCase() + sectionName.slice(1)).classList.add('nav-active');
+        }
+
+        let speechEnabled = false;
+        let currentSpeech = null;
+
+        function toggleHelpSpeech() {
+            speechEnabled = !speechEnabled;
+            const button = document.querySelector('.speech-controls button');
+            if (speechEnabled) {
+                button.textContent = '🔇 Desativar Narração';
+                const text = document.querySelector('.help-content').innerText;
+                currentSpeech = new SpeechSynthesisUtterance(text);
+                currentSpeech.lang = 'pt-BR';
+                currentSpeech.rate = 0.9;
+                window.speechSynthesis.speak(currentSpeech);
+            } else {
+                button.textContent = '🔊 Ativar Narração';
+                window.speechSynthesis.cancel();
+                currentSpeech = null;
+            }
+        }
+    </script>
+</body>
+</html>
+
+
