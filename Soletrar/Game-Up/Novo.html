@@ -1,0 +1,842 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plataforma Integrada APAC</title>
+    
+    <!-- Bibliotecas --
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">-->
+      <script src="js/chart.js"></script>
+    <script src="js/chartjs-plugin-datalabels@2.2.0"></script>
+    <script src="js/jspdf.umd.min.js"></script>
+    <script src="js/jspdf.plugin.autotable.min.js"></script>
+    <link rel="stylesheet" href="css/all.min.css">
+
+    <style>
+        :root { 
+            --primary: #2c3e50; --secondary: #3498db; --background: #ecf0f1; --card-bg: #ffffff; --text: #333333; 
+            --success: #2ecc71; --danger: #e74c3c; --warning: #f1c40f; --info: #3498db;
+            --sidebar-width: 260px;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: var(--background); color: var(--text); display: flex; height: 100vh; overflow: hidden; }
+        
+        /* Login */
+        #tela-login { display: flex; justify-content: center; align-items: center; width: 100%; height: 100vh; background: var(--primary); }
+        .login-box { background: white; padding: 40px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); width: 400px; text-align: center; }
+        .login-box h2 { margin-bottom: 20px; color: var(--primary); }
+        .login-box input { width: 100%; margin-bottom: 15px; padding: 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 16px; }
+        .login-box .btn-login { width: 100%; padding: 12px; background-color: var(--secondary); color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; font-weight: bold; }
+        .login-box .info { margin-top: 20px; padding: 15px; background-color: #f8f9fa; border-radius: 6px; font-size: 14px; text-align: left; }
+
+        /* Layout Principal */
+        #app-container { display: none; width: 100%; height: 100vh; }
+        .sidebar { width: var(--sidebar-width); background: var(--primary); color: white; display: flex; flex-direction: column; transition: 0.3s; overflow-y: auto; }
+        .sidebar-header { padding: 20px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .sidebar-menu { flex: 1; padding: 10px 0; }
+        .menu-category { padding: 10px 20px; font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; color: rgba(255,255,255,0.4); margin-top: 10px; }
+        .menu-item { display: flex; align-items: center; padding: 12px 20px; color: rgba(255,255,255,0.7); cursor: pointer; transition: 0.2s; border-left: 4px solid transparent; position: relative; }
+        .menu-item:hover { background: rgba(255,255,255,0.05); color: white; }
+        .menu-item.active { background: rgba(255,255,255,0.1); color: white; border-left-color: var(--secondary); }
+        .menu-item i { width: 25px; margin-right: 15px; text-align: center; }
+        .badge-alerta { position: absolute; top: 5px; left: 30px; background: var(--danger); color: white; border-radius: 50%; padding: 2px 6px; font-size: 10px; display: none; }
+        
+        .main-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+        .topbar { background: white; padding: 15px 30px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; z-index: 10; }
+        .content-area { flex: 1; padding: 30px; overflow-y: auto; background: var(--background); }
+        
+        /* Componentes */
+        .card { background: white; padding: 25px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 25px; }
+        .stat-card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); text-align: center; border-top: 4px solid var(--secondary); transition: transform 0.2s; }
+        .stat-card:hover { transform: translateY(-5px); }
+        .stat-card i { font-size: 30px; color: var(--secondary); margin-bottom: 10px; }
+        .stat-card h3 { font-size: 28px; margin-bottom: 5px; color: var(--primary); }
+        .stat-card p { color: #7f8c8d; font-size: 14px; font-weight: bold; text-transform: uppercase; }
+        
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; }
+        th { background-color: var(--primary); color: white; font-size: 14px; position: sticky; top: 0; }
+        tr:hover { background-color: #f8f9fa; }
+        
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 8px; font-weight: 600; font-size: 14px; color: #555; }
+        input, select, textarea { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 15px; }
+        input:focus, select:focus, textarea:focus { border-color: var(--secondary); outline: none; box-shadow: 0 0 0 3px rgba(52,152,219,0.1); }
+        
+        button { border: none; padding: 10px 20px; font-size: 15px; border-radius: 6px; cursor: pointer; transition: 0.2s; color: white; font-weight: bold; display: inline-flex; align-items: center; gap: 8px; }
+        .btn-primary { background: var(--secondary); } .btn-primary:hover { background: #2980b9; }
+        .btn-success { background: var(--success); } .btn-success:hover { background: #27ae60; }
+        .btn-danger { background: var(--danger); } .btn-danger:hover { background: #c0392b; }
+        .btn-warning { background: var(--warning); } .btn-warning:hover { background: #f39c12; }
+        .btn-gray { background: #95a5a6; } .btn-gray:hover { background: #7f8c8d; }
+        .btn-purple { background: #9b59b6; } .btn-purple:hover { background: #8e44ad; }
+        
+        .chart-container { display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; }
+        .chart-box { width: 100%; max-width: 500px; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); text-align: center; cursor: pointer; transition: box-shadow 0.3s; }
+        .chart-box:hover { box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
+        
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); justify-content: center; align-items: center; z-index: 1000; backdrop-filter: blur(3px); }
+        .modal-content { background: white; padding: 30px; border-radius: 12px; width: 600px; max-width: 90vw; max-height: 90vh; overflow-y: auto; animation: slideIn 0.3s ease-out; }
+        @keyframes slideIn { from { transform: translateY(-50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--background); padding-bottom: 10px; margin-bottom: 20px; }
+        .modal-header h3 { color: var(--primary); }
+        .close-btn { background: none; border: none; font-size: 24px; cursor: pointer; color: #7f8c8d; transition: 0.2s; }
+        .close-btn:hover { color: var(--danger); }
+        .detail-row { display: flex; margin-bottom: 15px; padding: 10px; background: var(--background); border-radius: 6px; }
+        .detail-label { font-weight: bold; width: 40%; color: var(--primary); }
+        .detail-value { width: 60%; }
+
+        .status-em-dia { color: var(--success); font-weight: bold; }
+        .status-atrasado { color: var(--danger); font-weight: bold; animation: blink 1s infinite; }
+        .status-devolvido { color: #95a5a6; }
+        @keyframes blink { 50% { opacity: 0.5; } }
+
+        /* Jogo Educacional */
+        .game-area { text-align: center; padding: 20px; background: white; border-radius: 8px; margin-top: 20px; }
+        .word-display { font-size: 2.5em; margin: 20px 0; color: var(--primary); display: flex; justify-content: center; gap: 12px; }
+        .letter-box { width: 40px; height: 50px; border-bottom: 3px solid var(--secondary); display: flex; align-items: center; justify-content: center; font-weight: bold; }
+        .feedback { font-size: 1.2em; margin: 15px 0; font-weight: bold; min-height: 1.5em; }
+        .feedback.success { color: var(--success); } .feedback.error { color: var(--danger); }
+        
+        /* Ajuda e Sobre */
+        .info-box { background: #f8f9fa; border-left: 5px solid var(--secondary); padding: 20px; border-radius: 8px; margin-bottom: 20px; }
+        .info-box h4 { color: var(--primary); margin-bottom: 10px; display: flex; align-items: center; gap: 10px; }
+        .info-box ul { margin-left: 20px; line-height: 1.8; }
+        
+        .page-section { display: none; animation: fadeIn 0.3s; }
+        .page-section.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    </style>
+</head>
+<body>
+
+    <!-- TELA DE LOGIN -->
+    <div id="tela-login">
+        <div class="login-box">
+            <h2>📚 Plataforma APAC</h2>
+            <p style="margin-bottom: 20px; color: #7f8c8d;">Acesso Biblioteca & Educacional</p>
+            <input type="text" id="login-usuario" placeholder="Usuário" value="admin">
+            <input type="password" id="login-senha" placeholder="Senha" value="admin123">
+            <button class="btn-login" onclick="fazerLogin()">Entrar no Sistema</button>
+            <div class="info">
+                <p><strong>Acesso Inicial:</strong></p>
+                <p>Usuário: <code>admin</code> | Senha: <code>admin123</code></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- SISTEMA PRINCIPAL -->
+    <div id="app-container">
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <h2>APAC</h2>
+                <span id="nome-usuario-logado" style="font-size: 12px; opacity: 0.7;">Admin</span>
+            </div>
+            <div class="sidebar-menu">
+                <div class="menu-category">Biblioteca</div>
+                <div class="menu-item active" onclick="openSection('sec-dashboard', this)"><i class="fas fa-tachometer-alt"></i> Dashboard</div>
+                <div class="menu-item" onclick="openSection('sec-acervo', this)"><i class="fas fa-book"></i> Acervo</div>
+                <div class="menu-item" onclick="openSection('sec-emprestimos', this)"><i class="fas fa-exchange-alt"></i> Empréstimos</div>
+                <div class="menu-item" onclick="openSection('sec-alertas', this)"><i class="fas fa-exclamation-triangle"></i> Alertas <span id="badge-alerta" class="badge-alerta">0</span></div>
+                <div class="menu-item" onclick="openSection('sec-estatisticas', this)"><i class="fas fa-chart-pie"></i> Estatísticas</div>
+                
+                <div class="menu-category">Educacional</div>
+                <div class="menu-item" onclick="openSection('sec-jogo', this)"><i class="fas fa-gamepad"></i> Jogo Soletrar</div>
+                <div class="menu-item" onclick="openSection('sec-resenhas', this)"><i class="fas fa-pen-fancy"></i> Resenhas / Remissões</div>
+                
+                <div class="menu-category">Sistema</div>
+                <div class="menu-item" onclick="openSection('sec-recuperandos', this)"><i class="fas fa-user-injured"></i> Recuperandos</div>
+                <div class="menu-item" onclick="openSection('sec-usuarios', this)"><i class="fas fa-users"></i> Usuários</div>
+                <div class="menu-item" onclick="openSection('sec-relatorios', this)"><i class="fas fa-chart-bar"></i> Relatórios PDF</div>
+                <div class="menu-item" onclick="openSection('sec-dados', this)"><i class="fas fa-database"></i> Dados</div>
+                <div class="menu-item" onclick="openSection('sec-ajuda', this)"><i class="fas fa-question-circle"></i> Ajuda</div>
+                <div class="menu-item" onclick="openSection('sec-sobre', this)"><i class="fas fa-info-circle"></i> Sobre</div>
+                <div class="menu-item" onclick="fazerLogout()"><i class="fas fa-sign-out-alt"></i> Sair</div>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="topbar">
+                <h2 id="page-title">Dashboard</h2>
+                <button class="btn-danger" style="padding: 8px 15px; font-size: 13px;" onclick="fazerLogout()"><i class="fas fa-sign-out-alt"></i> Sair</button>
+            </div>
+            
+            <div class="content-area">
+                <!-- DASHBOARD -->
+                <div id="sec-dashboard" class="page-section active">
+                    <div class="stat-grid">
+                        <div class="stat-card"><i class="fas fa-book" style="color: var(--secondary);"></i><h3 id="stat-livros">0</h3><p>Acervo</p></div>
+                        <div class="stat-card"><i class="fas fa-exchange-alt" style="color: var(--warning);"></i><h3 id="stat-emprestimos">0</h3><p>Empréstimos Ativos</p></div>
+                        <div class="stat-card"><i class="fas fa-exclamation-triangle" style="color: var(--danger);"></i><h3 id="stat-atrasos">0</h3><p>Atrasos</p></div>
+                        <div class="stat-card"><i class="fas fa-gift" style="color: var(--success);"></i><h3 id="stat-remissoes">0</h3><p>Remissões Concedidas</p></div>
+                    </div>
+                    <div class="chart-container">
+                        <div class="chart-box"><h3>Empréstimos Mensais</h3><canvas id="chartMensal"></canvas></div>
+                        <div class="chart-box"><h3>Remissões por Recuperando</h3><canvas id="chartRemissoesRecuperando"></canvas></div>
+                    </div>
+                </div>
+
+                <!-- ACERVO -->
+                <div id="sec-acervo" class="page-section">
+                    <div class="card">
+                        <h3>Cadastrar Nova Obra</h3>
+                        <div class="form-grid" style="margin-top: 15px;">
+                            <div class="form-group"><label>Numeração*</label><input type="text" id="livro-numeracao" placeholder="Ex: Apac-001"></div>
+                            <div class="form-group"><label>Obra*</label><input type="text" id="livro-obra"></div>
+                            <div class="form-group"><label>Autor*</label><input type="text" id="livro-autor"></div>
+                            <div class="form-group"><label>Estante*</label><input type="text" id="livro-estante" placeholder="Ex: APAC-2"></div>
+                            <div class="form-group"><label>Gênero</label><input type="text" id="livro-genero" placeholder="Ex: Metodologia / Direito"></div>
+                            <div class="form-group"><label>URL da Capa</label><input type="text" id="livro-capa"></div>
+                        </div>
+                        <button class="btn-success" onclick="cadastrarLivro()"><i class="fas fa-plus"></i> Salvar</button>
+                    </div>
+                    <div class="card">
+                        <h3>Acervo Cadastrado</h3>
+                        <div style="display: flex; gap: 10px; margin-top:15px; margin-bottom:15px;">
+                            <input type="text" id="input-pesquisa" placeholder="Pesquisar..." onkeyup="pesquisarLivro()" style="flex:1;">
+                            <button class="btn-gray" onclick="limparPesquisa()"><i class="fas fa-times"></i> Limpar</button>
+                        </div>
+                        <table><thead><tr><th>Capa</th><th>Numeração</th><th>Obra</th><th>Autor</th><th>Estante</th><th>Ações</th></tr></thead><tbody id="tabela-acervo"></tbody></table>
+                    </div>
+                </div>
+
+                <!-- EMPRÉSTIMOS -->
+                <div id="sec-emprestimos" class="page-section">
+                    <div class="card">
+                        <h3>Registrar Empréstimo</h3>
+                        <div class="form-grid" style="margin-top: 15px;">
+                            <div class="form-group"><label>Livro:</label><select id="select-livro"></select></div>
+                            <div class="form-group"><label>Recuperando:</label><select id="select-recuperando"></select></div>
+                            <div class="form-group"><label>Data:</label><input type="date" id="data-emprestimo"></div>
+                            <div class="form-group"><label>Prazo (dias):</label><input type="number" id="prazo-devolucao" value="7" min="1"></div>
+                        </div>
+                        <button class="btn-primary" onclick="registrarEmprestimo()"><i class="fas fa-check"></i> Registrar</button>
+                    </div>
+                    <div class="card">
+                        <h3>Empréstimos Ativos</h3>
+                        <table><thead><tr><th>Recuperando</th><th>Obra</th><th>Devolução</th><th>Status</th><th>Ação</th></tr></thead><tbody id="tabela-emprestimos"></tbody></table>
+                    </div>
+                </div>
+
+                <!-- ALERTAS -->
+                <div id="sec-alertas" class="page-section">
+                    <div class="card">
+                        <h3>🚨 Alertas de Atraso</h3>
+                        <button class="btn-danger" onclick="verificarAtrasos()" style="margin-top:15px;"><i class="fas fa-search"></i> Verificar Atrasos Agora</button>
+                        <table><thead><tr><th>Recuperando</th><th>Livro</th><th>Empréstimo</th><th>Devolução Até</th><th>Status</th><th>Ação</th></tr></thead><tbody id="tabela-alertas"></tbody></table>
+                    </div>
+                </div>
+
+                <!-- ESTATÍSTICAS BIBLIOTECA -->
+                <div id="sec-estatisticas" class="page-section">
+                    <div class="card">
+                        <h3>📊 Estatísticas Detalhadas e Interativas</h3>
+                        <p style="margin-bottom: 20px; color: #7f8c8d;"><i class="fas fa-mouse-pointer"></i> Clique em qualquer segmento do gráfico para abrir os detalhes completos.</p>
+                        <div class="chart-container">
+                            <div class="chart-box"><h3><i class="fas fa-trophy"></i> Livros Mais Emprestados</h3><canvas id="chartLivrosPopulares"></canvas></div>
+                            <div class="chart-box"><h3><i class="fas fa-walking"></i> Progresso por Recuperando</h3><canvas id="chartProgressoRecuperandos"></canvas></div>
+                            <div class="chart-box"><h3><i class="fas fa-graduation-cap"></i> Distribuição por Curso</h3><canvas id="chartCursos"></canvas></div>
+                            <div class="chart-box"><h3><i class="fas fa-gift"></i> Estatísticas de Remissões</h3><canvas id="chartEstatisticasRemissoes"></canvas></div>
+                            <div class="chart-box"><h3><i class="fas fa-book-open"></i> Status do Acervo</h3><canvas id="chartStatusAcervo"></canvas></div>
+                            <div class="chart-box"><h3><i class="fas fa-hand-holding"></i> Status de Empréstimos</h3><canvas id="chartStatusEmprestimos"></canvas></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- JOGO EDUCACIONAL -->
+                <div id="sec-jogo" class="page-section">
+                    <div class="card">
+                        <h3>Aprenda Jogando - Multidisciplinar</h3>
+                        <div class="form-grid" style="margin-top:15px;">
+                            <div class="form-group"><label>Disciplina:</label><select id="jogo-disciplina"><option value="portugues">Português</option><option value="ingles">Inglês</option><option value="matematica">Matemática</option></select></div>
+                            <div class="form-group"><label>Dificuldade:</label><select id="jogo-dificuldade"><option value="easy">Fácil</option><option value="medium" selected>Médio</option><option value="hard">Difícil</option></select></div>
+                        </div>
+                        <button class="btn-success" onclick="iniciarJogo()"><i class="fas fa-play"></i> Iniciar Partida</button>
+                    </div>
+                    
+                    <div id="gameArea" class="game-area" style="display: none;">
+                        <div style="font-size: 20px; margin-bottom: 20px;">Pontos: <span id="game-score" style="color:var(--success); font-weight:bold;">0</span></div>
+                        <div id="game-prompt" style="font-size: 24px; color: var(--primary); font-weight: bold; margin-bottom: 20px;"></div>
+                        <div id="wordDisplay" class="word-display"></div>
+                        <input type="text" id="game-input" autocomplete="off" placeholder="Digite aqui..." style="font-size: 20px; text-align: center; width: 80%; max-width: 400px; margin: 20px 0;">
+                        <div id="game-feedback" class="feedback"></div>
+                        <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+                            <button class="btn-primary" onclick="verificarResposta()"><i class="fas fa-check"></i> Verificar</button>
+                            <button class="btn-purple" onclick="falarPalavra()"><i class="fas fa-volume-up"></i> Ouvir</button>
+                            <button class="btn-warning" onclick="proximaPalavra()" id="btn-proxima" style="display:none;"><i class="fas fa-forward"></i> Próxima</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- RESENHAS / REMISSÕES -->
+                <div id="sec-resenhas" class="page-section">
+                    <div class="card">
+                        <h3>✍️ Resenhas e Remissões</h3>
+                        <div class="form-grid" style="margin-top:15px;">
+                            <div class="form-group"><label>Recuperando:</label><select id="select-resenha-recuperando"></select></div>
+                            <div class="form-group"><label>Mês/Ano:</label><input type="month" id="resenha-mes"></div>
+                        </div>
+                        <div class="form-group"><label>Resenha:</label><textarea id="resenha-texto" style="min-height: 100px; resize: vertical;"></textarea></div>
+                        <div class="form-group"><label>Status:</label><select id="resenha-status"><option value="pendente">Pendente</option><option value="aprovada">Aprovada</option></select></div>
+                        <button class="btn-success" onclick="registrarResenha()">Registrar Resenha</button>
+                    </div>
+                    <div class="card">
+                        <h3>Resenhas Registradas</h3>
+                        <table><thead><tr><th>Recuperando</th><th>Mês/Ano</th><th>Status</th><th>Dias Remissão</th><th>Ação</th></tr></thead><tbody id="tabela-resenhas"></tbody></table>
+                    </div>
+                </div>
+
+                <!-- RECUPERANDOS -->
+                <div id="sec-recuperandos" class="page-section">
+                    <div class="card">
+                        <h3>Cadastrar Recuperando</h3>
+                        <div class="form-grid" style="margin-top: 15px;">
+                            <div class="form-group"><label>Nome Completo*</label><input type="text" id="recuperando-nome"></div>
+                            <div class="form-group"><label>CPF*</label><input type="text" id="recuperando-cpf" placeholder="000.000.000-00"></div>
+                            <div class="form-group"><label>Data de Nascimento*</label><input type="date" id="recuperando-nascimento"></div>
+                            <div class="form-group"><label>Curso</label><select id="recuperando-curso"><option value="">Selecione...</option><option value="fundamental">Ensino Fundamental</option><option value="medio">Ensino Médio</option><option value="superior">Ensino Superior</option><option value="profissionalizante">Profissionalizante</option></select></div>
+                            <div class="form-group"><label>Progresso</label><input type="range" id="recuperando-progresso" min="0" max="100" value="0" style="width: 100%;"><span id="progresso-value">0%</span></div>
+                        </div>
+                        <button class="btn-success" onclick="cadastrarRecuperando()"><i class="fas fa-user-plus"></i> Cadastrar</button>
+                    </div>
+                    <div class="card">
+                        <h3>Recuperandos Cadastrados</h3>
+                        <table><thead><tr><th>Nome</th><th>CPF</th><th>Curso</th><th>Progresso</th><th>Ações</th></tr></thead><tbody id="tabela-recuperandos"></tbody></table>
+                    </div>
+                </div>
+
+                <!-- USUÁRIOS DO SISTEMA -->
+                <div id="sec-usuarios" class="page-section">
+                    <div class="card">
+                        <h3>Gestão de Usuários do Sistema</h3>
+                        <div class="form-grid" style="margin-top: 15px;">
+                            <div class="form-group"><label>Nome Completo</label><input type="text" id="cad-user-nome"></div>
+                            <div class="form-group"><label>Login</label><input type="text" id="cad-user-login"></div>
+                            <div class="form-group"><label>Senha</label><input type="password" id="cad-user-senha"></div>
+                            <div class="form-group"><label>Nível de Acesso</label><select id="cad-user-nivel"><option value="admin">Administrador</option><option value="gerente">Gerente</option><option value="operador">Operador</option></select></div>
+                        </div>
+                        <button class="btn-success" onclick="cadastrarUsuario()"><i class="fas fa-user-shield"></i> Cadastrar Usuário</button>
+                    </div>
+                    <div class="card">
+                        <h3>Usuários Cadastrados</h3>
+                        <table><thead><tr><th>Nome</th><th>Login</th><th>Nível</th><th>Ações</th></tr></thead><tbody id="tabela-usuarios"></tbody></table>
+                    </div>
+                </div>
+
+                <!-- RELATÓRIOS PDF -->
+                <div id="sec-relatorios" class="page-section">
+                    <div class="card">
+                        <h3>📊 Relatórios PDF</h3>
+                        <p style="margin-bottom: 20px; color: #7f8c8d;">Gere relatórios oficiais do sistema em formato PDF.</p>
+                        <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+                            <button class="btn-primary" onclick="gerarRelatorio('livros')"><i class="fas fa-file-pdf"></i> Relatório Acervo</button>
+                            <button class="btn-primary" onclick="gerarRelatorio('emprestimos')"><i class="fas fa-file-pdf"></i> Relatório Empréstimos</button>
+                            <button class="btn-primary" onclick="gerarRelatorio('recuperandos')"><i class="fas fa-file-pdf"></i> Relatório Recuperandos</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- EXPORTAR/IMPORTAR -->
+                <div id="sec-dados" class="page-section">
+                    <div class="card">
+                        <h3>Backup e Restauração</h3>
+                        <p style="margin-bottom: 20px;">Exporte todos os dados do sistema ou importe um backup JSON seguro.</p>
+                        <div style="display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 20px;">
+                            <button class="btn-primary" onclick="exportarJSON()"><i class="fas fa-download"></i> Exportar Tudo (JSON)</button>
+                            <button class="btn-warning" onclick="document.getElementById('import-file').click()"><i class="fas fa-upload"></i> Importar Dados</button>
+                            <input type="file" id="import-file" accept=".json" style="display:none;" onchange="importarDados(event)">
+                            <button class="btn-danger" onclick="limparDados()"><i class="fas fa-trash"></i> Limpar Tudo</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- AJUDA -->
+                <div id="sec-ajuda" class="page-section">
+                    <div class="card">
+                        <h2 style="margin-bottom: 20px; color: var(--primary);">❓ Central de Ajuda</h2>
+                        
+                        <div class="info-box">
+                            <h4><i class="fas fa-book"></i> Módulo Biblioteca</h4>
+                            <ul>
+                                <li><strong>Acervo:</strong> Cadastre novas obras preenchendo numeração, título, autor e estante. A capa pode ser adicionada via link URL.</li>
+                                <li><strong>Empréstimos:</strong> Selecione o livro disponível e o recuperando. Defina o prazo em dias. O sistema calcula a data de devolução automaticamente.</li>
+                                <li><strong>Alertas:</strong> Verifique automaticamente os atrasos na aba de alertas para regularizar a situação.</li>
+                            </ul>
+                        </div>
+
+                        <div class="info-box">
+                            <h4><i class="fas fa-gamepad"></i> Módulo Educacional (Jogo Soletrar)</h4>
+                            <ul>
+                                <li><strong>Disciplinas:</strong> Escolha entre Português (soletração), Inglês (tradução) e Matemática (soma).</li>
+                                <li><strong>Dificuldade:</strong> Ajuste o nível das palavras ou equações matemáticas.</li>
+                                <li><strong>Como jogar:</strong> Clique em "Iniciar Partida". Ouça a palavra (ícone de volume) e digite a resposta correta. Pressione "Verificar" ou Enter.</li>
+                            </ul>
+                        </div>
+
+                        <div class="info-box">
+                            <h4><i class="fas fa-pen-fancy"></i> Módulo Resenhas / Remissões</h4>
+                            <ul>
+                                <li>Registre as resenhas dos livros lidos pelos recuperandos mensalmente.</li>
+                                <li>Se a resenha for aprovada, o sistema contabiliza automaticamente os dias de remição de pena por estudo.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SOBRE O SISTEMA -->
+                <div id="sec-sobre" class="page-section">
+                    <div class="card">
+                        <h2 style="margin-bottom: 20px; color: var(--primary);">ℹ️ Sobre o Sistema</h2>
+                        
+                        <div class="info-box" style="border-left-color: var(--success);">
+                            <h4><i class="fas fa-balance-scale"></i> A Metodologia APAC</h4>
+                            <p style="line-height: 1.6; text-align: justify;">
+                                A Associação de Proteção e Assistência aos Condenados (APAC) é uma entidade sem fins lucrativos que gerencia unidades prisionais sob uma metodologia diferenciada. Diferente do sistema comum, as APACs se baseiam na recuperação humana, no respeito à dignidade da pessoa e na responsabilidade do recuperando por sua própria reintegração social.
+                            </p>
+                        </div>
+
+                        <div class="info-box" style="border-left-color: var(--info);">
+                            <h4><i class="fas fa-laptop-code"></i> Inovação Tecnológica na Educação Carcerária</h4>
+                            <p style="line-height: 1.6; text-align: justify; margin-bottom: 15px;">
+                                Esta plataforma representa uma revolução na educação de pessoas privadas de liberdade, utilizando tecnologia de ponta para promover a ressocialização através do aprendizado. A integração de ferramentas interativas e gamificação permite a criação de uma plataforma educacional adaptativa que funciona mesmo em ambientes com restrições de internet.
+                            </p>
+                            <p style="line-height: 1.6; text-align: justify;">
+                                O sistema atua como um tutor inteligente, adaptando o conteúdo em tempo real às necessidades de cada aluno, tornando o aprendizado mais efetivo e significativo. A pontuação acumulada no jogo e as resenhas aprovadas servem como métricas de engajamento e evolução, vinculadas ao sistema de remição de pena por estudo.
+                            </p>
+                        </div>
+
+                        <div style="margin-top: 20px; padding: 15px; background: #eef2f7; border-radius: 8px; text-align: center;">
+                            <p><strong>Versão do Sistema:</strong> 3.0.0 (Integrada Completa)</p>
+                            <p><strong>Palavras-chave:</strong> Educação Carcerária, Gamificação, Ressocialização, APAC, Inclusão Digital, Aprendizado Adaptativo, Remição por Estudo.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL INTERATIVO DE DETALHES -->
+    <div id="modal-detalhe" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-titulo">Detalhes do Dado</h3>
+                <button class="close-btn" onclick="fecharModal()">&times;</button>
+            </div>
+            <div id="modal-corpo"></div>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // DADOS E SESSÃO (Estrutura do Segundo Código Mantida)
+        // ==========================================
+        const dadosIniciais = {
+            usuarios: [{ id: 1, nome: "Administrador", login: "admin", senha: "admin123", nivel: "admin" }],
+            livros: [
+                { id: 1, numeracao: "Apac-001", obra: "Saber Fazer Saber APAC", autor: "Dr Luiz Carlos Almeida", estante: "APAC-2", genero: "Metodologia / Direito / APAC", capa: "", emprestimos: 5 },
+                { id: 2, numeracao: "Apac-021", obra: "APAC – A Revolução do Sistema Penitenciário", autor: "Dr Valdeci Ferreira", estante: "APAC-2", genero: "Metodologia / Direito / APAC", capa: "", emprestimos: 8 },
+                { id: 3, numeracao: "Apac-005", obra: "Presídio Central", autor: "Gabriel Michels", estante: "APAC-3", genero: "Literatura Brasileira / Documentário", capa: "", emprestimos: 2 }
+            ],
+            emprestimos: [
+                { id: 101, livroId: 2, recuperandoId: 1, obra: "APAC – A Revolução do Sistema Penitenciário", dataEmprestimo: "2023-10-01", dataDevolucaoPrevista: "2023-10-08", prazo: 7, status: 'devolvido' },
+                { id: 102, livroId: 1, recuperandoId: 2, obra: "Saber Fazer Saber APAC", dataEmprestimo: "2024-05-12", dataDevolucaoPrevista: "2024-05-19", prazo: 7, status: 'pendente' }
+            ],
+            recuperandos: [
+                { id: 1, nome: "João Silva", cpf: "123.456.789-00", nascimento: "1990-01-01", curso: "fundamental", progresso: 30, remissoes: [{mesAno: "2023-10", diasRemissao: 4, status: "aprovada", dataRegistro: "2023-10-30"}] },
+                { id: 2, nome: "Maria Santos", cpf: "987.654.321-00", nascimento: "1985-05-15", curso: "medio", progresso: 65, remissoes: [] }
+            ]
+        };
+
+        let dados = JSON.parse(localStorage.getItem('apacDados')) || JSON.parse(JSON.stringify(dadosIniciais));
+        let usuarioLogado = null;
+        let charts = {};
+        let jogoAtual = { resposta: '', pontos: 0, acertos: 0, erros: 0, ativo: false };
+
+        Chart.register(ChartDataLabels);
+        verificarAtrasos();
+        function salvarDados() { localStorage.setItem('apacDados', JSON.stringify(dados)); }
+
+        function fazerLogin() {
+            const login = document.getElementById('login-usuario').value;
+            const senha = document.getElementById('login-senha').value;
+            const user = dados.usuarios.find(u => u.login === login && u.senha === senha);
+            if (user) {
+                usuarioLogado = user;
+                sessionStorage.setItem('usuarioLogado', JSON.stringify(user));
+                document.getElementById('tela-login').style.display = 'none';
+                document.getElementById('app-container').style.display = 'flex';
+                document.getElementById('nome-usuario-logado').innerText = user.nome;
+                inicializarSistema();
+            } else { alert("Credenciais inválidas!"); }
+        }
+
+        function fazerLogout() {
+            sessionStorage.removeItem('usuarioLogado');
+            usuarioLogado = null;
+            document.getElementById('tela-login').style.display = 'flex';
+            document.getElementById('app-container').style.display = 'none';
+        }
+
+        function inicializarSistema() {
+            popularTabelas();
+            atualizarDashboard();
+            initCharts();
+            document.getElementById('data-emprestimo').valueAsDate = new Date();
+            document.getElementById('resenha-mes').valueAsDate = new Date();
+            document.getElementById('recuperando-progresso').addEventListener('input', function() { document.getElementById('progresso-value').innerText = this.value + '%'; });
+        }
+
+        // ==========================================
+        // NAVEGAÇÃO
+        // ==========================================
+        function openSection(sectionId, element) {
+            document.querySelectorAll('.page-section').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.menu-item').forEach(el => el.classList.remove('active'));
+            document.getElementById(sectionId).classList.add('active');
+            if(element) element.classList.add('active');
+            
+            const titles = { 
+                'sec-dashboard': 'Dashboard', 'sec-acervo': 'Gerenciar Acervo', 'sec-emprestimos': 'Empréstimos', 
+                'sec-alertas': 'Alertas de Atraso', 'sec-estatisticas': 'Estatísticas Biblioteca', 'sec-jogo': 'Jogo Educacional', 
+                'sec-resenhas': 'Resenhas e Remissões', 'sec-recuperandos': 'Recuperandos', 'sec-usuarios': 'Gestão de Usuários', 
+                'sec-relatorios': 'Relatórios PDF', 'sec-dados': 'Dados do Sistema', 'sec-ajuda': 'Central de Ajuda', 'sec-sobre': 'Sobre o Sistema' 
+            };
+            document.getElementById('page-title').innerText = titles[sectionId] || 'APAC';
+            
+            if(sectionId === 'sec-estatisticas') initChartsDetalhados();
+        }
+
+        // ==========================================
+        // DASHBOARD
+        // ==========================================
+        function atualizarDashboard() {
+            document.getElementById('stat-livros').innerText = dados.livros.length;
+            document.getElementById('stat-emprestimos').innerText = dados.emprestimos.filter(e => e.status !== 'devolvido').length;
+            document.getElementById('stat-atrasos').innerText = dados.emprestimos.filter(e => e.status === 'atrasado').length;
+            document.getElementById('stat-remissoes').innerText = dados.recuperandos.reduce((total, r) => total + r.remissoes.length, 0);
+        }
+
+        function initCharts() {
+            Object.values(charts).forEach(c => c.destroy());
+            charts = {};
+
+            const mes = {}; dados.emprestimos.forEach(e => { const m = e.dataEmprestimo.substring(0,7); mes[m] = (mes[m]||0)+1; });
+            charts.mensal = new Chart(document.getElementById('chartMensal'), { type: 'bar', data: { labels: Object.keys(mes), datasets: [{ label: 'Empréstimos', data: Object.values(mes), backgroundColor: '#3498db' }] }, options: { responsive: true, plugins: { datalabels: { anchor:'end', align:'top', color:'#333' } } } });
+
+            const remissoesPorRecuperando = {};
+            dados.recuperandos.forEach(r => { remissoesPorRecuperando[r.nome] = r.remissoes.length; });
+            charts.remissoes = new Chart(document.getElementById('chartRemissoesRecuperando'), {
+                type: 'pie', data: { labels: Object.keys(remissoesPorRecuperando), datasets: [{ data: Object.values(remissoesPorRecuperando), backgroundColor: ['#2ecc71', '#e74c3c', '#f1c40f', '#9b59b6'] }] },
+                options: { responsive: true, onClick: (evt, item) => abrirModalDoGrafico(item, 'recuperando'), plugins: { datalabels: { color: '#fff', font: { weight: 'bold' }, formatter: (v, ctx) => `${v}\n${((v / ctx.dataset.data.reduce((a,b)=>a+b,0))*100).toFixed(0)}%` } } }
+            });
+        }
+
+        function initChartsDetalhados() {
+            if(charts.livros) charts.livros.destroy();
+            if(charts.progresso) charts.progresso.destroy();
+            if(charts.cursos) charts.cursos.destroy();
+            if(charts.remissoesStats) charts.remissoesStats.destroy();
+            if(charts.statusAcervo) charts.statusAcervo.destroy();
+            if(charts.statusEmprestimos) charts.statusEmprestimos.destroy();
+
+            const defaultDatalabels = { color: '#fff', font: { weight: 'bold', size: 12 }, formatter: (value, context) => { let sum = context.dataset.data.reduce((a, b) => a + b, 0); let percentage = sum > 0 ? ((value / sum) * 100).toFixed(1) + '%' : '0%'; return `${value}\n${percentage}`; } };
+
+            const livrosOrdenados = [...dados.livros].sort((a, b) => b.emprestimos - a.emprestimos).slice(0, 5);
+            charts.livros = new Chart(document.getElementById('chartLivrosPopulares'), { type: 'bar', data: { labels: livrosOrdenados.map(l => l.obra), datasets: [{ label: 'Empréstimos', data: livrosOrdenados.map(l => l.emprestimos), backgroundColor: '#3498db' }] }, options: { responsive: true, indexAxis: 'y', onClick: (evt, item) => abrirModalDoGrafico(item, 'livro'), plugins: { datalabels: { anchor: 'end', align: 'right', color: '#333', formatter: value => value + ' vezes' } }, scales: { x: { beginAtZero: true } } } });
+
+            charts.progresso = new Chart(document.getElementById('chartProgressoRecuperandos'), { type: 'radar', data: { labels: dados.recuperandos.map(r => r.nome), datasets: [{ label: 'Progresso', data: dados.recuperandos.map(r => r.progresso), backgroundColor: 'rgba(52, 152, 219, 0.2)', borderColor: 'rgba(52, 152, 219, 1)', pointBackgroundColor: 'rgba(52, 152, 219, 1)' }] }, options: { responsive: true, onClick: (evt, item) => abrirModalDoGrafico(item, 'recuperando'), scales: { r: { beginAtZero: true, max: 100 } }, plugins: { datalabels: { formatter: value => value + '%', color: '#333', font: {weight: 'bold'} } } } });
+
+            const cursos = {}; dados.recuperandos.forEach(r => { cursos[r.curso] = (cursos[r.curso] || 0) + 1; });
+            charts.cursos = new Chart(document.getElementById('chartCursos'), { type: 'doughnut', data: { labels: Object.keys(cursos), datasets: [{ data: Object.values(cursos), backgroundColor: ['#3498db', '#2ecc71', '#e74c3c', '#f1c40f'] }] }, options: { responsive: true, onClick: (evt, item) => abrirModalDoGrafico(item, 'curso'), plugins: { datalabels: defaultDatalabels } } });
+
+            const remissoesStats = { 'Concedidas': dados.recuperandos.reduce((t, r) => t + r.remissoes.length, 0), 'Pendentes': dados.recuperandos.reduce((t, r) => t + r.remissoes.filter(rem => rem.status === 'pendente').length, 0) };
+            charts.remissoesStats = new Chart(document.getElementById('chartEstatisticasRemissoes'), { type: 'pie', data: { labels: Object.keys(remissoesStats), datasets: [{ data: Object.values(remissoesStats), backgroundColor: ['#2ecc71', '#f1c40f'] }] }, options: { responsive: true, plugins: { datalabels: defaultDatalabels } } });
+
+            const livrosOcupados = dados.emprestimos.filter(e => e.status !== 'devolvido').length;
+            const livrosDisponiveis = dados.livros.length - livrosOcupados;
+            charts.statusAcervo = new Chart(document.getElementById('chartStatusAcervo'), { type: 'doughnut', data: { labels: ['Disponíveis', 'Emprestados'], datasets: [{ data: [livrosDisponiveis, livrosOcupados], backgroundColor: ['#2ecc71', '#e74c3c'] }] }, options: { responsive: true, onClick: (evt, item) => abrirModalDoGrafico(item, 'acervo'), plugins: { datalabels: defaultDatalabels } } });
+
+            const empStatus = { 'Em dia': dados.emprestimos.filter(e => e.status === 'pendente').length, 'Atrasados': dados.emprestimos.filter(e => e.status === 'atrasado').length, 'Devolvidos': dados.emprestimos.filter(e => e.status === 'devolvido').length };
+            charts.statusEmprestimos = new Chart(document.getElementById('chartStatusEmprestimos'), { type: 'doughnut', data: { labels: Object.keys(empStatus), datasets: [{ data: Object.values(empStatus), backgroundColor: ['#3498db', '#e74c3c', '#95a5a6'] }] }, options: { responsive: true, onClick: (evt, item) => abrirModalDoGrafico(item, 'emprestimo'), plugins: { datalabels: defaultDatalabels } } });
+        }
+
+        // ==========================================
+        // SISTEMA DE LINK DO GRÁFICO (MODAL)
+        // ==========================================
+        function abrirModalDoGrafico(item, tipoDado) {
+            if (!item.length) return;
+            const index = item[0].index;
+            const label = item[0].chart.data.labels[index];
+            
+            document.getElementById('modal-titulo').innerText = "Detalhes: " + label;
+            const corpo = document.getElementById('modal-corpo');
+            corpo.innerHTML = '<p>Carregando...</p>';
+            
+            let html = '';
+            if (tipoDado === 'recuperando') {
+                const rec = dados.recuperandos.find(r => r.nome === label);
+                if(rec) html = construirHtmlRecuperando(rec);
+            } else if (tipoDado === 'livro') {
+                const livro = dados.livros.find(l => l.obra === label);
+                if(livro) html = construirHtmlLivro(livro);
+            } else if (tipoDado === 'curso') {
+                const recs = dados.recuperandos.filter(r => r.curso === label);
+                html = `<h4 style="margin-bottom:10px;">Recuperandos neste curso: ${recs.length}</h4>`;
+                recs.forEach(r => html += construirHtmlRecuperando(r));
+            } else if (tipoDado === 'acervo' || tipoDado === 'emprestimo') {
+                if(label === 'Disponíveis' || label === 'Emprestados') {
+                    const idsEmprestados = dados.emprestimos.filter(e => e.status !== 'devolvido').map(e => e.livroId);
+                    const livrosFiltrados = label === 'Disponíveis' ? dados.livros.filter(l => !idsEmprestados.includes(l.id)) : dados.livros.filter(l => idsEmprestados.includes(l.id));
+                    html = `<h4 style="margin-bottom:10px;">Livros ${label}: ${livrosFiltrados.length}</h4>`;
+                    livrosFiltrados.forEach(l => html += construirHtmlLivro(l));
+                } else {
+                    const emps = dados.emprestimos.filter(e => e.status === (label === 'Em dia' ? 'pendente' : label === 'Atrasados' ? 'atrasado' : 'devolvido'));
+                    html = `<h4 style="margin-bottom:10px;">Empréstimos ${label}: ${emps.length}</h4>`;
+                    emps.forEach(e => html += construirHtmlEmprestimo(e));
+                }
+            }
+
+            corpo.innerHTML = html || '<p>Nenhum dado detalhado encontrado.</p>';
+            document.getElementById('modal-detalhe').style.display = 'flex';
+        }
+
+        function construirHtmlRecuperando(rec) {
+            return `<div class="detail-row"><div class="detail-label">Nome:</div><div class="detail-value">${rec.nome}</div></div>
+                    <div class="detail-row"><div class="detail-label">CPF:</div><div class="detail-value">${rec.cpf}</div></div>
+                    <div class="detail-row"><div class="detail-label">Curso:</div><div class="detail-value">${rec.curso}</div></div>
+                    <div class="detail-row"><div class="detail-label">Progresso:</div><div class="detail-value" style="display:flex;align-items:center;gap:10px;"><div style="flex:1;background:#ecf0f1;border-radius:10px;height:15px;"><div style="background:var(--success);height:100%;width:${rec.progresso}%;border-radius:10px;"></div></div> ${rec.progresso}%</div></div>
+                    <hr style="margin:10px 0;">`;
+        }
+
+        function construirHtmlLivro(livro) {
+            return `<div class="detail-row"><div class="detail-label">Obra:</div><div class="detail-value">${livro.obra}</div></div>
+                    <div class="detail-row"><div class="detail-label">Autor:</div><div class="detail-value">${livro.autor}</div></div>
+                    <div class="detail-row"><div class="detail-label">Numeração:</div><div class="detail-value">${livro.numeracao}</div></div>
+                    <div class="detail-row"><div class="detail-label">Vezes Emprestado:</div><div class="detail-value">${livro.emprestimos} vezes</div></div>
+                    <hr style="margin:10px 0;">`;
+        }
+
+        function construirHtmlEmprestimo(emp) {
+            const rec = dados.recuperandos.find(r => r.id === emp.recuperandoId);
+            const statusClass = emp.status === 'atrasado' ? 'status-atrasado' : emp.status === 'devolvido' ? 'status-devolvido' : 'status-em-dia';
+            return `<div class="detail-row"><div class="detail-label">Recuperando:</div><div class="detail-value">${rec ? rec.nome : 'N/A'}</div></div>
+                    <div class="detail-row"><div class="detail-label">Livro:</div><div class="detail-value">${emp.obra}</div></div>
+                    <div class="detail-row"><div class="detail-label">Data Empréstimo:</div><div class="detail-value">${formatarData(emp.dataEmprestimo)}</div></div>
+                    <div class="detail-row"><div class="detail-label">Devolução Prevista:</div><div class="detail-value">${formatarData(emp.dataDevolucaoPrevista)}</div></div>
+                    <div class="detail-row"><div class="detail-label">Status:</div><div class="detail-value ${statusClass}">${emp.status.toUpperCase()}</div></div>
+                    <hr style="margin:10px 0;">`;
+        }
+
+        function fecharModal() { document.getElementById('modal-detalhe').style.display = 'none'; }
+        window.onclick = function(event) { const modal = document.getElementById('modal-detalhe'); if (event.target == modal) fecharModal(); }
+
+        // ==========================================
+        // ACERVO
+        // ==========================================
+        function cadastrarLivro() {
+            const n = document.getElementById('livro-numeracao').value.trim(), o = document.getElementById('livro-obra').value.trim(), a = document.getElementById('livro-autor').value.trim(), e = document.getElementById('livro-estante').value.trim(), g = document.getElementById('livro-genero').value.trim(), c = document.getElementById('livro-capa').value.trim();
+            if(!n||!o||!a||!e) return alert("Preencha os campos obrigatórios (Num, Obra, Autor, Estante).");
+            dados.livros.push({id:Date.now(), numeracao:n, obra:o, autor:a, estante:e, genero:g, capa:c, emprestimos:0});
+            salvarDados(); popularTabelas(); atualizarDashboard(); initCharts(); alert("Livro cadastrado!");
+            ['livro-numeracao','livro-obra','livro-autor','livro-estante','livro-genero','livro-capa'].forEach(id=>document.getElementById(id).value='');
+        }
+
+        function editarLivro(id) { const l=dados.livros.find(x=>x.id===id); if(!l)return; document.getElementById('livro-numeracao').value=l.numeracao; document.getElementById('livro-obra').value=l.obra; document.getElementById('livro-autor').value=l.autor; document.getElementById('livro-estante').value=l.estante; document.getElementById('livro-genero').value=l.genero; document.getElementById('livro-capa').value=l.capa; dados.livros=dados.livros.filter(x=>x.id!==id); salvarDados(); popularTabelas(); atualizarDashboard(); initCharts(); }
+
+        function excluirLivro(id) { if(!confirm("Excluir livro?"))return; dados.livros=dados.livros.filter(l=>l.id!==id); salvarDados(); popularTabelas(); atualizarDashboard(); initCharts(); }
+
+        function pesquisarLivro() { const t=document.getElementById('input-pesquisa').value.toLowerCase(); document.querySelectorAll('#tabela-acervo tr').forEach(l=>{l.style.display=l.textContent.toLowerCase().includes(t)?'':'none';}); }
+        function limparPesquisa() { document.getElementById('input-pesquisa').value=''; pesquisarLivro(); }
+
+        // ==========================================
+        // EMPRÉSTIMOS E ALERTAS
+        // ==========================================
+        function registrarEmprestimo() {
+            const lid=parseInt(document.getElementById('select-livro').value), rid=parseInt(document.getElementById('select-recuperando').value), de=document.getElementById('data-emprestimo').value, pz=parseInt(document.getElementById('prazo-devolucao').value);
+            if(!lid||!rid||!de||!pz){alert("Preencha tudo.");return;}
+            if(dados.emprestimos.find(e=>e.livroId===lid&&e.status!=='devolvido')){alert("Livro já emprestado!");return;}
+            const dd=new Date(de); dd.setDate(dd.getDate()+pz);
+            const livro=dados.livros.find(l=>l.id===lid);
+            dados.emprestimos.push({id:Date.now(),livroId:lid,recuperandoId:rid,obra:livro.obra,dataEmprestimo:de,dataDevolucaoPrevista:dd.toISOString().split('T')[0],prazo:pz,status:'pendente'});
+            livro.emprestimos++;
+            salvarDados(); popularTabelas(); atualizarDashboard(); initCharts(); alert("Empréstimo registrado!");
+        }
+
+        function devolverLivro(id) { const e=dados.emprestimos.find(x=>x.id===id); if(!e)return; e.status='devolvido'; salvarDados(); popularTabelas(); atualizarDashboard(); initCharts(); }
+        
+        function verificarAtrasos() { 
+            const hoje = new Date(); hoje.setHours(0,0,0,0); let c=0; 
+            dados.emprestimos.forEach(e => { if(e.status==='pendente' && hoje > new Date(e.dataDevolucaoPrevista+'T00:00:00')){ e.status='atrasado'; c++; } }); 
+            document.getElementById('badge-alerta').innerText=c; document.getElementById('badge-alerta').style.display=c>0?'block':'none'; 
+            salvarDados(); popularTabelas(); atualizarDashboard(); initCharts(); alert(`${c} atraso(s) detectado(s)!`); 
+        }
+
+        // ==========================================
+        // JOGO EDUCACIONAL
+        // ==========================================
+        function iniciarJogo() {
+            jogoAtual = { resposta: '', pontos: 0, acertos: 0, erros: 0, ativo: true };
+            document.getElementById('game-score').innerText = '0';
+            document.getElementById('gameArea').style.display = 'block';
+            proximaPalavra();
+        }
+
+        function proximaPalavra() {
+            const disc = document.getElementById('jogo-disciplina').value;
+            const diff = document.getElementById('jogo-dificuldade').value;
+            document.getElementById('btn-proxima').style.display = 'none';
+            document.getElementById('game-feedback').innerText = '';
+            document.getElementById('game-input').value = '';
+            document.getElementById('game-input').focus();
+
+            if (disc === 'portugues') {
+                const palavras = { easy: ["bola", "gato", "sol"], medium: ["borboleta", "elefante", "computador"], hard: ["paralelepípedo", "inconstitucional", "extraordinário"] };
+                const p = palavras[diff][Math.floor(Math.random() * palavras[diff].length)];
+                jogoAtual.resposta = p.toLowerCase();
+                document.getElementById('game-prompt').innerText = "Soletre a palavra que você ouvir:";
+                document.getElementById('wordDisplay').innerHTML = p.split('').map(() => `<div class="letter-box"></div>`).join('');
+                falarPalavra();
+            } else if (disc === 'ingles') {
+                const vocab = { easy: [{pt:"Cachorro",en:"Dog"},{pt:"Gato",en:"Cat"}], medium: [{pt:"Escola",en:"School"},{pt:"Amigo",en:"Friend"}], hard: [{pt:"Conhecimento",en:"Knowledge"}] };
+                const w = vocab[diff][Math.floor(Math.random() * vocab[diff].length)];
+                jogoAtual.resposta = w.en.toLowerCase();
+                document.getElementById('game-prompt').innerText = `Traduza para o inglês: ${w.pt}`;
+                document.getElementById('wordDisplay').innerHTML = '';
+            } else {
+                const a = Math.floor(Math.random()*10)+1, b = Math.floor(Math.random()*10)+1;
+                jogoAtual.resposta = (a+b).toString();
+                document.getElementById('game-prompt').innerText = `Quanto é ${a} + ${b}?`;
+                document.getElementById('wordDisplay').innerHTML = '';
+            }
+        }
+
+        function verificarResposta() {
+            if(!jogoAtual.ativo) return;
+            const resp = document.getElementById('game-input').value.trim().toLowerCase();
+            if(resp === jogoAtual.resposta) {
+                jogoAtual.pontos += 10;
+                jogoAtual.acertos++;
+                document.getElementById('game-score').innerText = jogoAtual.pontos;
+                document.getElementById('game-feedback').innerHTML = '<span class="success">Correto! +10 pontos</span>';
+            } else {
+                jogoAtual.erros++;
+                document.getElementById('game-feedback').innerHTML = `<span class="error">Incorreto! A resposta era: ${jogoAtual.resposta}</span>`;
+            }
+            document.getElementById('btn-proxima').style.display = 'inline-flex';
+        }
+
+        function falarPalavra() {
+            if('speechSynthesis' in window && jogoAtual.resposta) {
+                const u = new SpeechSynthesisUtterance(jogoAtual.resposta);
+                u.lang = document.getElementById('jogo-disciplina').value === 'ingles' ? 'en-US' : 'pt-BR';
+                u.rate = 0.8;
+                window.speechSynthesis.speak(u);
+            }
+        }
+
+        document.getElementById('game-input').addEventListener('keypress', e => { if(e.key==='Enter') { document.getElementById('btn-proxima').style.display === 'none' ? verificarResposta() : proximaPalavra(); } });
+
+        // ==========================================
+        // RESENHAS / REMISSÕES
+        // ==========================================
+        function registrarResenha() { 
+            const rid=parseInt(document.getElementById('select-resenha-recuperando').value), ma=document.getElementById('resenha-mes').value, st=document.getElementById('resenha-status').value; 
+            if(!ma){alert("Preencha mês/ano.");return;} 
+            const r=dados.recuperandos.find(x=>x.id===rid); 
+            if(!r)return; 
+            if(st==='aprovada'){r.remissoes.push({mesAno:ma,diasRemissao:4,status:'aprovada',dataRegistro:new Date().toISOString().split('T')[0]});} 
+            salvarDados(); alert(`Resenha ${st}!`); document.getElementById('resenha-texto').value=""; popularTabelas(); atualizarDashboard(); initCharts(); 
+        }
+
+        // ==========================================
+        // RECUPERANDOS
+        // ==========================================
+        function cadastrarRecuperando() { 
+            const n=document.getElementById('recuperando-nome').value.trim(), c=document.getElementById('recuperando-cpf').value.trim(), ns=document.getElementById('recuperando-nascimento').value, cu=document.getElementById('recuperando-curso').value, p=document.getElementById('recuperando-progresso').value; 
+            if(!n||!c||!ns||!cu){alert("Preencha tudo.");return;} 
+            if(!/^\d{3}\.\d{3}\.\d{3}-\d{2}$/.test(c)){alert("CPF inválido. Use 000.000.000-00");return;} 
+            dados.recuperandos.push({id:Date.now(),nome:n,cpf:c,nascimento:ns,curso:cu,progresso:parseInt(p),remissoes:[]}); 
+            salvarDados(); popularTabelas(); atualizarDashboard(); initCharts(); alert("Cadastrado!"); 
+            ['recuperando-nome','recuperando-cpf','recuperando-nascimento'].forEach(id=>document.getElementById(id).value=''); 
+            document.getElementById('recuperando-curso').value=''; document.getElementById('recuperando-progresso').value=0; document.getElementById('progresso-value').innerText="0%"; 
+        }
+
+        function editarRecuperando(id) { const r=dados.recuperandos.find(x=>x.id===id); if(!r)return; document.getElementById('recuperando-nome').value=r.nome; document.getElementById('recuperando-cpf').value=r.cpf; document.getElementById('recuperando-nascimento').value=r.nascimento; document.getElementById('recuperando-curso').value=r.curso; document.getElementById('recuperando-progresso').value=r.progresso; document.getElementById('progresso-value').innerText=`${r.progresso}%`; dados.recuperandos=dados.recuperandos.filter(x=>x.id!==id); salvarDados(); popularTabelas(); atualizarDashboard(); initCharts(); }
+
+        function excluirRecuperando(id) { if(!confirm("Excluir?"))return; dados.recuperandos=dados.recuperandos.filter(r=>r.id!==id); salvarDados(); popularTabelas(); atualizarDashboard(); initCharts(); }
+
+        // ==========================================
+        // USUÁRIOS DO SISTEMA
+        // ==========================================
+        function cadastrarUsuario() { const n=document.getElementById('cad-user-nome').value.trim(), l=document.getElementById('cad-user-login').value.trim(), s=document.getElementById('cad-user-senha').value, niv=document.getElementById('cad-user-nivel').value; if(!n||!l||!s){alert("Preencha tudo.");return;} if(dados.usuarios.find(u=>u.login===l)){alert("Login existe!");return;} dados.usuarios.push({id:Date.now(),nome:n,login:l,senha:s,nivel:niv}); salvarDados(); popularTabelas(); alert("Usuário cadastrado!"); ['cad-user-nome','cad-user-login','cad-user-senha'].forEach(id=>document.getElementById(id).value=''); }
+        function editarUsuario(id) { const u=dados.usuarios.find(x=>x.id===id); if(!u)return; document.getElementById('cad-user-nome').value=u.nome; document.getElementById('cad-user-login').value=u.login; document.getElementById('cad-user-senha').value=u.senha; document.getElementById('cad-user-nivel').value=u.nivel; dados.usuarios=dados.usuarios.filter(x=>x.id!==id); salvarDados(); popularTabelas(); }
+        function excluirUsuario(id) { if(dados.usuarios.length<=1){alert("Único usuário.");return;} if(!confirm("Excluir?"))return; dados.usuarios=dados.usuarios.filter(u=>u.id!==id); salvarDados(); popularTabelas(); }
+
+        // ==========================================
+        // TABELAS E FORMULÁRIOS
+        // ==========================================
+        function formatarData(dataStr) { if(!dataStr) return '-'; const parts = dataStr.split('-'); return `${parts[2]}/${parts[1]}/${parts[0]}`; }
+
+        function popularTabelas() {
+            popularTabelaAcervo(); popularSelectLivros(); popularSelectRecuperandos(); popularTabelaEmprestimos(); popularTabelaAlertas(); popularTabelaResenhas(); popularTabelaRecuperandos(); popularTabelaUsuarios();
+        }
+
+        function popularTabelaAcervo() { const t=document.getElementById('tabela-acervo'); t.innerHTML=''; dados.livros.forEach(l=>{t.innerHTML+=`<tr><td><img src="${l.capa||'https://via.placeholder.com/50x70?text=Sem+Capa'}" style="width:40px;height:60px;object-fit:cover;border-radius:4px;" onerror="this.src='https://via.placeholder.com/50x70?text=Erro'"></td><td>${l.numeracao}</td><td>${l.obra}</td><td>${l.autor}</td><td>${l.estante}</td><td><button class="btn-warning" style="padding:5px 10px;font-size:12px;" onclick="editarLivro(${l.id})">Editar</button> <button class="btn-danger" style="padding:5px 10px;font-size:12px;" onclick="excluirLivro(${l.id})">Excluir</button></td></tr>`;}); }
+        
+        function popularSelectLivros() { const s=document.getElementById('select-livro'); s.innerHTML=''; const disp=dados.livros.filter(l=>!dados.emprestimos.find(e=>e.livroId===l.id&&e.status!=='devolvido')); disp.forEach(l=>{s.innerHTML+=`<option value="${l.id}">${l.obra} (${l.numeracao})</option>`;}); }
+        
+        function popularSelectRecuperandos() { 
+            ['select-recuperando','select-resenha-recuperando'].forEach(sid=>{
+                const s=document.getElementById(sid); s.innerHTML=''; 
+                dados.recuperandos.forEach(r=>{s.innerHTML+=`<option value="${r.id}">${r.nome}</option>`;});
+            }); 
+        }
+
+        function popularTabelaEmprestimos() { const t=document.getElementById('tabela-emprestimos'); t.innerHTML=''; dados.emprestimos.filter(e=>e.status!=='devolvido').forEach(e => { const r=dados.recuperandos.find(x=>x.id===e.recuperandoId); const sc=e.status==='atrasado'?'status-atrasado':'status-em-dia'; t.innerHTML+=`<tr><td>${r?r.nome:'N/A'}</td><td>${e.obra}</td><td>${formatarData(e.dataDevolucaoPrevista)}</td><td class="${sc}">${e.status.toUpperCase()}</td><td><button class="btn-success" style="padding:5px 10px;font-size:12px;" onclick="devolverLivro(${e.id})">Devolver</button></td></tr>`;}); }
+
+        function popularTabelaAlertas() { const t=document.getElementById('tabela-alertas'); t.innerHTML=''; dados.emprestimos.filter(e=>e.status!=='devolvido').forEach(e=>{const r=dados.recuperandos.find(x=>x.id===e.recuperandoId);const sc=e.status==='atrasado'?'status-atrasado':'status-em-dia';const st=e.status==='atrasado'?'🚨 ATRASADO':'📖 Em dia'; t.innerHTML+=`<tr><td>${r?r.nome:'N/A'}</td><td>${e.obra}</td><td>${formatarData(e.dataEmprestimo)}</td><td>${formatarData(e.dataDevolucaoPrevista)}</td><td class="${sc}">${st}</td><td><button class="btn-success" style="font-size:12px;padding:5px 10px;" onclick="devolverLivro(${e.id})">Devolver</button></td></tr>`;}); }
+
+        function popularTabelaResenhas() { const t=document.getElementById('tabela-resenhas'); t.innerHTML=''; dados.recuperandos.forEach(r=>{r.remissoes.forEach(m=>{t.innerHTML+=`<tr><td>${r.nome}</td><td>${m.mesAno}</td><td>${m.status}</td><td>${m.diasRemissao}</td><td><button class="btn-primary" style="font-size:12px;padding:5px 10px;">Comp.</button></td></tr>`;});}); }
+
+        function popularTabelaRecuperandos() { const t=document.getElementById('tabela-recuperandos'); t.innerHTML=''; dados.recuperandos.forEach(r=>{t.innerHTML+=`<tr><td>${r.nome}</td><td>${r.cpf}</td><td>${r.curso}</td><td><div style="background:#ecf0f1;border-radius:10px;height:20px;"><div style="background:var(--success);height:100%;width:${r.progresso}%;border-radius:10px;text-align:center;line-height:20px;color:white;font-size:12px;">${r.progresso}%</div></div></td><td><button class="btn-warning" style="font-size:12px;padding:5px 10px;" onclick="editarRecuperando(${r.id})">Editar</button> <button class="btn-danger" style="font-size:12px;padding:5px 10px;" onclick="excluirRecuperando(${r.id})">Excluir</button></td></tr>`;}); }
+
+        function popularTabelaUsuarios() { const t=document.getElementById('tabela-usuarios'); t.innerHTML=''; dados.usuarios.forEach(u=>{const nt=u.nivel==='admin'?'Admin':u.nivel==='gerente'?'Gerente':'Operador'; t.innerHTML+=`<tr><td>${u.nome}</td><td>${u.login}</td><td>${nt}</td><td><button class="btn-warning" style="font-size:12px;padding:5px 10px;" onclick="editarUsuario(${u.id})">Editar</button> <button class="btn-danger" style="font-size:12px;padding:5px 10px;" onclick="excluirUsuario(${u.id})">Excluir</button></td></tr>`;}); }
+
+        // ==========================================
+        // EXPORTAR/IMPORTAR / RELATÓRIOS
+        // ==========================================
+        function gerarRelatorio(tipo) { 
+            const { jsPDF } = window.jspdf; const doc = new jsPDF(); 
+            doc.setFontSize(20); doc.text(`RELATÓRIO DE ${tipo.toUpperCase()}`, 105, 20, { align: 'center' }); 
+            if(tipo==='livros') doc.autoTable({ head: [['Numeração', 'Obra', 'Autor', 'Estante']], body: dados.livros.map(l => [l.numeracao, l.obra, l.autor, l.estante]), startY: 30 }); 
+            else if(tipo==='emprestimos') doc.autoTable({ head: [['Obra', 'Status', 'Data']], body: dados.emprestimos.map(e => [e.obra, e.status, formatarData(e.dataEmprestimo)]), startY: 30 }); 
+            else if(tipo==='recuperandos') doc.autoTable({ head: [['Nome', 'CPF', 'Curso', 'Progresso']], body: dados.recuperandos.map(r => [r.nome, r.cpf, r.curso, `${r.progresso}%`]), startY: 30 }); 
+            doc.save(`relatorio_${tipo}.pdf`); 
+        }
+
+        function exportarJSON() {
+            const blob = new Blob([JSON.stringify(dados, null, 2)], { type: 'application/json' });
+            const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'backup_apac_completo.json'; a.click();
+        }
+
+        function importarDados(event) {
+            const file = event.target.files[0]; if(!file) return;
+            const reader = new FileReader();
+            reader.onload = e => { try { dados = JSON.parse(e.target.result); salvarDados(); inicializarSistema(); alert("Importado com sucesso!"); } catch(err) { alert("Erro no arquivo."); } };
+            reader.readAsText(file);
+        }
+
+        function limparDados() { if(confirm("Apagar TODOS os dados do sistema?")) { localStorage.removeItem('apacDados'); dados = JSON.parse(JSON.stringify(dadosIniciais)); inicializarSistema(); } }
+
+        // Inicialização
+        window.onload = () => { const s = sessionStorage.getItem('usuarioLogado'); if(s) { usuarioLogado = JSON.parse(s); fazerLogin(); } };
+    </script>
+</body>
+</html>
