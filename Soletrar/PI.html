@@ -1,0 +1,977 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EcoEdge APAC - Ecossistema Distribuído e Educação</title>
+    <script src="./js/chart.js"></script>
+    <!-- External CSS kept if you have it, but internal styles will handle the base layout -->
+    <link rel="stylesheet" href="css/game.css">
+    
+    <style>
+        /* --- PRESENTATION STYLES --- */
+        :root {
+            --primary: #0f172a;
+            --secondary: #1e293b;
+            --accent: #38bdf8;
+            --accent-glow: rgba(56, 189, 248, 0.3);
+            --text: #f8fafc;
+            --text-muted: #94a3b8;
+            --success: #4ade80;
+            --warning: #facc15;
+            --danger: #f87171;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: var(--primary); color: var(--text); line-height: 1.6; overflow-x: hidden; }
+
+        nav { position: fixed; top: 0; width: 100%; background: rgba(15, 23, 42, 0.9); backdrop-filter: blur(10px); padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; z-index: 1000; border-bottom: 1px solid var(--secondary); }
+        nav .logo { font-size: 1.5rem; font-weight: bold; color: var(--accent); text-transform: uppercase; letter-spacing: 2px; }
+        nav ul { list-style: none; display: flex; gap: 1.5rem; }
+        nav ul li a { color: var(--text-muted); text-decoration: none; transition: color 0.3s; font-weight: 500; }
+        nav ul li a:hover { color: var(--accent); }
+
+        .hero { height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 0 2rem; background: radial-gradient(circle at 50% 50%, var(--secondary) 0%, var(--primary) 100%); position: relative; }
+        .hero h1 { font-size: 3.5rem; margin-bottom: 1rem; background: linear-gradient(135deg, var(--text), var(--accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .hero p { font-size: 1.2rem; color: var(--text-muted); max-width: 800px; margin-bottom: 2rem; }
+
+        .btn { padding: 0.8rem 2rem; background: var(--accent); color: var(--primary); text-decoration: none; font-weight: bold; border-radius: 5px; transition: all 0.3s; border: none; cursor: pointer; font-size: 1rem; }
+        .btn:hover { box-shadow: 0 0 20px var(--accent-glow); transform: translateY(-2px); }
+
+        section { padding: 6rem 2rem; max-width: 1200px; margin: 0 auto; }
+        section h2 { font-size: 2.5rem; margin-bottom: 2rem; color: var(--accent); border-left: 4px solid var(--accent); padding-left: 1rem; }
+        section p { font-size: 1.1rem; color: var(--text-muted); margin-bottom: 1.5rem; }
+
+        .card-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; margin-top: 3rem; }
+        .card { background: var(--secondary); padding: 2rem; border-radius: 10px; border: 1px solid rgba(56, 189, 248, 0.1); transition: transform 0.3s, border-color 0.3s; }
+        .card:hover { transform: translateY(-5px); border-color: var(--accent); }
+        .card h3 { color: var(--text); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; }
+
+        footer { text-align: center; padding: 2rem; background: var(--secondary); color: var(--text-muted); border-top: 1px solid #334155; }
+
+        /* --- GAME INTEGRATION STYLES --- */
+        .game-wrapper { background: var(--primary); border-radius: 10px; padding: 2rem; border: 1px solid var(--accent); box-shadow: 0 0 30px var(--accent-glow); margin-top: 2rem; }
+        .game-container { max-width: 900px; margin: 0 auto; background: var(--secondary); padding: 2rem; border-radius: 8px; }
+        
+        .game-container h1 { text-align: center; color: var(--accent); margin-bottom: 20px; }
+        .player-info { display: flex; justify-content: space-between; align-items: center; padding: 10px; background: #000; border-radius: 5px; margin-bottom: 20px; color: white; }
+        
+        .nav-buttons { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 1px solid #334155; padding-bottom: 10px; }
+        .nav-buttons button { background: transparent; color: var(--text-muted); border: none; padding: 10px 20px; cursor: pointer; font-size: 1rem; border-bottom: 2px solid transparent; transition: all 0.3s; }
+        .nav-buttons button.nav-active { color: var(--accent); border-bottom: 2px solid var(--accent); }
+        .nav-buttons button:hover { color: var(--text); }
+
+        .section { display: none; }
+        .section.active { display: block; }
+
+        .score-board { font-size: 1.5rem; text-align: center; margin-bottom: 20px; color: var(--warning); font-weight: bold; }
+        
+        .subject-panel { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; }
+        .subject-card { background: #0b1120; padding: 10px 15px; border-radius: 5px; flex: 1; min-width: 120px; text-align: center; border: 1px solid #334155; opacity: 0.5; cursor: pointer; transition: 0.3s; }
+        .subject-card.active { opacity: 1; border-color: var(--accent); box-shadow: 0 0 10px var(--accent-glow); }
+        .subject-card h3 { margin: 0; font-size: 0.9rem; padding: 5px; border-radius: 3px; color: white; }
+        .subject-controls { display: flex; justify-content: space-between; margin-top: 5px; font-size: 0.8rem; color: var(--text-muted); }
+
+        .cat-portugues { background: #3498db; } .cat-matematica { background: #e67e22; } .cat-ingles { background: #2ecc71; } .cat-ciencias { background: #9b59b6; } .cat-custom { background: #e74c3c; }
+
+        .config-panel { background: #0b1120; padding: 15px; border-radius: 5px; margin-bottom: 20px; border: 1px solid #334155; }
+        .config-panel h3 { font-size: 1rem; color: var(--text); margin-bottom: 10px; }
+        .config-group { margin-bottom: 10px; }
+        .config-group label { display: block; margin-bottom: 5px; color: var(--text-muted); font-size: 0.9rem; }
+        
+        select, input[type="text"] { width: 100%; padding: 10px; background: #000; color: white; border: 1px solid #475569; border-radius: 4px; outline: none; }
+        input[type="range"] { width: 100%; }
+        
+        button { background: var(--accent); color: #000; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; transition: 0.2s; }
+        button:hover { filter: brightness(1.2); }
+        button.secondary { background: #475569; color: white; }
+        button.danger { background: #b91c1c; color: white; }
+        
+        .game-area { margin-top: 20px; padding: 20px; background: #0f172a; border-radius: 8px; border: 1px solid var(--accent); }
+        #questionCategory { display: inline-block; padding: 5px 10px; border-radius: 4px; color: white; font-weight: bold; font-size: 0.9rem; margin-bottom: 10px; }
+        #questionText { font-size: 1.5rem; margin-bottom: 20px; color: white; text-align: center; }
+        #wordDisplay { text-align: center; font-size: 2rem; letter-spacing: 5px; color: var(--warning); margin-bottom: 10px; }
+        .phonetic-display { text-align: center; color: var(--text-muted); font-style: italic; margin-bottom: 15px; }
+        
+        .pronunciation-controls { display: flex; gap: 10px; justify-content: center; margin-bottom: 15px; }
+        .speed-control { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; color: var(--text-muted); font-size: 0.9rem; }
+        
+        .feedback { text-align: center; font-size: 1.2rem; font-weight: bold; margin: 15px 0; min-height: 30px; }
+        .feedback.success { color: var(--success); }
+        .feedback.error { color: var(--danger); }
+        
+        .controls { display: flex; gap: 10px; margin-top: 15px; justify-content: center; }
+        
+        .chart-controls { display: flex; gap: 10px; margin-bottom: 15px; }
+        .chart-btn { background: #475569; color: white; font-size: 0.9rem; }
+        
+        .log-entry { background: #0b1120; padding: 10px; border-radius: 4px; margin-bottom: 5px; border-left: 3px solid var(--accent); font-size: 0.9rem; }
+        
+        .help-content ul { list-style: none; padding: 0; }
+        .help-content li { background: #0b1120; padding: 10px; margin-bottom: 5px; border-radius: 4px; }
+        .help-content code { background: #000; padding: 2px 5px; border-radius: 3px; color: var(--warning); }
+
+        /* Modal */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; justify-content: center; align-items: center; }
+        .modal.active { display: flex; }
+        .modal-content { background: var(--secondary); padding: 30px; border-radius: 10px; width: 90%; max-width: 400px; border: 1px solid var(--accent); box-shadow: 0 0 30px var(--accent-glow); }
+        .modal-content h2 { text-align: center; margin-bottom: 20px; color: var(--accent); }
+        .modal-content input { margin-bottom: 15px; }
+        .player-list { list-style: none; padding: 0; }
+        .player-list li { background: #0b1120; padding: 10px; margin-bottom: 5px; border-radius: 4px; cursor: pointer; text-align: center; transition: 0.3s; }
+        .player-list li:hover { background: var(--accent); color: #000; }
+
+        @media (max-width: 768px) {
+            .hero h1 { font-size: 2.2rem; }
+            nav ul { display: none; }
+            section { padding: 4rem 1rem; }
+            .subject-panel { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Top Navigation for Presentation -->
+    <nav>
+        <div class="logo">EcoEdge APAC</div>
+        <ul>
+            <li><a href="#about">Introdução</a></li>
+            <li><a href="#architecture">Arquitetura</a></li>
+            <li><a href="#ai-role">IA</a></li>
+            <li><a href="#education">Educação</a></li>
+            <li><a href="#demo">Demonstração</a></li>
+        </ul>
+    </nav>
+
+    <!-- Hero Section -->
+    <header class="hero" id="home">
+        <h1>Ecossistema Distribuído de Monitoramento Crítico e Educação na Borda</h1>
+        <p>Uma abordagem tecnológica para ressocalização no sistema prisional, utilizando Inteligência Artificial na Borda (Edge Computing), WebSockets e Computação Distribuída para transformar o controle em inclusão e educação personalizada.</p>
+        <a href="#demo" class="btn">Acessar Demonstração do Sistema</a>
+    </header>
+
+    <!-- Introduction -->
+    <section id="about">
+        <h2>1. Introdução e Categorização do Projeto</h2>
+        <p>O presente projeto não se restringe ao desenvolvimento de um simples aplicativo, mas propõe a arquitetura de um <strong>ecossistema distribuído de monitoramento crítico</strong>, fundamentado no paradigma de Inteligência Artificial na Borda (Edge Computing).</p>
+        <p>O objetivo central é proporcionar processamento em tempo real de áudio, imagem e dados brutos digitais, com aplicações voltadas à segurança e, sobretudo, à educação e ressocialização no ambiente prisional, especificamente nas Associações de Proteção e Assistência aos Condenados (APACs).</p>
+    </section>
+
+    <!-- Architecture -->
+    <section id="architecture">
+        <h2>2. Arquitetura e Estrutura do Sistema</h2>
+        <p>A infraestrutura elimina o overhead de autenticação tradicional (HotSpot Bypass) e opera sob um modelo de segurança distribuída (P2P). Para evitar "código espaguete", o sistema adota o padrão MVC:</p>
+        <div class="card-container">
+            <div class="card">
+                <h3>🌐 Comunicação WebSocket</h3>
+                <p>Protocolo WebSocket sobre TCP/IP em redes locais estendidas (VLAN/Bridge). Garante baixa latência e comunicação bidirecional em tempo real sem dependência de nuvem externa.</p>
+            </div>
+            <div class="card">
+                <h3>🧠 Back-end (Java MVC)</h3>
+                <p>O "Cérebro e os Dados". Gerencia regras de negócio e persistência. Agnóstico em relação ao Front-end, apenas processa e gerencia as informações e dados brutos.</p>
+            </div>
+            <div class="card">
+                <h3>🖥️ Front-end (View JS)</h3>
+                <p>Comunica-se via WS Nativo. Utiliza gerenciamento de estados no JavaScript para renderizar conteúdo dinâmico gerado por IA de forma reativa.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- AI Role -->
+    <section id="ai-role">
+        <h2>3. O Papel da IA no Desenvolvimento e na Análise</h2>
+        <p>A integração da IA ocorre em duas frentes: <strong>Desenvolvimento</strong> (como assistente para otimizar tempo e reduzir custos) e <strong>Operação</strong> (Edge AI para análise crítica de dados em tempo real).</p>
+        <div class="card-container">
+            <div class="card">
+                <h3>🤖 IA como Assistente de Dev</h3>
+                <p>Não se trata de substituir o humano, mas mitigar gastos e maximizar a agilidade. Desenvolvedores treinados com IA entregam sistemas complexos em tempo recorde.</p>
+            </div>
+            <div class="card">
+                <h3>⚡ Edge AI em Operação</h3>
+                <p>Análise instantânea de grandes volumes de dados na borda da rede. Relatórios complexos e modelagens comportamentais que antes demoravam meses, agora em segundos.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Education -->
+    <section id="education">
+        <h2>4. Educação e Ressocialização no Sistema Prisional</h2>
+        <p>A educação assume o papel principal na modelagem psicológica e preparação para o retorno à sociedade. A APAC é a única instituição que oferece educação de alfabetização ao superior, totalmente EAD. No entanto, a falta de interatividade dificulta o aprendizado.</p>
+        <div class="card" style="border-color: var(--success);">
+            <h3>🎓 A Solução Proposta</h3>
+            <p>Ao aplicar a IA na borda para análise de dados críticos internos e externos, o sistema propõe a modelagem de uma <strong>plataforma adaptativa especial</strong>. A IA atua como um tutor inteligente e local, processando as dificuldades do aluno em tempo real e adaptando o conteúdo, mesmo em um ambiente de internet altamente restrito e monitorado.</p>
+        </div>
+    </section>
+
+    <!-- Demo Section with Embedded Game -->
+    <section id="demo">
+        <h2>5. Demonstração do Sistema Educacional</h2>
+        <p>Abaixo está o sistema funcional de aprendizado multi-disciplinar adaptativo. Ele opera localmente (simulando a Edge Computing sem dependência de nuvem), processando dados e adaptando as perguntas em tempo real.</p>
+
+        <div class="game-wrapper">
+            <div class="game-container">
+                <h1>Aprenda Jogo - Edge APAC</h1>
+                
+                <div id="playerInfoBar" class="player-info" style="display: none;">
+                    <span>Jogador: <span id="currentPlayerName"></span></span>
+                    <button class="secondary" onclick="logoutPlayer()" style="padding: 5px 15px; font-size: 12px;">Trocar Jogador</button>
+                </div>
+
+                <div class="nav-buttons">
+                    <button id="navGame" class="nav-active" onclick="showSection('game')">Jogo</button>
+                    <button id="navChart" onclick="showSection('chart')">Gráfico</button>
+                    <button id="navLogs" onclick="showSection('logs')">Logs</button>
+                    <button id="navHelp" onclick="showSection('help')">Ajuda</button>
+                </div>
+
+                <!-- Game Section -->
+                <div id="gameSection" class="section active">
+                    <div class="score-board">Pontuação: <span id="score">0</span></div>
+                    <div class="subject-panel" id="subjectPanel"></div>
+
+                    <div class="config-panel">
+                        <h3>Configurações da Partida</h3>
+                        <div class="config-group">
+                            <label>Dificuldade:</label>
+                            <select id="difficultySelect" onchange="saveConfig()">
+                                <option value="easy">Fácil</option>
+                                <option value="medium" selected>Médio</option>
+                                <option value="hard">Difícil</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <button onclick="startGame()">Iniciar Jogo</button>
+                    <button onclick="speakWord()">🔊 Ouvir Pergunta</button>
+                    
+                    <div id="gameArea" class="game-area" style="display: none;">
+                        <div id="questionCategory"></div>
+                        <div id="questionText"></div>
+                        <div id="wordDisplay"></div>
+                        <div id="phoneticDisplay" class="phonetic-display"></div>
+                        <div class="pronunciation-controls">
+                            <button onclick="speakWord()">🔊 Repetir</button>
+                            <button onclick="slowPronunciation()">🐌 Devagar</button>
+                            <button onclick="fastPronunciation()">🚀 Rápido</button>
+                        </div>
+                        <div class="speed-control">
+                            <label>Velocidade:</label>
+                            <input type="range" id="speechRate" min="0.5" max="2" step="0.1" value="1">
+                            <span id="rateValue">1.0x</span>
+                        </div>
+                        <input type="text" id="spellInput" autocomplete="off" placeholder="Digite sua resposta aqui...">
+                        <div id="feedback" class="feedback"></div>
+                        <div class="controls">
+                            <button onclick="checkSpelling()">Verificar</button>
+                            <button onclick="nextWord()" id="nextButton" style="display: none;">Próxima</button>
+                        </div>
+                    </div>
+
+                    <div id="customSubjectContainer" style="display: none;">
+                        <h2 id="customSubjectTitle">Matéria Importada</h2>
+                        <div id="customSubjectContent"></div>
+                    </div>
+
+                    <div class="controls" style="margin-top: 30px; flex-wrap: wrap;">
+                        <button class="secondary" onclick="importWords('portugues')">Importar Português</button>
+                        <button class="secondary" onclick="importWords('ingles')">Importar Inglês</button>
+                        <button class="secondary" onclick="importCustomSubject()" style="background-color: #8e44ad;">Importar Matéria (HTML/JSON)</button>
+                        <button class="secondary" onclick="exportPlayerData()">Exportar Jogador</button>
+                        <button class="secondary" onclick="importCachedData()">Importar Dados</button>
+                        <button class="danger" onclick="clearSubjectData()">Limpar Disciplina</button>
+                        <button class="danger" onclick="clearCachedData()">Limpar Tudo</button>
+                    </div>
+                    <input type="file" id="importFileInput" accept=".json" onchange="handleFileImport(event)" style="display:none;">
+                    <input type="file" id="importCacheFileInput" accept=".json" onchange="handleCacheFileImport(event)" style="display:none;">
+                    <input type="file" id="importCustomSubjectInput" accept=".json" onchange="handleCustomSubjectImport(event)" style="display:none;">
+                </div>
+
+                <!-- Chart Section -->
+                <div id="chartSection" class="section">
+                    <h2>Desempenho</h2>
+                    <div id="chartContainer">
+                        <div class="chart-controls">
+                            <button onclick="toggleChartType()" class="chart-btn">Trocar Tipo</button>
+                            <button onclick="toggleChartTheme()" class="chart-btn">Trocar Tema</button>
+                            <button onclick="exportChart()" class="chart-btn">Exportar</button>
+                        </div>
+                        <div style="position: relative; height: 400px; width: 100%;"><canvas id="performanceChart"></canvas></div>
+                    </div>
+                </div>
+
+                <!-- Logs Section -->
+                <div id="logsSection" class="section">
+                    <h2>Registro de Aprendizado</h2>
+                    <div class="config-group">
+                        <label>Filtrar por disciplina:</label>
+                        <select id="subjectFilter" onchange="updateLogsDisplay()">
+                            <option value="all">Todas</option>
+                            <option value="portugues">Português</option>
+                            <option value="matematica">Matemática</option>
+                            <option value="ingles">Inglês</option>
+                            <option value="ciencias">Ciências</option>
+                            <option value="custom">Matéria Importada</option>
+                        </select>
+                    </div>
+                    <div id="logsContainer"></div>
+                </div>
+
+                <!-- Help Section -->
+                <div id="helpSection" class="section">
+                    <h2>Ajuda</h2>
+                    <div class="speech-controls"><button onclick="toggleHelpSpeech()">🔊 Ativar Narração</button></div>
+                    <div class="help-content">
+                        <p>Bem-vindo ao Sistema de Aprendizado Multidisciplinar!</p>
+                        <p>Selecione as disciplinas que deseja praticar e configure a dificuldade antes de iniciar.</p>
+                        <ul>
+                            <li><strong>🇧🇷 Português:</strong> Soletração de palavras.</li>
+                            <li><strong>🧮 Matemática:</strong> Equações matemáticas.</li>
+                            <li><strong>🇺🇸 Inglês:</strong> Tradução de vocabulário e pronúncia.</li>
+                            <li><strong>🔬 Ciências:</strong> Conhecimentos gerais e biologia.</li>
+                            <li><strong>📚 Matéria Importada:</strong> Carregue um JSON com HTML contendo <code>data-question</code> e <code>data-answer</code>.</li>
+                        </ul>
+                        <p>Você pode importar suas próprias listas de palavras para cada disciplina usando os botões de importação.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <p>EcoEdge APAC &copy; 2023 - Tecnologia a serviço da cidadania e ressocialização.</p>
+    </footer>
+
+    <!-- Player Modal -->
+    <div id="playerModal" class="modal active">
+        <div class="modal-content">
+            <h2>Cadastro de Jogador</h2>
+            <input type="text" id="playerNameInput" placeholder="Digite seu nome..." autocomplete="off">
+            <button onclick="registerPlayer()" style="width: 100%;">Entrar</button>
+            <div id="existingPlayersSection" style="display: none; margin-top: 20px;">
+                <h3>Jogadores Existentes</h3>
+                <ul id="playerList" class="player-list"></ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- State Variables ---
+        let currentPlayer = localStorage.getItem('spellingGameCurrentUser') || "";
+        let words = { portugues: [], matematica: [], ingles: [], ciencias: [], custom: [] };
+        let currentQuestion = { type: '', prompt: '', answer: '', category: '' };
+        let score = 0;
+        let performanceData = [];
+        let performanceChart = null;
+        let startTime = 0;
+        let responseTimeData = [];
+        let wordLogs = {};
+        let chartType = 'line';
+        let chartTheme = 'light';
+        let isWaitingForNext = false;
+        let config = { difficulty: 'medium', activeSubjects: ['portugues', 'matematica', 'ingles', 'ciencias'] };
+        let speechRate = 1;
+        let wordRevealed = false; 
+        const MAX_HISTORY_SIZE = 100;
+
+        // --- Custom Subject Data ---
+        let customSubjectName = "Matéria Importada";
+        let customSubjectColor = "#e74c3c"; 
+
+        // --- English Pronunciation Data ---
+        const pronunciationData = {
+            "dog": "dɔːg", "cat": "kæt", "house": "haʊs", "car": "kɑːr", "tree": "triː",
+            "water": "ˈwɔːtər", "fire": "ˈfaɪər", "earth": "ɜːrθ", "air": "er", "sun": "sʌn",
+            "moon": "muːn", "star": "stɑːr", "computer": "kəmˈpjuːtər", "book": "bʊk"
+        };
+
+        // --- Subject Registry ---
+        const subjectRegistry = {
+            portugues: { name: "Português", color: "cat-portugues", generator: generatePortugueseQuestion, defaultWords: ["bola", "gato", "sol", "mesa", "borboleta", "elefante", "girassol", "computador", "paralelepípedo", "extraordinário", "inconstitucional", "conhecimento"] },
+            matematica: { name: "Matemática", color: "cat-matematica", generator: generateMathQuestion },
+            ingles: { name: "Inglês", color: "cat-ingles", generator: generateEnglishQuestion, defaultWords: ["dog", "cat", "house", "car", "tree", "water", "fire", "earth", "air", "sun", "moon", "star", "computer", "book"] },
+            ciencias: { name: "Ciências", color: "cat-ciencias", generator: generateScienceQuestion },
+            custom: { name: customSubjectName, color: "cat-custom", generator: generateCustomQuestion }
+        };
+
+        // --- Question Generators ---
+        function generateMathQuestion() {
+            const diff = config.difficulty;
+            let a, b;
+            const ops = [
+                { symbol: '+', func: (a, b) => a + b },
+                { symbol: '-', func: (a, b) => a - b },
+                { symbol: '×', func: (a, b) => a * b }
+            ];
+            if (diff === 'easy') { a = Math.floor(Math.random() * 10) + 1; b = Math.floor(Math.random() * 10) + 1; }
+            else if (diff === 'medium') { a = Math.floor(Math.random() * 50) + 10; b = Math.floor(Math.random() * 50) + 10; }
+            else { a = Math.floor(Math.random() * 100) + 50; b = Math.floor(Math.random() * 100) + 50; }
+            
+            const op = ops[Math.floor(Math.random() * ops.length)];
+            if (op.symbol === '-' && b > a) [a, b] = [b, a];
+            if (op.symbol === '×' && diff === 'hard') { a = Math.floor(Math.random() * 15) + 5; b = Math.floor(Math.random() * 15) + 5; }
+            
+            return { type: 'math', category: 'Matemática', prompt: `Quanto é ${a} ${op.symbol} ${b}?`, answer: op.func(a, b).toString() };
+        }
+
+        function generateEnglishQuestion() {
+            const vocab = {
+                easy: [ {pt: "Cachorro", en: "Dog"}, {pt: "Gato", en: "Cat"}, {pt: "Sol", en: "Sun"} ],
+                medium: [ {pt: "Irmã", en: "Sister"}, {pt: "Escola", en: "School"}, {pt: "Amigo", en: "Friend"} ],
+                hard: [ {pt: "Desenvolvimento", en: "Development"}, {pt: "Conhecimento", en: "Knowledge"} ]
+            };
+            const word = vocab[config.difficulty][Math.floor(Math.random() * vocab[config.difficulty].length)];
+            return { type: 'english', category: 'Inglês', prompt: `Traduza para o inglês: ${word.pt}`, answer: word.en.toLowerCase() };
+        }
+
+        function generatePortugueseQuestion() {
+            const pool = words.portugues.length > 0 ? words.portugues : subjectRegistry.portugues.defaultWords;
+            const word = pool[Math.floor(Math.random() * pool.length)];
+            return { type: 'portuguese', category: 'Português', prompt: "Ouça a palavra:", answer: word.toLowerCase() };
+        }
+
+        function generateScienceQuestion() {
+            const questions = {
+                easy: [ {q: "Qual o nome do nosso planeta?", a: "terra"}, {q: "O que nasce primeiro, a galinha ou o ovo? (responda ovo)", a: "ovo"} ],
+                medium: [ {q: "Qual o nome do processo que as plantas usam para fazer comida?", a: "fotossintese"}, {q: "Qual gás respiramos?", a: "oxigenio"} ],
+                hard: [ {q: "Qual a fórmula química da água?", a: "h2o"}, {q: "Qual o nome da força que nos prende ao chão?", a: "gravidade"} ]
+            };
+            const qObj = questions[config.difficulty][Math.floor(Math.random() * questions[config.difficulty].length)];
+            return { type: 'science', category: 'Ciências', prompt: qObj.q, answer: qObj.a };
+        }
+
+        function generateCustomQuestion() {
+            if (words.custom.length === 0) return { type: 'error', category: 'Erro', prompt: 'Nenhuma matéria importada ainda!', answer: '' };
+            const qObj = words.custom[Math.floor(Math.random() * words.custom.length)];
+            return { type: 'custom', category: customSubjectName, prompt: qObj.question, answer: qObj.answer.toLowerCase() };
+        }
+
+        function getNextQuestion() {
+            const active = config.activeSubjects;
+            if (active.length === 0) return { type: 'error', category: 'Erro', prompt: 'Selecione ao menos uma disciplina nas configurações!', answer: '' };
+            const chosenSubjectKey = active[Math.floor(Math.random() * active.length)];
+            return subjectRegistry[chosenSubjectKey].generator();
+        }
+
+        // --- Core Logic ---
+        function getPlayerKey(key) { return currentPlayer ? `spellingGame_${currentPlayer}_${key}` : `spellingGame_${key}`; }
+
+        function loadPlayerData() {
+            words = JSON.parse(localStorage.getItem(getPlayerKey('Words'))) || { portugues: [], matematica: [], ingles: [], ciencias: [], custom: [] };
+            score = parseInt(localStorage.getItem(getPlayerKey('Score'))) || 0;
+            performanceData = JSON.parse(localStorage.getItem(getPlayerKey('PerformanceData'))) || [];
+            responseTimeData = JSON.parse(localStorage.getItem(getPlayerKey('ResponseTimeData'))) || [];
+            wordLogs = JSON.parse(localStorage.getItem(getPlayerKey('WordLogs'))) || {};
+            chartType = localStorage.getItem(getPlayerKey('ChartType')) || 'line';
+            chartTheme = localStorage.getItem(getPlayerKey('ChartTheme')) || 'light';
+            config = JSON.parse(localStorage.getItem(getPlayerKey('Config'))) || { difficulty: 'medium', activeSubjects: Object.keys(subjectRegistry) };
+            speechRate = parseFloat(localStorage.getItem(getPlayerKey('SpeechRate'))) || 1;
+            wordRevealed = false; 
+            
+            customSubjectName = localStorage.getItem(getPlayerKey('CustomSubjectName')) || "Matéria Importada";
+            customSubjectColor = localStorage.getItem(getPlayerKey('CustomSubjectColor')) || "#e74c3c";
+            subjectRegistry.custom.name = customSubjectName;
+
+            document.getElementById('score').innerText = score;
+            document.getElementById('speechRate').value = speechRate;
+            document.getElementById('rateValue').textContent = speechRate.toFixed(1) + 'x';
+            updateLogsDisplay();
+            updateCombinedChart();
+            applyConfigToUI();
+            updateSubjectPanel();
+        }
+
+        function applyConfigToUI() {
+            document.getElementById('difficultySelect').value = config.difficulty;
+            updateSubjectPanel();
+        }
+
+        function updateSubjectPanel() {
+            const panel = document.getElementById('subjectPanel');
+            panel.innerHTML = '';
+            
+            for (const [key, subject] of Object.entries(subjectRegistry)) {
+                const card = document.createElement('div');
+                card.className = `subject-card ${config.activeSubjects.includes(key) ? 'active' : ''}`;
+                
+                const header = document.createElement('h3');
+                header.className = subject.color;
+                header.textContent = subject.name;
+                if (key === 'custom') header.style.backgroundColor = customSubjectColor;
+                
+                const controls = document.createElement('div');
+                controls.className = 'subject-controls';
+                
+                const count = document.createElement('div');
+                count.className = 'subject-count';
+                count.textContent = key === 'custom' ? `${words.custom.length} perguntas` : `${words[key].length} palavras`;
+                
+                const toggle = document.createElement('div');
+                toggle.className = `subject-toggle ${config.activeSubjects.includes(key) ? 'active' : ''}`;
+                toggle.textContent = config.activeSubjects.includes(key) ? 'Ativo' : 'Inativo';
+                toggle.onclick = () => toggleSubject(key);
+                
+                controls.appendChild(count);
+                controls.appendChild(toggle);
+                card.appendChild(header);
+                card.appendChild(controls);
+                panel.appendChild(card);
+            }
+        }
+
+        function toggleSubject(subjectKey) {
+            const index = config.activeSubjects.indexOf(subjectKey);
+            if (index > -1) config.activeSubjects.splice(index, 1);
+            else config.activeSubjects.push(subjectKey);
+            saveConfig();
+            updateSubjectPanel();
+        }
+
+        function saveConfig() {
+            config.difficulty = document.getElementById('difficultySelect').value;
+            speechRate = parseFloat(document.getElementById('speechRate').value);
+            saveDataToCache();
+        }
+
+        function registerPlayer() {
+            const name = document.getElementById('playerNameInput').value.trim();
+            if (name === "") return alert("Por favor, digite um nome válido.");
+            selectPlayer(name);
+        }
+
+        function selectPlayer(name) {
+            currentPlayer = name.toLowerCase();
+            localStorage.setItem('spellingGameCurrentUser', currentPlayer);
+            let players = JSON.parse(localStorage.getItem('spellingGamePlayers')) || [];
+            if (!players.includes(currentPlayer)) {
+                players.push(currentPlayer);
+                localStorage.setItem('spellingGamePlayers', JSON.stringify(players));
+            }
+            document.getElementById('playerModal').classList.remove('active');
+            document.getElementById('playerInfoBar').style.display = 'flex';
+            document.getElementById('currentPlayerName').innerText = currentPlayer;
+            loadPlayerData();
+        }
+
+        function logoutPlayer() {
+            if (performanceChart) { performanceChart.destroy(); performanceChart = null; }
+            document.getElementById('playerInfoBar').style.display = 'none';
+            document.getElementById('playerModal').classList.add('active');
+            document.getElementById('playerNameInput').value = '';
+            updatePlayerList();
+        }
+
+        function updatePlayerList() {
+            const players = JSON.parse(localStorage.getItem('spellingGamePlayers')) || [];
+            const listElement = document.getElementById('playerList');
+            const sectionElement = document.getElementById('existingPlayersSection');
+            if (players.length > 0) {
+                sectionElement.style.display = 'block';
+                listElement.innerHTML = '';
+                players.forEach(player => {
+                    const li = document.createElement('li');
+                    li.textContent = player;
+                    li.onclick = () => selectPlayer(player);
+                    listElement.appendChild(li);
+                });
+            } else { sectionElement.style.display = 'none'; }
+        }
+
+        if (currentPlayer) {
+            document.getElementById('playerModal').classList.remove('active');
+            document.getElementById('playerInfoBar').style.display = 'flex';
+            document.getElementById('currentPlayerName').innerText = currentPlayer;
+            loadPlayerData();
+        } else { updatePlayerList(); }
+
+        function saveDataToCache() {
+            if (performanceData.length > MAX_HISTORY_SIZE) performanceData = performanceData.slice(-MAX_HISTORY_SIZE);
+            if (responseTimeData.length > MAX_HISTORY_SIZE) responseTimeData = responseTimeData.slice(-MAX_HISTORY_SIZE);
+            localStorage.setItem(getPlayerKey('Words'), JSON.stringify(words));
+            localStorage.setItem(getPlayerKey('Score'), score.toString());
+            localStorage.setItem(getPlayerKey('PerformanceData'), JSON.stringify(performanceData));
+            localStorage.setItem(getPlayerKey('ResponseTimeData'), JSON.stringify(responseTimeData));
+            localStorage.setItem(getPlayerKey('WordLogs'), JSON.stringify(wordLogs));
+            localStorage.setItem(getPlayerKey('ChartType'), chartType);
+            localStorage.setItem(getPlayerKey('ChartTheme'), chartTheme);
+            localStorage.setItem(getPlayerKey('Config'), JSON.stringify(config));
+            localStorage.setItem(getPlayerKey('SpeechRate'), speechRate.toString());
+            localStorage.setItem(getPlayerKey('CustomSubjectName'), customSubjectName);
+            localStorage.setItem(getPlayerKey('CustomSubjectColor'), customSubjectColor);
+        }
+
+        function clearSubjectData() {
+            if (!confirm('Tem certeza de que deseja limpar o progresso da disciplina selecionada?')) return;
+            const filter = document.getElementById('subjectFilter').value;
+            if (filter === 'all') {
+                if (!confirm('Isso limpará TODOS os dados de todas disciplinas. Continuar?')) return;
+                ['Words', 'Score', 'PerformanceData', 'ResponseTimeData', 'WordLogs', 'ChartType', 'ChartTheme', 'Config', 'SpeechRate', 'CustomSubjectName', 'CustomSubjectColor']
+                    .forEach(k => localStorage.removeItem(getPlayerKey(k)));
+                words = { portugues: [], matematica: [], ingles: [], ciencias: [], custom: [] };
+                score = 0; performanceData = []; responseTimeData = []; wordLogs = {};
+                config = { difficulty: 'medium', activeSubjects: Object.keys(subjectRegistry) };
+                speechRate = 1; customSubjectName = "Matéria Importada"; customSubjectColor = "#e74c3c";
+            } else {
+                words[filter] = [];
+                const regKey = filter === 'custom' ? customSubjectName : subjectRegistry[filter].name;
+                const logs = Object.keys(wordLogs).filter(k => wordLogs[k].category === regKey);
+                logs.forEach(k => delete wordLogs[k]);
+                performanceData = performanceData.filter(d => d.category !== regKey);
+                responseTimeData = responseTimeData.filter(d => d.category !== regKey);
+            }
+            document.getElementById('score').innerText = score;
+            document.getElementById('gameArea').style.display = 'none';
+            document.getElementById('feedback').innerText = '';
+            document.getElementById('wordDisplay').innerHTML = '';
+            document.getElementById('phoneticDisplay').innerHTML = '';
+            if (performanceChart) { performanceChart.destroy(); performanceChart = null; }
+            updateLogsDisplay();
+            updateSubjectPanel();
+            saveDataToCache();
+        }
+
+        function clearCachedData() {
+            if (!confirm('Tem certeza de que deseja apagar TODOS os dados?')) return;
+            ['Words', 'Score', 'PerformanceData', 'ResponseTimeData', 'WordLogs', 'ChartType', 'ChartTheme', 'Config', 'SpeechRate', 'CustomSubjectName', 'CustomSubjectColor']
+                .forEach(k => localStorage.removeItem(getPlayerKey(k)));
+            words = { portugues: [], matematica: [], ingles: [], ciencias: [], custom: [] };
+            score = 0; performanceData = []; responseTimeData = []; wordLogs = {};
+            config = { difficulty: 'medium', activeSubjects: Object.keys(subjectRegistry) };
+            speechRate = 1; customSubjectName = "Matéria Importada"; customSubjectColor = "#e74c3c";
+            document.getElementById('score').innerText = 0;
+            document.getElementById('gameArea').style.display = 'none';
+            document.getElementById('feedback').innerText = '';
+            document.getElementById('wordDisplay').innerHTML = '';
+            document.getElementById('phoneticDisplay').innerHTML = '';
+            document.getElementById('customSubjectContainer').style.display = 'none';
+            if (performanceChart) { performanceChart.destroy(); performanceChart = null; }
+            updateLogsDisplay();
+            updateSubjectPanel();
+        }
+
+        function exportPlayerData() {
+            if (!currentPlayer) return alert("Nenhum jogador logado.");
+            const players = JSON.parse(localStorage.getItem('spellingGamePlayers')) || [];
+            downloadJSON({ playerName: currentPlayer, playersList: players, gameData: { words, score, performanceData, responseTimeData, wordLogs, chartType, chartTheme, config, speechRate, customSubjectName, customSubjectColor } }, `game_player_${currentPlayer}.json`);
+        }
+
+        function downloadJSON(data, filename) {
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+
+        function importCachedData() { document.getElementById('importCacheFileInput').click(); }
+        function importWords(subjectKey) {
+            document.getElementById('importFileInput').click();
+            document.getElementById('importFileInput').dataset.subject = subjectKey;
+        }
+
+        function handleCacheFileImport(event) {
+            readFile(event, (jsonData) => {
+                const g = jsonData.gameData || jsonData;
+                words = g.words || { portugues: [], matematica: [], ingles: [], ciencias: [], custom: [] };
+                score = g.score || 0;
+                performanceData = g.performanceData || [];
+                responseTimeData = g.responseTimeData || [];
+                wordLogs = g.wordLogs || {};
+                config = g.config || config;
+                speechRate = g.speechRate || 1;
+                customSubjectName = g.customSubjectName || "Matéria Importada";
+                customSubjectColor = g.customSubjectColor || "#e74c3c";
+                if (jsonData.playerName) {
+                    let players = JSON.parse(localStorage.getItem('spellingGamePlayers')) || [];
+                    if (!players.includes(jsonData.playerName)) {
+                        players.push(jsonData.playerName);
+                        localStorage.setItem('spellingGamePlayers', JSON.stringify(players));
+                    }
+                    selectPlayer(jsonData.playerName);
+                }
+                saveDataToCache();
+                document.getElementById('score').innerText = score;
+                document.getElementById('speechRate').value = speechRate;
+                document.getElementById('rateValue').textContent = speechRate.toFixed(1) + 'x';
+                updateLogsDisplay();
+                updateCombinedChart();
+                updateSubjectPanel();
+                alert("Dados importados com sucesso!");
+            });
+        }
+
+        function handleFileImport(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            if (file.size > 1024 * 1024) return alert("Erro: O arquivo deve ter no máximo 1MB.");
+            
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const jsonData = JSON.parse(e.target.result);
+                    if (Array.isArray(jsonData) && jsonData.every(item => typeof item === 'string')) {
+                        const subjectKey = event.target.dataset.subject || 'portugues';
+                        words[subjectKey] = jsonData;
+                        saveDataToCache();
+                        updateSubjectPanel();
+                        alert(`Lista de ${subjectRegistry[subjectKey].name} importada com sucesso!`);
+                    } else {
+                        alert("Erro: O arquivo JSON deve conter um array de strings.");
+                    }
+                } catch (err) {
+                    alert("Erro ao ler o arquivo JSON: " + err.message);
+                }
+            };
+            reader.readAsText(file);
+            event.target.value = '';
+        }
+
+        function importCustomSubject() { document.getElementById('importCustomSubjectInput').click(); }
+
+        function handleCustomSubjectImport(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const jsonData = JSON.parse(e.target.result);
+                    if (!jsonData.htmlContent || !jsonData.subjectName) return alert("Erro: O JSON deve conter 'subjectName' e 'htmlContent'.");
+
+                    customSubjectName = jsonData.subjectName;
+                    customSubjectColor = jsonData.subjectColor || "#e74c3c";
+                    subjectRegistry.custom.name = customSubjectName;
+
+                    const container = document.getElementById('customSubjectContainer');
+                    const contentDiv = document.getElementById('customSubjectContent');
+                    contentDiv.innerHTML = jsonData.htmlContent;
+                    document.getElementById('customSubjectTitle').innerText = customSubjectName;
+                    container.style.display = 'block';
+
+                    const questionElements = contentDiv.querySelectorAll('[data-question][data-answer]');
+                    if (questionElements.length === 0) return alert("Nenhuma pergunta encontrada. Certifique-se de usar os atributos data-question e data-answer no HTML.");
+
+                    words.custom = [];
+                    questionElements.forEach(el => {
+                        words.custom.push({ question: el.getAttribute('data-question'), answer: el.getAttribute('data-answer').toLowerCase() });
+                    });
+
+                    if (!config.activeSubjects.includes('custom')) config.activeSubjects.push('custom');
+                    
+                    saveDataToCache();
+                    updateSubjectPanel();
+                    alert(`Matéria "${customSubjectName}" importada com sucesso! ${words.custom.length} perguntas encontradas.`);
+                } catch (err) { alert("Erro ao processar o arquivo JSON: " + err.message); }
+            };
+            reader.readAsText(file);
+            event.target.value = '';
+        }
+
+        function readFile(event, onSuccess) {
+            const file = event.target.files[0];
+            if (!file) return;
+            if (file.size > 1024 * 1024) return alert("Erro: O arquivo deve ter no máximo 1MB.");
+            const reader = new FileReader();
+            reader.onload = (e) => { try { onSuccess(JSON.parse(e.target.result)); } catch (err) { alert("Erro ao ler o arquivo JSON: " + err.message); } };
+            reader.readAsText(file);
+            event.target.value = '';
+        }
+
+        function startGame() {
+            if(config.activeSubjects.length === 0) return alert("Selecione ao menos uma disciplina nas configurações!");
+            document.getElementById('gameArea').style.display = 'block';
+            nextWord();
+        }
+
+        function nextWord() {
+            isWaitingForNext = false;
+            wordRevealed = false; 
+            currentQuestion = getNextQuestion();
+            if(currentQuestion.type === 'error') { alert(currentQuestion.prompt); return; }
+            
+            const catEl = document.getElementById('questionCategory');
+            const textEl = document.getElementById('questionText');
+            const displayEl = document.getElementById('wordDisplay');
+            const phoneticEl = document.getElementById('phoneticDisplay');
+            const inputEl = document.getElementById('spellInput');
+            
+            const subKey = Object.keys(subjectRegistry).find(k => subjectRegistry[k].name === currentQuestion.category);
+            catEl.className = subKey ? subjectRegistry[subKey].color : '';
+            catEl.textContent = currentQuestion.category;
+
+            if (subKey === 'custom') catEl.style.backgroundColor = customSubjectColor;
+            else catEl.style.backgroundColor = '';
+
+            textEl.innerText = currentQuestion.prompt;
+            inputEl.value = "";
+            document.getElementById('feedback').innerText = "";
+            inputEl.focus();
+            startTime = new Date().getTime();
+
+            if (currentQuestion.type === 'portuguese') {
+                displayEl.innerHTML = ''; 
+                inputEl.placeholder = "Digite a palavra...";
+                speakWord();
+            } else if (currentQuestion.type === 'english') {
+                displayEl.innerHTML = '';
+                phoneticEl.textContent = pronunciationData[currentQuestion.answer] || '';
+                inputEl.placeholder = "Digite a palavra em inglês...";
+                speakWord();
+            } else {
+                displayEl.innerHTML = '';
+                phoneticEl.textContent = '';
+                inputEl.placeholder = currentQuestion.type === 'math' ? "Digite o número..." : "Digite a resposta...";
+            }
+
+            initializeWordLog(currentQuestion.answer);
+            wordLogs[currentQuestion.answer].attempts++;
+            wordLogs[currentQuestion.answer].category = currentQuestion.category;
+            updateLogsDisplay();
+            saveDataToCache();
+        }
+
+        function initializeWordLog(key) {
+            if (!wordLogs[key]) wordLogs[key] = { attempts: 0, successes: 0, totalTime: 0, bestTime: Infinity, category: '' };
+        }
+
+        function updateLogsDisplay() {
+            const logsContainer = document.getElementById('logsContainer');
+            if (!logsContainer) return;
+            const filter = document.getElementById('subjectFilter').value;
+            let html = '';
+            for (const [key, log] of Object.entries(wordLogs)) {
+                const matchesFilter = filter === 'all' || (filter === 'custom' ? log.category === customSubjectName : subjectRegistry[filter].name === log.category);
+                if (log.attempts > 0 && matchesFilter) {
+                    const successRate = ((log.successes / log.attempts) * 100).toFixed(1);
+                    const avgTime = log.successes > 0 ? (log.totalTime / log.successes).toFixed(1) : 0;
+                    const catBadge = log.category ? `<span style="font-size:0.8em; color:#7f8c8d;">(${log.category})</span>` : '';
+                    html += `<div class="log-entry"><strong>${key}</strong> ${catBadge} - Tentativas: ${log.attempts} | Sucesso: ${successRate}% | Tempo: ${avgTime}s</div>`;
+                }
+            }
+            logsContainer.innerHTML = html || '<p>Nenhum registro ainda.</p>';
+        }
+
+        function checkSpelling() {
+            if (isWaitingForNext) return;
+            const userInput = document.getElementById('spellInput').value.trim().toLowerCase();
+            if (!userInput) return;
+            
+            const feedbackElement = document.getElementById('feedback');
+            const endTime = new Date().getTime();
+            const responseTime = (endTime - startTime) / 1000;
+            let pointsEarned = 0;
+
+            if (userInput === currentQuestion.answer.toLowerCase()) {
+                pointsEarned = calculateScore(responseTime);
+                score += pointsEarned;
+                document.getElementById('score').innerText = score;
+                feedbackElement.innerText = `Correto! +${pointsEarned} pontos (${responseTime.toFixed(1)}s)`;
+                feedbackElement.className = "feedback success";
+                
+                wordLogs[currentQuestion.answer].successes++;
+                wordLogs[currentQuestion.answer].totalTime += responseTime;
+                if (responseTime < wordLogs[currentQuestion.answer].bestTime) wordLogs[currentQuestion.answer].bestTime = responseTime;
+            } else {
+                feedbackElement.innerText = `Incorreto! A resposta era: ${currentQuestion.answer}`;
+                feedbackElement.className = "feedback error";
+            }
+
+            if (currentQuestion.type === 'portuguese') {
+                document.getElementById('wordDisplay').innerHTML = `<div class="letter-box">${currentQuestion.answer}</div>`;
+            }
+
+            const now = new Date();
+            const dateStr = now.toLocaleDateString('pt-BR') + " " + now.toLocaleTimeString('pt-BR', {hour: '2-digit', minute: '2-digit'});
+            performanceData.push({ date: dateStr, word: currentQuestion.answer, points: pointsEarned, category: currentQuestion.category });
+            responseTimeData.push({ date: dateStr, word: currentQuestion.answer, time: responseTime });
+
+            updateCombinedChart();
+            updateLogsDisplay();
+            saveDataToCache();
+
+            document.getElementById('nextButton').style.display = 'inline-block';
+            isWaitingForNext = true;
+        }
+
+        function speakWord() {
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+                const utterance = new SpeechSynthesisUtterance();
+                if (currentQuestion.type === 'portuguese') { utterance.lang = 'pt-BR'; utterance.rate = 0.8; utterance.text = currentQuestion.answer; }
+                else if (currentQuestion.type === 'english') { utterance.lang = 'en-US'; utterance.rate = speechRate; utterance.text = currentQuestion.answer; }
+                else { utterance.lang = 'pt-BR'; utterance.rate = 0.9; utterance.text = currentQuestion.prompt.replace('×', 'vezes'); }
+                window.speechSynthesis.speak(utterance);
+            }
+        }
+
+        function slowPronunciation() { speechRate = 0.6; document.getElementById('speechRate').value = speechRate; document.getElementById('rateValue').textContent = speechRate.toFixed(1) + 'x'; speakWord(); }
+        function fastPronunciation() { speechRate = 1.4; document.getElementById('speechRate').value = speechRate; document.getElementById('rateValue').textContent = speechRate.toFixed(1) + 'x'; speakWord(); }
+
+        function calculateScore(t) { if (t <= 5) return 10; if (t <= 10) return 8; if (t <= 15) return 6; if (t <= 20) return 4; return 2; }
+
+        function toggleChartType() { const types = ['line', 'bar', 'radar', 'doughnut']; chartType = types[(types.indexOf(chartType) + 1) % types.length]; saveDataToCache(); updateCombinedChart(); }
+        function toggleChartTheme() { chartTheme = chartTheme === 'light' ? 'dark' : 'light'; saveDataToCache(); updateCombinedChart(); }
+        function exportChart() { const url = document.getElementById('performanceChart').toDataURL('image/png'); const a = document.createElement('a'); a.href = url; a.download = `chart_${Date.now()}.png`; a.click(); }
+
+        function updateCombinedChart() {
+            const canvas = document.getElementById('performanceChart');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            const labels = performanceData.map(d => `${d.date} (${d.word})`);
+            const pointsData = performanceData.map(d => d.points);
+            const timeData = responseTimeData.map(d => d.time);
+            const textColor = chartTheme === 'dark' ? '#ffffff' : '#333333';
+            const gridColor = chartTheme === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
+
+            if (performanceChart) performanceChart.destroy();
+
+            let configChart = {};
+            const axisOptions = {
+                yPoints: { type: 'linear', position: 'left', beginAtZero: true, max: 10, ticks: { color: textColor }, grid: { color: gridColor }, title: { display: true, text: 'Pontuação', color: textColor } },
+                yTime: { type: 'linear', position: 'right', beginAtZero: true, ticks: { color: textColor }, grid: { drawOnChartArea: false }, title: { display: true, text: 'Segundos', color: textColor } },
+                x: { ticks: { color: textColor, maxRotation: 45 }, grid: { color: gridColor } }
+            };
+
+            if (chartType === 'line' || chartType === 'bar') {
+                configChart = { type: chartType, data: { labels, datasets: [{ label: 'Pontuação', data: pointsData, yAxisID: 'yPoints', backgroundColor: chartType === 'bar' ? pointsData.map(d => d >= 8 ? '#27ae60' : d > 0 ? '#f1c40f' : '#e74c3c') : 'rgba(41,128,185,0.2)', borderColor: '#2980b9' }, { label: 'Tempo (s)', data: timeData, yAxisID: 'yTime', backgroundColor: 'rgba(230,126,34,0.6)', borderColor: '#e67e22' }] }, options: { scales: axisOptions } };
+            } else if (chartType === 'radar') {
+                configChart = { type: 'radar', data: { labels, datasets: [{ label: 'Pontuação', data: pointsData, borderColor: '#2980b9', backgroundColor: 'rgba(41,128,185,0.2)' }, { label: 'Tempo (s)', data: timeData, borderColor: '#e67e22', backgroundColor: 'rgba(230,126,34,0.2)' }] }, options: { scales: { r: { ticks: { color: textColor, backdropColor: 'transparent' }, grid: { color: gridColor }, pointLabels: { color: textColor } } } } };
+            } else if (chartType === 'doughnut') {
+                configChart = { type: 'doughnut', data: { labels, datasets: [{ label: 'Pontuação', data: pointsData, backgroundColor: pointsData.map(d => d >= 8 ? '#27ae60' : d > 0 ? '#f1c40f' : '#e74c3c') }, { label: 'Tempo (s)', data: timeData, backgroundColor: timeData.map(() => 'rgba(230,126,34,0.6)') }] } };
+            }
+
+            performanceChart = new Chart(ctx, { ...configChart, options: { responsive: true, maintainAspectRatio: false, ...configChart.options, plugins: { legend: { labels: { color: textColor } }, title: { display: true, text: 'Desempenho Multidisciplinar', color: textColor } } } });
+        }
+
+        document.getElementById('spellInput').addEventListener('keypress', (e) => { if (e.key === 'Enter') { if (!isWaitingForNext) checkSpelling(); else { nextWord(); document.getElementById('nextButton').style.display = 'none'; } } });
+        document.getElementById('playerNameInput').addEventListener('keypress', (e) => { if (e.key === 'Enter') registerPlayer(); });
+        document.getElementById('speechRate').addEventListener('input', (e) => { speechRate = parseFloat(e.target.value); document.getElementById('rateValue').textContent = speechRate.toFixed(1) + 'x'; });
+
+        function showSection(sectionName) {
+            document.querySelectorAll('.section').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.nav-buttons button').forEach(el => el.classList.remove('nav-active'));
+            document.getElementById(sectionName + 'Section').classList.add('active');
+            document.getElementById('nav' + sectionName.charAt(0).toUpperCase() + sectionName.slice(1)).classList.add('active');
+        }
+
+        let speechEnabled = false;
+        let currentSpeech = null;
+
+        function toggleHelpSpeech() {
+            speechEnabled = !speechEnabled;
+            const button = document.querySelector('.speech-controls button');
+            if (speechEnabled) {
+                button.textContent = '🔇 Desativar Narração';
+                const text = document.querySelector('.help-content').innerText;
+                currentSpeech = new SpeechSynthesisUtterance(text);
+                currentSpeech.lang = 'pt-BR'; currentSpeech.rate = 0.9;
+                window.speechSynthesis.speak(currentSpeech);
+            } else {
+                button.textContent = '🔊 Ativar Narração';
+                window.speechSynthesis.cancel(); currentSpeech = null;
+            }
+        }
+    </script>
+</body>
+</html>
