@@ -1,0 +1,51 @@
+{
+  "subjectName": "Língua Portuguesa",
+  "subjectColor": "#3498db",
+  "subjectIcon": "📖",
+  "description": "Estudo da língua portuguesa, incluindo gramática, literatura e redação.",
+  "htmlContent": "<div class='custom-subject-content'><h2>Conteúdo de Apoio</h2><p>Este HTML será injetado na página. Você pode colocar regras gramaticais, exemplos de literatura ou dicas de redação aqui.</p></div>",
+  "questions": [
+    {
+      "topic": "Tópico 1: Gramática Básica",
+      "difficulty": "easy",
+      "type": "multiple_choice",
+      "question": "Qual das opções abaixo é uma preposição?",
+      "options": ["Correr", "Rápido", "Para", "Feliz"],
+      "answer": "para",
+      "hint": "Preposições conectam palavras na frase.",
+      "explanation": "Para é uma preposição que indica direção ou destino.",
+      "customHtmlContent": "<div class='question-item' data-question='Qual das opções abaixo é uma preposição?' data-answer='para'><strong>Gramática:</strong> Palavras de ligação.</div>"
+    },
+    {
+      "topic": "Tópico 1: Gramática Básica",
+      "difficulty": "easy",
+      "type": "text_input",
+      "question": "Qual é o tempo verbal da frase: 'Ela estuda todos os dias'?",
+      "answer": "presente do indicativo",
+      "hint": "Expressa ações que estão acontecendo no momento.",
+      "explanation": "O verbo 'estuda' está no presente do indicativo, que expressa ações habituais ou no momento presente.",
+      "customHtmlContent": "<div class='question-item' data-question='Qual é o tempo verbal da frase: Ela estuda todos os dias?' data-answer='presente do indicativo'><strong>Verbos:</strong> Tempo presente.</div>"
+    },
+    {
+      "topic": "Tópico 2: Literatura",
+      "difficulty": "medium",
+      "type": "text_input",
+      "question": "Quem escreveu 'Dom Casmurro'?",
+      "answer": "machado de assis",
+      "hint": "É considerado o maior escritor brasileiro do século XIX.",
+      "explanation": "Machado de Assis é o autor de 'Dom Casmurro', um dos mais importantes romances da literatura brasileira.",
+      "customHtmlContent": "<div class='question-item' data-question='Quem escreveu Dom Casmurro?' data-answer='machado de assis'><strong>Literatura Brasileira:</strong> Romance realista.</div>"
+    },
+    {
+      "topic": "Tópico 3: Redação",
+      "difficulty": "hard",
+      "type": "text_input",
+      "question": "Qual é a função da crase na frase: 'Vou à praia'?",
+      "answer": "indicar o artigo feminino a antes de palavra feminina começada por vogal ou h",
+      "hint": "É a fusão da preposição 'a' com o artigo 'a'.",
+      "explanation": "A crase indica a fusão da preposição 'a' (a) com o artigo 'a' (a), usada antes de palavras femininas começadas por vogal ou h mudo.",
+      "customHtmlContent": "<div class='question-item' data-question='Qual é a função da crase na frase: Vou à praia?' data-answer='indicar o artigo feminino a antes de palavra feminina começada por vogal ou h'><strong>Gramática Avançada:</strong> Uso da crase.</div>"
+    }
+  ]
+}
+

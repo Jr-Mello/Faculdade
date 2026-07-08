@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Image Color Analyzer</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f9;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem;
+    }
+    .container {
+      background: white;
+      padding: 2rem;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      max-width: 600px;
+      width: 100%;
+    }
+    h1 { font-size: 1.5rem; margin-top: 0; }
+    .input-group {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    input[type="text"] {
+      flex: 1;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    /* Estilo para o botão de upload de arquivo */
+    .file-input-wrapper {
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .file-input-wrapper label {
+      padding: 10px 15px;
+      background-color: #6c757d;
+      color: white;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background 0.3s;
+      font-size: 0.9rem;
+    }
+    .file-input-wrapper label:hover { background-color: #5a6268; }
+    .file-input-wrapper input[type="file"] { display: none; }
+    #fileName { color: #555; font-size: 0.9rem; }
+
+    button {
+      padding: 10px 20px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    button:hover { background-color: #0056b3; }
+    .preview {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+    .preview img {
+      max-width: 100%;
+      max-height: 300px;
+      border-radius: 4px;
+      display: none;
+    }
+    .colors-container {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .color-box {
+      flex: 1;
+      min-width: 80px;
+      height: 100px;
+      border-radius: 8px;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      padding-bottom: 10px;
+      color: white;
+      font-size: 0.8rem;
+      font-weight: bold;
+      text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+      background-color: #e0e0e0;
+      text-align: center;
+    }
+    #status { margin-bottom: 15px; color: #555; }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h1>Image Color Analyzer</h1>
+    
+    <!-- Grupo 1: URL da Imagem -->
+    <div class="input-group">
+      <input type="text" id="imageUrl" placeholder="Ou cole a URL de uma imagem aqui">
+      <button id="analyzeBtn">Analisar URL</button>
+    </div>
+
+    <!-- Grupo 2: Upload Local -->
+    <div class="file-input-wrapper">
+      <label for="imageUpload">Carregar Imagem Local</label>
+      <input type="file" id="imageUpload" accept="image/*">
+      <span id="fileName">Nenhum arquivo selecionado</span>
+      <button id="analyzeLocalBtn" disabled>Analisar Local</button>
+    </div>
+
+    <div id="status">Pronto para analisar.</div>
+    
+    <div class="preview">
+      <img id="previewImg" alt="Image preview">
+    </div>
+
+    <div class="colors-container" id="colorsContainer">
+      <div class="color-box" id="color0">Center</div>
+      <div class="color-box" id="color1">Top-Left</div>
+      <div class="color-box" id="color2">Top-Right</div>
+      <div class="color-box" id="color3">Bottom-Left</div>
+      <div class="color-box" id="color4">Bottom-Right</div>
+    </div>
+  </div>
+
+  <script>
+    // --- Funções Utilitárias ---
+    function loadImage(url) {
+      return new Promise((resolve, reject) => {
+        const image = new Image();
+        image.crossOrigin = "Anonymous"; // Necessário para URLs externas
+        image.src = url;
+        image.addEventListener('load', () => resolve(image));
+        image.addEventListener('error', () => reject(new Error('Falha ao carregar a imagem.')));
+      });
+    }
+
+    function rgbToHex(r, g, b) {
+      const rh = (rgb) => {
+        let hex = Number(rgb).toString(16);
+        if (hex.length < 2) hex = `0${hex}`;
+        return hex;
+      };
+      return `#${rh(r)}${rh(g)}${rh(b)}`;
+    }
+
+    // --- Classe Canvas ---
+    class Canvas {
+      constructor(url) {
+        this.url = url;
+        this.size = 50;
+      }
+
+      init() {
+        let canvas = document.getElementById('image-analyzer');
+        if (!canvas) {
+          canvas = document.createElement('canvas');
+          canvas.id = 'image-analyzer';
+          canvas.width = this.size;
+          canvas.height = this.size;
+          canvas.style.display = 'none';
+          document.body.appendChild(canvas);
+        }
+        this.canvas = canvas;
+        this.context = this.canvas.getContext('2d');
+      }
+
+      draw() {
+        return loadImage(this.url)
+          .then((image) => {
+            this.image = image;
+            this.imgResolutionRatio = image.width / image.height;
+            this.context.clearRect(0, 0, this.size, this.size);
+            this.context.drawImage(image, 0, 0, this.size, this.size);
+          })
+          .catch(console.error);
+      }
+
+      getAvgColor(data) {
+        const rgb = { r: 0, g: 0, b: 0 };
+        const stepSize = 5;
+        const rgbKeys = Object.keys(rgb);
+        let count = 0;
+        
+        for (let i = stepSize * 4; i < data.length; i += stepSize * 4) {
+          count++;
+          for (let j = 0; j < rgbKeys.length; j++) {
+            rgb[rgbKeys[j]] += data[i + j];
+          }
+        }
+        
+        if (count === 0) return '#000000';
+        rgbKeys.forEach(key => (rgb[key] = Math.floor(rgb[key] / count)));
+        return rgbToHex(rgb.r, rgb.g, rgb.b);
+      }
+
+      getColors() {
+        const { height, width } = this.canvas;
+        const parts = [
+          [width / 4, height / 4, width / 4, height / 4],
+          [0, 0, width / 2, height / 2],
+          [width / 2, 0, width / 2, height / 2],
+          [0, height / 2, width / 2, height / 2],
+          [width / 2, height / 2, width / 2, height / 2]
+        ];
+        
+        return parts.map((part) => this.getAvgColor(this.context.getImageData(...part).data));
+      }
+    }
+
+    // --- Classe Analyzer ---
+    class Analyzer {
+      constructor(url) {
+        this.url = url;
+        this.canvas = new Canvas(this.url);
+        this.canvas.init();
+      }
+
+      analyze() {
+        return this.canvas.draw().then(() => this.canvas.getColors());
+      }
+    }
+
+    // --- Lógica da Interface (UI) ---
+    const imageUrlInput = document.getElementById('imageUrl');
+    const analyzeBtn = document.getElementById('analyzeBtn');
+    
+    const imageUpload = document.getElementById('imageUpload');
+    const analyzeLocalBtn = document.getElementById('analyzeLocalBtn');
+    const fileNameSpan = document.getElementById('fileName');
+    
+    const previewImg = document.getElementById('previewImg');
+    const statusEl = document.getElementById('status');
+
+    let localImageUrl = null;
+
+    // Lida com a seleção de arquivos locais
+    imageUpload.addEventListener('change', (event) => {
+      const file = event.target.files[0];
+      if (file) {
+        fileNameSpan.textContent = file.name;
+        // Cria uma URL temporária local para o arquivo (não causa problemas de CORS)
+        localImageUrl = URL.createObjectURL(file);
+        analyzeLocalBtn.disabled = false;
+      } else {
+        fileNameSpan.textContent = 'Nenhum arquivo selecionado';
+        localImageUrl = null;
+        analyzeLocalBtn.disabled = true;
+      }
+    });
+
+    // Função genérica para rodar a análise
+    function runAnalysis(url) {
+      statusEl.textContent = 'Analisando...';
+      previewImg.src = url;
+      previewImg.style.display = 'block';
+
+      const analyzer = new Analyzer(url);
+      analyzer.analyze()
+        .then((colors) => {
+          if (colors && colors.length > 0) {
+            const labels = ['Center', 'Top-Left', 'Top-Right', 'Bottom-Left', 'Bottom-Right'];
+            colors.forEach((hex, index) => {
+              const box = document.getElementById(`color${index}`);
+              box.style.backgroundColor = hex;
+              box.textContent = `${labels[index]}\n${hex}`;
+            });
+            statusEl.textContent = 'Análise concluída!';
+          }
+        })
+        .catch((err) => {
+          statusEl.textContent = `Erro: ${err.message}`;
+          console.error(err);
+        });
+    }
+
+    // Evento do botão de URL
+    analyzeBtn.addEventListener('click', () => {
+      const url = imageUrlInput.value.trim();
+      if (!url) return;
+      runAnalysis(url);
+    });
+
+    // Evento do botão de Imagem Local
+    analyzeLocalBtn.addEventListener('click', () => {
+      if (!localImageUrl) return;
+      runAnalysis(localImageUrl);
+    });
+  </script>
+</body>
+</html>

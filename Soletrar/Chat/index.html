@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Pro - Assistente Avançado</title>
+    <script src="sc.js"></script>
+    <link href="css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* Integrated Data System Styles */
+        .data-system-panel {
+            border-top: 1px solid rgba(0,0,0,0.05);
+            padding: 1rem 1.5rem;
+            background: rgba(255,255,255,0.5);
+            transition: max-height 0.3s ease, padding 0.3s ease;
+            overflow: hidden;
+        }
+        .dark .data-system-panel {
+            background: rgba(255,255,255,0.03);
+            border-top: 1px solid rgba(255,255,255,0.05);
+        }
+        .data-system-panel.collapsed {
+            max-height: 0;
+            padding-top: 0;
+            padding-bottom: 0;
+        }
+        .data-system-panel.expanded {
+            max-height: 500px;
+        }
+        .data-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.75rem;
+        }
+        .data-header h3 {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #4f46e5;
+            margin: 0;
+        }
+        .dark .data-header h3 {
+            color: #818cf8;
+        }
+        .data-header button {
+            font-size: 0.75rem;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            background: #e0e7ff;
+            color: #4338ca;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .dark .data-header button {
+            background: rgba(129, 140, 248, 0.2);
+            color: #a5b4fc;
+        }
+        .data-header button:hover {
+            transform: scale(1.05);
+        }
+        .data-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        .data-group div {
+            flex: 1;
+        }
+        .data-group label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #6b7280;
+            display: block;
+            margin-bottom: 0.25rem;
+        }
+        .dark .data-group label {
+            color: #9ca3af;
+        }
+        .data-group input {
+            width: 100%;
+            padding: 0.5rem 0.75rem;
+            font-size: 0.8rem;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            box-sizing: border-box;
+            background: #f9fafb;
+            color: #1f2937;
+            transition: background-color 0.3s, border-color 0.3s;
+        }
+        .dark .data-group input {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: #e5e7eb;
+        }
+        .data-group input:focus {
+            outline: none;
+            border-color: #6366f1;
+            box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+        }
+        .search-section {
+            margin-top: 0.5rem;
+        }
+        .search-section input {
+            width: 100%;
+            padding: 0.5rem 0.75rem;
+            font-size: 0.8rem;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            box-sizing: border-box;
+            background: #f9fafb;
+            color: #1f2937;
+            margin-bottom: 0.5rem;
+        }
+        .dark .search-section input {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: #e5e7eb;
+        }
+        .search-section input:focus {
+            outline: none;
+            border-color: #6366f1;
+            box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+        }
+        #searchResults {
+            font-size: 0.75rem;
+            color: #6b7280;
+            font-style: italic;
+        }
+        .dark #searchResults {
+            color: #9ca3af;
+        }
+    </style>
+</head>
+<body class="light-mode h-screen flex items-center justify-center p-0 md:p-6 transition-all duration-500">
+
+    <div id="app-container" class="w-full max-w-4xl h-full md:h-[90vh] glass-panel rounded-none md:rounded-[2rem] shadow-2xl flex flex-col overflow-hidden bg-white/70 dark:bg-slate-900/80">
+        
+        <!-- Premium Header -->
+        <div class="px-6 py-5 flex items-center justify-between border-b border-gray-200 dark:border-white/10">
+            <div class="flex items-center gap-4">
+                <div class="relative">
+                    <div class="w-12 h-12 bg-indigo-600 rounded-2xl flex items-center justify-center text-white shadow-xl rotate-3 hover:rotate-0 transition-transform">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                        </svg>
+                    </div>
+                    <span class="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 border-2 border-white dark:border-slate-800 rounded-full animate-pulse"></span>
+                </div>
+                <div>
+                    <h1 class="font-bold text-gray-800 dark:text-white text-xl tracking-tight">IA Pro</h1>
+                    <p id="bot-status" class="text-[11px] font-semibold text-indigo-500 dark:text-indigo-400 uppercase tracking-widest">Sistema Ativo</p>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2">
+                <!-- Theme Toggle -->
+                <button onclick="toggleTheme()" class="p-2.5 rounded-xl bg-gray-100 dark:bg-white/5 text-gray-600 dark:text-gray-300 hover:scale-110 transition-all">
+                    <svg id="theme-icon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                    </svg>
+                </button>
+                <button onclick="clearChat()" class="p-2.5 rounded-xl bg-red-50 dark:bg-red-900/20 text-red-500 hover:scale-110 transition-all">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <div id="chat-container" class="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar bg-white/30 dark:bg-transparent">
+            <!-- Messages load here -->
+        </div>
+
+        <!-- Typing Indicator -->
+        <div id="typing-indicator" class="px-8 py-2 hidden">
+            <div class="flex items-center gap-1.5 opacity-60">
+                <span class="typing-dot" style="animation-delay: 0s"></span>
+                <span class="typing-dot" style="animation-delay: 0.2s"></span>
+                <span class="typing-dot" style="animation-delay: 0.4s"></span>
+                <span class="text-xs font-medium dark:text-gray-400 ml-2">Zenith está pensando...</span>
+            </div>
+        </div>
+
+        <!-- Integrated Data System -->
+        <div id="data-system-panel" class="data-system-panel collapsed">
+            <div class="data-header">
+                <h3>💾 Sistema de Dados de Respostas</h3>
+                <button onclick="toggleDataPanel()">Expandir</button>
+            </div>
+            <div class="data-group">
+                <div>
+                    <label for="data1">Resposta 1:</label>
+                    <input type="text" id="data1" placeholder="Armazenado automaticamente..." oninput="syncSearch()">
+                </div>
+                <div>
+                    <label for="data2">Resposta 2:</label>
+                    <input type="text" id="data2" placeholder="Armazenado automaticamente..." oninput="syncSearch()">
+                </div>
+            </div>
+            <div class="data-group">
+                <div>
+                    <label for="data3">Resposta 3:</label>
+                    <input type="text" id="data3" placeholder="Armazenado automaticamente..." oninput="syncSearch()">
+                </div>
+                <div>
+                    <label for="data4">Resposta 4:</label>
+                    <input type="text" id="data4" placeholder="Armazenado automaticamente..." oninput="syncSearch()">
+                </div>
+            </div>
+            <div class="search-section">
+                <input type="search" id="searchInput" placeholder="Buscar nos dados de resposta..." oninput="syncSearch()">
+                <div id="searchResults">Comece a digitar para ver os campos correspondentes...</div>
+            </div>
+        </div>
+
+        <div class="p-6 bg-white/80 dark:bg-slate-800/50 border-t border-gray-200 dark:border-white/5">
+            <form id="chat-form" onsubmit="handleChatSubmit(event)" class="relative group">
+                <input 
+                    type="text" 
+                    id="user-input" 
+                    placeholder="Digite sua mensagem..." 
+                    class="w-full pl-6 pr-16 py-4 bg-gray-100 dark:bg-white/5 border border-transparent dark:text-white rounded-2xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white dark:focus:bg-slate-800 transition-all text-sm shadow-inner"
+                    autocomplete="off"
+                >
+                <button 
+                    type="submit" 
+                    class="absolute right-2 top-2 bottom-2 px-5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl shadow-lg shadow-indigo-500/30 transition-all flex items-center justify-center group-hover:scale-105"
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 rotate-90" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" />
+                    </svg>
+                </button>
+            </form>
+            
+            <!-- Quick Chips -->
+            <div class="flex gap-2 mt-4 overflow-x-auto pb-2 no-scrollbar">
+                <button onclick="fillInput('O que você pode fazer?')" class="whitespace-nowrap px-4 py-2 text-xs font-semibold bg-white dark:bg-white/10 border border-gray-200 dark:border-white/10 rounded-full text-gray-600 dark:text-gray-300 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 hover:border-indigo-200 transition-all">🚀 Capacidades</button>
+                <button onclick="fillInput('Me conte uma piada')" class="whitespace-nowrap px-4 py-2 text-xs font-semibold bg-white dark:bg-white/10 border border-gray-200 dark:border-white/10 rounded-full text-gray-600 dark:text-gray-300 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 hover:border-indigo-200 transition-all">😂 Contar uma piada</button>
+                <button onclick="fillInput('Qual é a hora?')" class="whitespace-nowrap px-4 py-2 text-xs font-semibold bg-white dark:bg-white/10 border border-gray-200 dark:border-white/10 rounded-full text-gray-600 dark:text-gray-300 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 hover:border-indigo-200 transition-all">🕒 Hora</button>
+                <button onclick="fillInput('Modo escuro por favor')" class="whitespace-nowrap px-4 py-2 text-xs font-semibold bg-white dark:bg-white/10 border border-gray-200 dark:border-white/10 rounded-full text-gray-600 dark:text-gray-300 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 hover:border-indigo-200 transition-all">🌓 Mudar Tema</button>
+                <button onclick="toggleDataPanel()" class="whitespace-nowrap px-4 py-2 text-xs font-semibold bg-white dark:bg-white/10 border border-gray-200 dark:border-white/10 rounded-full text-gray-600 dark:text-gray-300 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 hover:border-indigo-200 transition-all">💾 Dados</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- Estado do Sistema ---
+        // Armazena as variáveis globais do aplicativo, como preferências do usuário e histórico de conversas
+        const state = {
+            userName: localStorage.getItem('zenith_name') || null, // Obtém o nome do usuário do armazenamento local ou define como nulo se não existir
+            isDarkMode: localStorage.getItem('zenith_theme') === 'dark', // Verifica se o tema escuro está salvo no armazenamento local
+            context: 'idle', // Define o contexto atual do chat: 'idle' (inativo) ou 'awaiting_name' (aguardando nome)
+            chatHistory: JSON.parse(localStorage.getItem('zenith_history')) || [], // Carrega o histórico de conversas salvo ou cria um array vazio
+            dataPointer: 0 // Ponteiro para controlar qual campo de dados será atualizado em seguida (0-3)
+        };
+
+        // --- Dados de Intenção ---
+        // Define as intenções que o bot pode reconhecer e suas respostas correspondentes
+        const intents = {
+            // Intenção de saudação
+            GREETING: {
+                keywords: ['oi', 'olá', 'ola', 'hey', 'bom dia', 'boa tarde', 'boa noite', 'saudações'], // Palavras que podem acionar esta intenção
+                replies: () => { // Função que retorna respostas de saudação dinâmicas
+                    const time = new Date().getHours(); // Pega a hora atual do sistema
+                    let prefix = "Olá!"; // Prefixo padrão para a saudação
+                    if (time < 12) prefix = "Bom dia!"; // Antes do meio-dia
+                    else if (time < 18) prefix = "Boa tarde!"; // Entre meio-dia e 18h
+                    else prefix = "Boa noite!"; // Após 18h
+                    
+                    // Retorna diferentes saudações baseado se o usuário já foi identificado
+                    return state.userName 
+                        ? [`${prefix} Que bom ver você de novo, ${state.userName}!`, `Bem-vindo de volta, ${state.userName}. Como posso ajudar hoje?`]
+                        : [`${prefix} Eu sou o Zenith. Posso perguntar o seu nome?`, `Oi! Acho que ainda não nos conhecemos. Qual é o seu nome?`];
+                }
+            },
+            // Intenção sobre capacidades do bot
+            CAPABILITIES: {
+                keywords: ['ajuda', 'o que você faz', 'recursos', 'comandos', 'qual o seu propósito'], // Palavras-chave sobre capacidades
+                replies: ["Sou um assistente de IA predefinido. Posso lembrar do seu nome, contar piadas, dar a hora atual, mudar o tema e responder perguntas básicas sem nenhuma API externa!"] // Resposta fixa sobre capacidades
+            },
+            // Intenção sobre horário/data
+            TIME: {
+                keywords: ['hora', 'data', 'dia', 'relógio', 'relogio', 'qual a data', 'que dia', 'hoje'], // Palavras-chave relacionadas a tempo e data
+                replies: () => {
+                    const now = new Date();
+                    const timeStr = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                    const dateStr = now.toLocaleDateString([], {weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'});
+                    return [
+                        `Agora são ${timeStr} de ${dateStr}.`, 
+                        `O relógio diz ${timeStr} e hoje é ${dateStr}.`
+                    ];
+                } // Retorna a hora e data atual formatadas
+            },
+            
+            // Intenção de piadas
+            JOKE: {
+                keywords: ['piada', 'engraçado', 'engracado', 'rir', 'risada'], // Palavras-chave para pedir piadas
+                replies: [ // Array de piadas pré-definidas
+                    "Por que os programadores preferem o modo escuro? Porque a luz atrai bugs.",
+                    "Quantos desenvolvedores são necessários para trocar uma lâmpada? Nenhum, é um problema de hardware.",
+                    "Uma consulta SQL entra em um bar, vai até duas tabelas e pergunta... 'Posso me juntar a vocês?'"
+                ]
+            },
+            // Intenção sobre identidade do bot
+            IDENTITY: {
+                keywords: ['quem é você', 'quem e voce', 'seu nome', 'o que você é', 'o que voce e', 'criador'], // Palavras-chave sobre identidade
+                replies: ["Eu sou o Fabrício IA, um assistente leve e inteligente baseado em JS. Fui criado para mostrar que os bots podem ser rápidos e úteis mesmo sem um cérebro na nuvem massivo."] // Resposta sobre a identidade do bot
+            },
+            // Intenção de mudança de tema
+            THEME: {
+                keywords: ['modo escuro', 'modo claro', 'tema', 'fundo', 'cor'], // Palavras-chave para mudar tema
+                replies: ["Claro! Atualizei o tema para você. O que achou?"] // Resposta após mudar o tema
+            },
+            // Intenção de agradecimento
+            THANKS: {
+                keywords: ['obrigado', 'obrigada', 'valeu', 'legal', 'incrível', 'incivel', 'ótimo', 'otimo'], // Palavras-chave de agradecimento
+                replies: ["De nada!", "Feliz em ajudar!", "Qualquer hora! Precisa de mais alguma coisa?"] // Respostas para agradecimentos
+            }
+        };
+
+        // --- Funções Principais da UI ---
+        // Funções que manipulam elementos da interface do usuário
+        const container = document.getElementById('chat-container'); // Elemento que contém as mensagens do chat
+        const inputField = document.getElementById('user-input'); // Campo de entrada de texto do usuário
+        const typingIndicator = document.getElementById('typing-indicator'); // Indicador visual de "digitando..."
+        const dataPanel = document.getElementById('data-system-panel'); // Painel do sistema de dados
+
+        // Função para alternar entre modo claro e escuro
+        function toggleTheme(force) {
+            // Define o estado do tema: usa o valor forçado se fornecido, ou inverte o estado atual
+            state.isDarkMode = force !== undefined ? force : !state.isDarkMode;
+            // Alterna classes CSS no body para aplicar o tema
+            document.body.classList.toggle('dark-mode', state.isDarkMode);
+            document.body.classList.toggle('light-mode', !state.isDarkMode);
+            // Alterna classe no contêiner principal do app
+            document.getElementById('app-container').classList.toggle('dark', state.isDarkMode);
+            
+            // Altera o ícone do botão de tema baseado no modo atual
+            const icon = document.getElementById('theme-icon');
+            if(state.isDarkMode) {
+                icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707M16.95 16.95l.707.707M7.05 7.05l.707.707M12 8a4 4 0 100 8 4 4 0 000-8z" />'; // Ícone de sol
+            } else {
+                icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />'; // Ícone de lua
+            }
+            
+            // Salva a preferência de tema no armazenamento local
+            localStorage.setItem('zenith_theme', state.isDarkMode ? 'dark' : 'light');
+        }
+
+        // Função para criar uma bolha de mensagem no chat
+        function createBubble(text, sender) {
+            // Formata a hora atual como HH:MM
+            const timeStr = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            // Cria um elemento div para a bolha da mensagem
+            const bubble = document.createElement('div');
+            // Define classes CSS para alinhamento (direita para usuário, esquerda para bot)
+            bubble.className = `flex ${sender === 'user' ? 'justify-end' : 'justify-start'}`;
+            
+            // Define o conteúdo HTML da bolha
+            bubble.innerHTML = `
+                <div class="message-bubble ${sender === 'user' ? 'user-bubble' : 'bot-bubble'} px-5 py-3.5 rounded-2xl Shadow-sm border border-black/5">
+                    <p class="text-sm leading-relaxed">${text}</p>
+                    <span class="block text-[9px] mt-1 opacity-50 text-right">${timeStr}</span>
+                </div>
+            `;
+            
+            // Adiciona a bolha ao contêiner e rola para o final
+            container.appendChild(bubble);
+            container.scrollTo({ top: container.scrollHeight, behavior: 'smooth' });
+            
+            // Salva a mensagem no histórico e no armazenamento local (mantendo apenas as últimas 50 mensagens)
+            state.chatHistory.push({ text, sender, time: Date.now() });
+            localStorage.setItem('zenith_history', JSON.stringify(state.chatHistory.slice(-50)));
+
+            // Se a mensagem for do bot, salva os dados no Sistema de Dados individual
+            if (sender === 'bot') {
+                const dataField = document.getElementById(`data${state.dataPointer + 1}`);
+                if (dataField) {
+                    dataField.value = text;
+                    state.dataPointer = (state.dataPointer + 1) % 4; // Alterna entre 0, 1, 2 e 3
+                    syncSearch(); // Atualiza os resultados da busca caso o painel esteja aberto
+                }
+            }
+        }
+
+        // Função que lida com o envio de mensagens
+        async function handleChatSubmit(e) {
+            // Previne o envio padrão do formulário
+            e.preventDefault();
+            // Obtém e limpa o texto do campo de entrada
+            const text = inputField.value.trim();
+            if (!text) return; // Se não houver texto, não faz nada
+
+            // Limpa o campo de entrada e exibe a mensagem do usuário
+            inputField.value = '';
+            createBubble(text, 'user');
+
+            // Mostra o indicador de digitação e rola o chat
+            typingIndicator.classList.remove('hidden');
+            container.scrollTo({ top: container.scrollHeight, behavior: 'smooth' });
+
+            // Simula um atraso de processamento antes da resposta
+            setTimeout(() => {
+                // Esconde o indicador de digitação e processa a resposta
+                typingIndicator.classList.add('hidden');
+                processResponse(text);
+            }, 600 + Math.random() * 800); // Atraso aleatório entre 600-1400ms
+        }
+
+        // Função principal que processa a entrada do usuário e gera respostas
+        function processResponse(input) {
+            // Converte o texto para minúsculas para facilitar a correspondência
+            const lowInput = input.toLowerCase();
+            
+            // 1. Lógica para capturar nomes de usuários
+            if (state.context === 'awaiting_name' || (lowInput.includes('meu nome é') && !state.userName)) {
+                // Extrai o nome da entrada do usuário
+                let name = input.split(' ').pop().replace(/[?!.]/g, '');
+                if (lowInput.includes('meu nome é')) name = input.split('é ').pop();
+                
+                // Salva o nome no estado e no armazenamento local
+                state.userName = name;
+                localStorage.setItem('zenith_name', name);
+                state.context = 'idle'; // Reseta o contexto
+                // Responde com uma saudação personalizada
+                return createBubble(`Prazer em conhecê-lo, ${name}! Vou me lembrar disso. Como posso ajudar você hoje?`, 'bot');
+            }
+
+            // 2. Lógica para mudança de tema
+            if (lowInput.includes('escuro') || lowInput.includes('claro')) {
+                // Define se deve mudar para tema escuro ou claro
+                const isDark = lowInput.includes('escuro');
+                toggleTheme(isDark); // Aplica a mudança de tema
+                return createBubble(intents.THEME.replies[0], 'bot'); // Responde sobre a mudança de tema
+            }
+
+            // 3. Procura por correspondência de intenções
+            for (const key in intents) {
+                const intent = intents[key];
+                // Verifica se alguma palavra-chave da intenção está na entrada do usuário
+                if (intent.keywords.some(k => lowInput.includes(k))) {
+                    // Obtém o pool de respostas (executa função se for o caso)
+                    const pool = typeof intent.replies === 'function' ? intent.replies() : intent.replies;
+                    const response = pool[Math.floor(Math.random() * pool.length)]; // Seleciona uma resposta aleatória
+                    
+                    // Se for uma saudação e o usuário não tem nome, define o contexto para aguardar nome
+                    if (key === 'GREETING' && !state.userName) state.context = 'awaiting_name';
+                    
+                    return createBubble(response, 'bot'); // Exibe a resposta
+                }
+            }
+
+            // 4. Resposta padrão caso nenhuma intenção corresponda
+            const fallbacks = [
+                "Não tenho certeza sobre isso. Tente perguntar sobre a hora, minhas capacidades ou uma piada!",
+                "Isso está um pouco além do meu escopo predefinido. Talvez tentar 'ajuda' para ver o que eu posso fazer?",
+                "Interessante! Me conte mais, ou peça uma piada rápida!"
+            ];
+            createBubble(fallbacks[Math.floor(Math.random() * fallbacks.length)], 'bot');
+        }
+
+        // Função para preencher o campo de entrada com texto
+        function fillInput(text) {
+            inputField.value = text; // Define o valor do campo
+            inputField.focus(); // Foca no campo para digitação imediata
+        }
+
+        // Função para limpar o histórico de conversas
+        function clearChat() {
+            // Solicita confirmação antes de limpar
+            if(confirm("Limpar histórico de conversas?")) {
+                container.innerHTML = ''; // Limpa o contêiner de mensagens
+                state.chatHistory = []; // Limpa o histórico no estado
+                localStorage.removeItem('zenith_history'); // Remove do armazenamento local
+                createBubble("Sistema reiniciado. Memória limpa. Como posso ajudar?", 'bot'); // Mensagem de confirmação
+            }
+        }
+
+        // Função para expandir/recolher o painel de dados
+        function toggleDataPanel() {
+            const isCollapsed = dataPanel.classList.contains('collapsed');
+            const btn = dataPanel.querySelector('button');
+            if (isCollapsed) {
+                dataPanel.classList.remove('collapsed');
+                dataPanel.classList.add('expanded');
+                btn.textContent = 'Recolher';
+            } else {
+                dataPanel.classList.add('collapsed');
+                dataPanel.classList.remove('expanded');
+                btn.textContent = 'Expandir';
+            }
+        }
+
+        // Função de busca sincronizada do Sistema de Dados
+        function syncSearch() {
+            // Obtém a consulta de busca e converte para minúsculas
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            const resultDisplay = document.getElementById('searchResults');
+            
+            // Obtém os 4 campos de dados
+            const fields = [
+                document.getElementById('data1'),
+                document.getElementById('data2'),
+                document.getElementById('data3'),
+                document.getElementById('data4')
+            ];
+
+            // Se a busca estiver vazia, reseta os destaques e a mensagem
+            if (query === '') {
+                fields.forEach(field => {
+                    field.style.backgroundColor = '';
+                    field.style.borderColor = '';
+                });
+                resultDisplay.innerHTML = 'Comece a digitar para ver os campos correspondentes...';
+                return;
+            }
+
+            let matches = [];
+
+            // Verifica cada campo para encontrar correspondência
+            fields.forEach((field, index) => {
+                if (field.value.toLowerCase().includes(query)) {
+                    field.style.backgroundColor = '#e8f5e9'; // Destaca em verde se corresponder
+                    field.style.borderColor = '#66bb6a';
+                    matches.push(`Resposta ${index + 1}`);
+                } else {
+                    field.style.backgroundColor = '#ffebee'; // Destaca em vermelho se não corresponder
+                    field.style.borderColor = '#ef5350';
+                }
+            });
+
+            // Atualiza o texto do resultado
+            if (matches.length > 0) {
+                resultDisplay.innerHTML = `<strong>Correspondências encontradas em:</strong> ${matches.join(', ')}`;
+            } else {
+                resultDisplay.innerHTML = 'Nenhuma correspondência encontrada nos dados.';
+            }
+        }
+
+        // --- Inicialização ---
+        // Código executado quando a página é carregada
+        window.onload = () => {
+            // Aplica o tema salvo ao carregar
+            toggleTheme(state.isDarkMode);
+            
+            // Se houver histórico de mensagens, carrega-as
+            if (state.chatHistory.length > 0) {
+                state.chatHistory.forEach(msg => {
+                    // Cria elementos para cada mensagem do histórico
+                    const bubble = document.createElement('div');
+                    bubble.className = `flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`;
+                    bubble.innerHTML = `
+                        <div class="message-bubble ${msg.sender === 'user' ? 'user-bubble' : 'bot-bubble'} px-5 py-3.5 rounded-2xl Shadow-sm border border-black/5">
+                            <p class="text-sm leading-relaxed">${msg.text}</p>
+                            <span class="block text-[9px] mt-1 opacity-50 text-right">${new Date(msg.time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                        </div>
+                    `;
+                    container.appendChild(bubble);
+                });
+                container.scrollTop = container.scrollHeight; // Rola para o final
+            } else {
+                // Se não h histórico, exibe mensagem de boas-vindas
+                createBubble("Olá! Eu sou o Fabrício IA. Sou um assistente de IA completamente local. Como está sendo o seu dia?", 'bot');
+            }
+            
+            // Foca no campo de entrada ao carregar
+            inputField.focus();
+        };
+
+    </script>
+</body>
+</html>

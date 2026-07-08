@@ -1,0 +1,193 @@
+<!DOCTYPE html> <!-- Declara o tipo de documento como HTML5 -->
+<html lang="pt-BR"> <!-- Define o idioma da página como português do Brasil -->
+<head> <!-- Início da seção de cabeçalho do documento -->
+    <meta charset="UTF-8"> <!-- Define a codificação de caracteres como UTF-8 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- Configura a viewport para responsividade -->
+    
+    <title>Jogo de Soletração Multidisciplinar</title> <!-- Define o título da página -->
+    <script src="chart.js"></script> <!-- Inclui a biblioteca Chart.js para gráficos -->
+
+    <link rel="stylesheet" href="style.css"> <!-- Inclui o arquivo de estilos CSS -->
+</head> <!-- Fim da seção de cabeçalho -->
+<body> <!-- Início do corpo do documento HTML -->
+
+    <!-- Player Login Modal --> <!-- Modal de login do jogador -->
+    <div id="playerModal" class="modal active"> <!-- Container do modal de login -->
+        <div class="modal-content"> <!-- Conteúdo do modal -->
+            <h2>Bem-vindo ao Jogo</h2> <!-- Título de boas-vindas -->
+            <p>Digite seu nome para continuar:</p> <!-- Instruções para o jogador -->
+            <input type="text" id="playerNameInput" placeholder="Seu nome..."> <!-- Campo de entrada para nome do jogador -->
+            <button onclick="registerPlayer()">Entrar</button> <!-- Botão para registrar o jogador -->
+            <div id="existingPlayersSection" style="display:none; margin-top: 20px;"> <!-- Seção de jogadores existentes (inicialmente oculta) -->
+                <h3>Jogadores Existentes</h3> <!-- Título da seção -->
+                <ul id="playerList"></ul> <!-- Lista de jogadores existentes -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Player Modal --> <!-- Modal de edição de jogador -->
+    <div id="editPlayerModal" class="modal"> <!-- Container do modal de edição -->
+        <div class="modal-content"> <!-- Conteúdo do modal -->
+            <h2>Editar Jogador</h2> <!-- Título de edição -->
+            <input type="text" id="editPlayerNameInput" placeholder="Novo nome..."> <!-- Campo para novo nome -->
+            <button onclick="savePlayerEdit()" style="margin-bottom: 10px;">Salvar</button> <!-- Botão para salvar alterações -->
+            <button onclick="closeEditModal()" style="background: #ccc; color: #333;">Cancelar</button> <!-- Botão para cancelar edição -->
+        </div>
+    </div>
+
+    <!-- Top Bar --> <!-- Barra superior -->
+    <div id="playerInfoBar"> <!-- Container da barra de informações do jogador -->
+        <div>Jogador: <strong id="currentPlayerName"></strong></div> <!-- Nome do jogador atual -->
+        <div class="score-display">Pontos: <span id="score">0</span></div> <!-- Display de pontuação -->
+        <div class="bar-buttons"> <!-- Container de botões da barra -->
+            <button onclick="editPlayer()">✏️ Editar</button> <!-- Botão de edição -->
+            <button onclick="logoutPlayer()">🚪 Sair</button> <!-- Botão de logout -->
+        </div>
+    </div>
+
+    <!-- Navigation --> <!-- Navegação -->
+    <div class="nav-buttons"> <!-- Container de botões de navegação -->
+        <button id="navGame" class="nav-active" onclick="showSection('game')">🎮 Jogo</button> <!-- Botão de navegação para o jogo -->
+        <button id="navSettings" onclick="showSection('settings')">⚙️ Configurações</button> <!-- Botão de navegação para configurações -->
+        <button id="navPerformance" onclick="showSection('performance')">📊 Desempenho</button> <!-- Botão de navegação para desempenho -->
+        <button id="navHelp" onclick="showSection('help')">❓ Ajuda</button> <!-- Botão de navegação para ajuda -->
+    </div>
+
+    <!-- Main Content --> <!-- Conteúdo principal -->
+    <div class="container"> <!-- Container principal do conteúdo -->
+        
+        <!-- Game Section --> <!-- Seção do jogo -->
+        <div id="gameSection" class="section active"> <!-- Container da seção do jogo -->
+            <div style="text-align: center; margin-bottom: 20px;"> <!-- Container centralizado -->
+                <button class="game-btn btn-primary" onclick="startGame()">Iniciar Jogo</button> <!-- Botão para iniciar o jogo -->
+            </div>
+
+            <div id="gameArea" style="display: none;"> <!-- Área do jogo (inicialmente oculta) -->
+                <div class="question-header"> <!-- Cabeçalho da pergunta -->
+                    <div id="questionCategory">Categoria</div> <!-- Categoria da pergunta -->
+                    <div id="questionText">Prompt da questão</div> <!-- Texto da pergunta -->
+                </div>
+                
+                <div id="wordDisplay"></div> <!-- Display da palavra -->
+                <div id="phoneticDisplay"></div> <!-- Display fonético -->
+
+                <div class="speech-controls"> <!-- Controles de áudio -->
+                    <button onclick="speakWord()">🔊 Ouvir</button> <!-- Botão para ouvir palavra -->
+                    <button onclick="slowPronunciation()">🐢 Devagar</button> <!-- Botão para pronúncia lenta -->
+                    <button onclick="fastPronunciation()">🐇 Rápido</button> <!-- Botão para pronúncia rápida -->
+                </div>
+
+                <div class="input-group"> <!-- Grupo de entrada -->
+                    <input type="text" id="spellInput" placeholder="Digite sua resposta..."> <!-- Campo de resposta -->
+                    <button class="game-btn btn-success" onclick="checkSpelling()">Verificar</button> <!-- Botão para verificar resposta -->
+                </div>
+
+                <div id="feedback" class="feedback"></div> <!-- Área de feedback -->
+
+                <div style="text-align: center;"> <!-- Container centralizado -->
+                    <button id="nextButton" class="game-btn btn-primary" onclick="nextWord()">Próxima Palavra</button> <!-- Botão próxima palavra -->
+                </div>
+            </div>
+
+            <div id="customSubjectContainer"> <!-- Container de matéria customizada -->
+                <h3 id="customSubjectTitle">Matéria Importada</h3> <!-- Título da matéria -->
+                <div id="customSubjectContent"></div> <!-- Conteúdo da matéria -->
+            </div>
+        </div>
+
+        <!-- Settings Section --> <!-- Seção de configurações -->
+        <div id="settingsSection" class="section"> <!-- Container da seção de configurações -->
+            <div class="settings-grid"> <!-- Grade de configurações -->
+                <div class="card"> <!-- Cartão de dificuldade -->
+                    <h3>Dificuldade</h3> <!-- Título da dificuldade -->
+                    <select id="difficultySelect" onchange="saveConfig()" style="width: 100%; padding: 10px; font-size: 16px;"> <!-- Seletor de dificuldade -->
+                        <option value="easy">Fácil</option> <!-- Opção fácil -->
+                        <option value="medium" selected>Médio</option> <!-- Opção média (selecionada) -->
+                        <option value="hard">Difícil</option> <!-- Opção difícil -->
+                    </select>
+                </div>
+                <div class="card"> <!-- Cartão de velocidade -->
+                    <h3>Velocidade da Fala</h3> <!-- Título da velocidade -->
+                    <input type="range" id="speechRate" min="0.5" max="2" step="0.1" value="1" style="width: 100%;"> <!-- Controle deslizante de velocidade -->
+                    <span id="rateValue">1.0x</span> <!-- Display do valor da velocidade -->
+                </div>
+            </div>
+
+            <div class="card" style="margin-top: 20px;"> <!-- Cartão de disciplinas -->
+                <h3>Disciplinas</h3> <!-- Título das disciplinas -->
+                <div id="subjectPanel"></div> <!-- Painel de disciplinas -->
+            </div>
+
+            <div class="card" style="margin-top: 20px;"> <!-- Cartão de importação -->
+                <h3>Importar Dados</h3> <!-- Título de importação -->
+                <div style="display: flex; flex-wrap: wrap; gap: 10px;"> <!-- Container flexível de botões -->
+                    <button class="game-btn btn-primary" onclick="importCachedData()">Importar Backup Geral</button> <!-- Botão de backup geral -->
+                    <button class="game-btn btn-primary" onclick="importCustomSubject()">Importar Matéria Customizada</button> <!-- Botão de matéria customizada -->
+                    <button class="game-btn btn-primary" onclick="importWords('portugues')">Importar Palavras (PT)</button> <!-- Botão de palavras PT -->
+                    <button class="game-btn btn-primary" onclick="importWords('ingles')">Importar Palavras (EN)</button> <!-- Botão de palavras EN -->
+                </div>
+                <input type="file" id="importCacheFileInput" class="hidden-input" accept=".json" onchange="handleCacheFileImport(event)"> <!-- Input de arquivo de cache -->
+                <input type="file" id="importFileInput" class="hidden-input" accept=".json" onchange="handleFileImport(event)"> <!-- Input de arquivo de palavras -->
+                <input type="file" id="importCustomSubjectInput" class="hidden-input" accept=".json" onchange="handleCustomSubjectImport(event)"> <!-- Input de matéria customizada -->
+            </div>
+
+            <div class="card" style="margin-top: 20px;"> <!-- Cartão de gerenciamento -->
+                <h3>Gerenciar Dados</h3> <!-- Título de gerenciamento -->
+                <div style="display: flex; flex-wrap: wrap; gap: 10px;"> <!-- Container flexível de botões -->
+                    <button class="game-btn" style="background: #e67e22;" onclick="exportPlayerData()">Exportar Dados</button> <!-- Botão de exportação -->
+                    <select id="subjectFilter" style="padding: 10px; font-size: 16px;"> <!-- Filtro de disciplinas -->
+                        <option value="all">Todas as Disciplinas</option> <!-- Opção todas -->
+                        <option value="portugues">Português</option> <!-- Opção português -->
+                        <option value="matematica">Matemática</option> <!-- Opção matemática -->
+                        <option value="ingles">Inglês</option> <!-- Opção inglês -->
+                        <option value="ciencias">Ciências</option> <!-- Opção ciências -->
+                        <option value="custom">Customizada</option> <!-- Opção customizada -->
+                    </select>
+                    <button class="game-btn" style="background: var(--error-color);" onclick="clearSubjectData()">Limpar Selecionada</button> <!-- Botão de limpeza -->
+                    <button class="game-btn" style="background: #c0392b;" onclick="clearCachedData()">Limpar TUDO</button> <!-- Botão de limpeza total -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Performance Section --> <!-- Seção de desempenho -->
+        <div id="performanceSection" class="section"> <!-- Container da seção de desempenho -->
+            <div class="card"> <!-- Cartão de gráficos -->
+                <div class="chart-controls"> <!-- Controles de gráfico -->
+                    <button onclick="toggleChartType()">Alterar Tipo de Gráfico</button> <!-- Botão de tipo -->
+                    <button onclick="toggleChartTheme()">Alterar Tema</button> <!-- Botão de tema -->
+                    <button onclick="exportChart()">Exportar Gráfico (PNG)</button> <!-- Botão de exportação -->
+                </div>
+                <div class="chart-container"> <!-- Container do gráfico -->
+                    <canvas id="performanceChart"></canvas> <!-- Canvas do gráfico -->
+                </div>
+            </div>
+            <div class="card" style="margin-top: 20px;"> <!-- Cartão de registros -->
+                <h3>Registros de Palavras</h3> <!-- Título de registros -->
+                <div id="logsContainer"></div> <!-- Container de logs -->
+            </div>
+        </div>
+
+        <!-- Help Section --> <!-- Seção de ajuda -->
+        <div id="helpSection" class="section"> <!-- Container da seção de ajuda -->
+            <div class="help-content card"> <!-- Cartão de conteúdo de ajuda -->
+                <h2>Como Jogar</h2> <!-- Título de instruções -->
+                <p>Bem-vindo ao Jogo de Soletração Multidisciplinar! Siga os passos abaixo para começar:</p> <!-- Texto de boas-vindas -->
+                <ul> <!-- Lista de instruções -->
+                    <li><strong>Escolha as Disciplinas:</strong> Vá em Configurações e ative as disciplinas que deseja praticar.</li> <!-- Instrução 1 -->
+                    <li><strong>Inicie o Jogo:</strong> Clique em "Iniciar Jogo" para começar as perguntas.</li> <!-- Instrução 2 -->
+                    <li><strong>Responda:</strong> Digite sua resposta e pressione Enter ou clique em Verificar.</li> <!-- Instrução 3 -->
+                    <li><strong>Ouça a Pronúncia:</strong> Para Inglês e Português, use os botões de áudio para ouvir a palavra.</li> <!-- Instrução 4 -->
+                    <li><strong>Acompanhe seu Desempenho:</strong> Na aba Desempenho, veja gráficos e seu histórico de acertos.</li> <!-- Instrução 5 -->
+                </ul>
+                <div class="speech-controls" style="margin-top: 20px;"> <!-- Controles de narração -->
+                    <button onclick="toggleHelpSpeech()">🔊 Ativar Narração</button> <!-- Botão de narração -->
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="script.js"></script> <!-- Inclui o arquivo JavaScript principal -->
+</body> <!-- Fim do corpo do documento -->
+</html> <!-- Fim do documento HTML -->
+

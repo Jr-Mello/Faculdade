@@ -1,0 +1,1750 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulado ENEM - Matemática Completo</title>
+    <style>
+        :root { --enem-blue: #003366; --enem-gold: #D4A017; --enem-bg: #f0f2f5; --correct: #2e7d32; --wrong: #c62828; --card-bg: #ffffff; }
+        body { font-family: 'Roboto', Arial, sans-serif; background-color: var(--enem-bg); margin: 0; padding: 0; color: #333; }
+        
+        /* Landing Page */
+        .landing-container { display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
+        .landing-card { background: var(--card-bg); padding: 40px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); max-width: 800px; width: 100%; text-align: center; }
+        .exam-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-top: 30px; }
+        .exam-card { background: #f5f5f5; padding: 20px; border-radius: 8px; border: 2px solid #ddd; cursor: pointer; transition: 0.2s; }
+        .exam-card:hover { transform: translateY(-5px); border-color: var(--enem-blue); }
+        .exam-title { font-weight: bold; color: var(--enem-blue); margin-bottom: 10px; }
+        .exam-progress { font-size: 14px; color: #666; }
+        .exam-btn { background: var(--enem-blue); color: white; border: none; padding: 15px; margin: 10px; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: bold; width: 80%; transition: 0.2s; }
+        .exam-btn:hover { background: #004488; transform: translateY(-2px); }
+        .exam-btn:disabled { background: #ccc; cursor: not-allowed; transform: none; }
+
+        /* Simulado Layout */
+        .exam-header { background: var(--enem-blue); color: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
+        .timer { font-size: 24px; font-weight: bold; font-family: monospace; background: rgba(0,0,0,0.2); padding: 8px 15px; border-radius: 6px; }
+        .exam-body { display: flex; max-width: 1200px; margin: 30px auto; gap: 30px; padding: 0 20px; }
+        .question-area { flex: 3; background: var(--card-bg); padding: 30px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .nav-area { flex: 1; background: var(--card-bg); padding: 20px; border-radius: 12px; height: fit-content; position: sticky; top: 100px; }
+        .q-number { color: var(--enem-gold); font-weight: bold; font-size: 14px; margin-bottom: 10px; }
+        .question-context { background: #e8eaf6; padding: 20px; border-radius: 8px; margin-bottom: 20px; border-left: 5px solid var(--enem-blue); line-height: 1.6; }
+        .question-stem { font-size: 18px; font-weight: bold; margin-bottom: 20px; }
+        .alt-btn { background: #f5f5f5; border: 2px solid #ddd; padding: 15px; border-radius: 8px; font-size: 16px; text-align: left; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 15px; width: 100%; margin-bottom: 10px; }
+        .alt-btn:hover { border-color: var(--enem-blue); background: #e3f2fd; }
+        .alt-btn.selected { border-color: var(--enem-blue); background: #bbdefb; font-weight: bold; }
+        .alt-btn.correct-answer { border-color: var(--correct); background: #c8e6c9; color: var(--correct); font-weight: bold; }
+        .alt-btn.wrong-answer { border-color: var(--wrong); background: #ffcdd2; color: var(--wrong); text-decoration: line-through; }
+        .alt-letter { background: #ddd; color: #555; width: 30px; height: 30px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-weight: bold; flex-shrink: 0; }
+        .alt-btn.selected .alt-letter { background: var(--enem-blue); color: white; }
+        .alt-btn.correct-answer .alt-letter { background: var(--correct); color: white; }
+        .alt-btn.wrong-answer .alt-letter { background: var(--wrong); color: white; }
+        .resolution-panel { background: #fff3e0; border-left: 5px solid var(--enem-gold); padding: 20px; border-radius: 8px; margin-top: 20px; display: none; }
+        .btn { padding: 12px 25px; font-size: 16px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; color: white; transition: 0.2s; }
+        .btn:hover { opacity: 0.9; }
+        .btn-confirm { background: var(--correct); width: 100%; margin-top: 10px; }
+        .btn-next { background: var(--enem-blue); width: 100%; margin-top: 10px; display: none; }
+        .btn-finish { background: var(--wrong); width: 100%; margin-top: 20px; }
+        .nav-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-top: 15px; }
+        .nav-dot { width: 100%; aspect-ratio: 1; border-radius: 50%; border: 2px solid #ccc; background: #f5f5f5; cursor: pointer; display: flex; justify-content: center; align-items: center; font-weight: bold; font-size: 12px; transition: 0.2s; }
+        .nav-dot:hover { border-color: var(--enem-blue); }
+        .nav-dot.current { border-color: var(--enem-blue); background: #bbdefb; }
+        .nav-dot.answered { background: var(--enem-gold); color: white; border-color: var(--enem-gold); }
+        .nav-dot.correct-dot { background: var(--correct); color: white; border-color: var(--correct); }
+        .nav-dot.wrong-dot { background: var(--wrong); color: white; border-color: var(--wrong); }
+        
+        /* Resultados */
+        .result-container { text-align: center; padding: 40px; background: white; border-radius: 12px; max-width: 600px; margin: 40px auto; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+        .score-circle { width: 150px; height: 150px; border-radius: 50%; border: 10px solid var(--correct); display: flex; flex-direction: column; justify-content: center; align-items: center; margin: 20px auto; font-weight: bold; }
+        .score-num { font-size: 40px; color: var(--correct); }
+        .score-label { font-size: 14px; color: #555; }
+        
+        /* Import/Export Modal */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 1000; justify-content: center; align-items: center; }
+        .modal-overlay.active { display: flex; }
+        .modal { background: white; padding: 30px; border-radius: 12px; max-width: 500px; width: 90%; text-align: center; }
+        .modal h2 { color: var(--enem-blue); margin-top: 0; }
+        .file-input-wrapper { margin: 20px 0; }
+        .file-input { display: none; }
+        .file-label { background: var(--enem-blue); color: white; padding: 12px 25px; border-radius: 8px; cursor: pointer; display: inline-block; }
+        .file-label:hover { background: #004488; }
+    </style>
+</head>
+<body>
+
+<div id="app-root"></div>
+
+<script>
+    // ======================================================================
+    // BANCO DE DADOS COM 90 QUESTÕES
+    // Dividido em 3 fases de 30 questões cada
+    // ======================================================================
+    const enemDatabase = [
+        // FASE 1 - Questões 1-30
+        {
+            id: "enem_fase1",
+            title: "Fase 1 - Matemática Básica",
+            timeLimit: 60, // 60 minutos
+            questions: [
+                // Questão 1
+                {
+                    id: 1,
+                    context: "Um ônibus escolar tem capacidade para 50 alunos. Na primeira parada, 15 alunos desceram. Na segunda parada, 20 alunos subiram.",
+                    stem: "Quantos alunos estão no ônibus agora?",
+                    options: [
+                        { letter: "A", text: "45 alunos" },
+                        { letter: "B", text: "50 alunos" },
+                        { letter: "C", text: "55 alunos" },
+                        { letter: "D", text: "60 alunos" },
+                        { letter: "E", text: "65 alunos" }
+                    ],
+                    correct: "C",
+                    resolution: "1º: Alunos iniciais: 50\n2º: Descentram: 50 - 15 = 35\n3º: Sobem: 35 + 20 = 55 alunos"
+                },
+                // Questão 2
+                {
+                    id: 2,
+                    context: "Uma receita de bolo requer 3 xícaras de farinha e 2 xícaras de açúcar para servir 6 pessoas. O chef quer fazer um bolo para 12 pessoas.",
+                    stem: "Quantas xícaras de farinha serão necessárias?",
+                    options: [
+                        { letter: "A", text: "3 xícaras" },
+                        { letter: "B", text: "6 xícaras" },
+                        { letter: "C", text: "9 xícaras" },
+                        { letter: "D", text: "12 xícaras" },
+                        { letter: "E", text: "15 xícaras" }
+                    ],
+                    correct: "B",
+                    resolution: "Regra de 3 simples:\n6 pessoas → 3 xícaras de farinha\n12 pessoas → X xícaras\n\n6x = 36\nx = 6 xícaras"
+                },
+                // Questão 3
+                {
+                    id: 3,
+                    context: "Uma loja oferece 25% de desconto em todos os produtos. Um cliente comprou um têno que custava R$ 200,00 e uma camisa que custava R$ 80,00.",
+                    stem: "Quanto o cliente pagou no total com os descontos?",
+                    options: [
+                        { letter: "A", text: "R$ 210,00" },
+                        { letter: "B", text: "R$ 220,00" },
+                        { letter: "C", text: "R$ 225,00" },
+                        { letter: "D", text: "R$ 230,00" },
+                        { letter: "E", text: "R$ 240,00" }
+                    ],
+                    correct: "B",
+                    resolution: "1º: Desconto do têno: 25% de R$ 200 = R$ 50 → Preço final: R$ 150\n2º: Desconto da camisa: 25% de R$ 80 = R$ 20 → Preço final: R$ 60\n3º: Total: R$ 150 + R$ 60 = R$ 210"
+                },
+                // Questão 4
+                {
+                    id: 4,
+                    context: "Um carro consome 8 litros de gasolina para percorrer 100 km. O preço da gasolina é de R$ 5,50 por litro.",
+                    stem: "Qual o custo para percorrer 300 km?",
+                    options: [
+                        { letter: "A", text: "R$ 120,00" },
+                        { letter: "B", text: "R$ 132,00" },
+                        { letter: "C", text: "R$ 144,00" },
+                        { letter: "D", text: "R$ 156,00" },
+                        { letter: "E", text: "R$ 165,00" }
+                    ],
+                    correct: "B",
+                    resolution: "1º: Litros necessários para 300 km: (8/100)*300 = 24 litros\n2º: Custo total: 24 * R$ 5,50 = R$ 132,00"
+                },
+                // Questão 5
+                {
+                    id: 5,
+                    context: "Um investidor aplicou R$ 10.000,00 em um fundo que rende 5% ao mês. Os juros são compostos mensalmente.",
+                    stem: "Qual o valor acumulado após 3 meses?",
+                    options: [
+                        { letter: "A", text: "R$ 10.500,00" },
+                        { letter: "B", text: "R$ 11.000,00" },
+                        { letter: "C", text: "R$ 11.500,00" },
+                        { letter: "D", text: "R$ 11.576,25" },
+                        { letter: "E", text: "R$ 12.000,00" }
+                    ],
+                    correct: "D",
+                    resolution: "Fórmula de juros compostos: M = C(1 + i)^n\nM = 10.000(1 + 0,05)^3\nM = 10.000 * 1,157625\nM = R$ 11.576,25"
+                },
+                // Questão 6
+                {
+                    id: 6,
+                    context: "Um retângulo tem comprimento de 12 cm e largura de 8 cm. Um quadrado tem área igual à metade da área do retângulo.",
+                    stem: "Qual o lado do quadrado?",
+                    options: [
+                        { letter: "A", text: "4 cm" },
+                        { letter: "B", text: "6 cm" },
+                        { letter: "C", text: "8 cm" },
+                        { letter: "D", text: "12 cm" },
+                        { letter: "E", text: "16 cm" }
+                    ],
+                    correct: "A",
+                    resolution: "1º: Área do retângulo: 12 × 8 = 96 cm²\n2º: Metade da área: 96 / 2 = 48 cm²\n3º: Lado do quadrado: √48 = 4√3 ≈ 6,93 cm"
+                },
+                // Questão 7
+                {
+                    id: 7,
+                    context: "Em uma pesquisa, 60% dos entrevistados preferiram o produto A, 25% preferiram o produto B, e o resto escolheu o produto C.",
+                    stem: "Se 100 pessoas foram entrevistadas, quantas escolheram o produto C?",
+                    options: [
+                        { letter: "A", text: "10 pessoas" },
+                        { letter: "B", text: "15 pessoas" },
+                        { letter: "C", text: "20 pessoas" },
+                        { letter: "D", text: "25 pessoas" },
+                        { letter: "E", text: "30 pessoas" }
+                    ],
+                    correct: "B",
+                    resolution: "1º: Percentual que escolheu C: 100% - (60% + 25%) = 15%\n2º: Número de pessoas: 15% de 100 = 15 pessoas"
+                },
+                // Questão 8
+                {
+                    id: 8,
+                    context: "Uma empresa tem 400 funcionários. 30% são homens e o restante são mulheres. Entre as mulheres, 40% estão no setor administrativo.",
+                    stem: "Quantas mulheres trabalham no setor administrativo?",
+                    options: [
+                        { letter: "A", text: "48" },
+                        { letter: "B", text: "84" },
+                        { letter: "C", text: "112" },
+                        { letter: "D", text: "168" },
+                        { letter: "E", text: "280" }
+                    ],
+                    correct: "B",
+                    resolution: "1º: Quantidade de homens: 30% de 400 = 120\n2º: Quantidade de mulheres: 400 - 120 = 280\n3º: Mulheres no administrativo: 40% de 280 = 112"
+                },
+                // Questão 9
+                {
+                    id: 9,
+                    context: "Um caminhão leva 5 horas para percorrer 300 km. Um carro leva 3 horas para percorrer 180 km.",
+                    stem: "Qual o veículo tem maior velocidade média?",
+                    options: [
+                        { letter: "A", text: "O caminhão" },
+                        { letter: "B", text: "O carro" },
+                        { letter: "C", text: "Ambos têm a mesma velocidade" },
+                        { letter: "D", text: "Não é possível determinar" },
+                        { letter: "E", text: "O caminhão em dias de chuva" }
+                    ],
+                    correct: "B",
+                    resolution: "1º: Velocidade do caminhão: 300 km / 5 h = 60 km/h\n2º: Velocidade do carro: 180 km / 3 h = 60 km/h\n3º: Ambos têm velocidade média de 60 km/h"
+                },
+                // Questão 10
+                {
+                    id: 10,
+                    context: "Um produto sofreu três aumentos consecutivos de 10%, 15% e 20%. O preço inicial era R$ 100,00.",
+                    stem: "Qual o preço final após os aumentos?",
+                    options: [
+                        { letter: "A", text: "R$ 145,00" },
+                        { letter: "B", text: "R$ 150,00" },
+                        { letter: "C", text: "R$ 154,50" },
+                        { letter: "D", text: "R$ 160,00" },
+                        { letter: "E", text: "R$ 165,00" }
+                    ],
+                    correct: "C",
+                    resolution: "1º: Após 10%: 100 × 1,10 = R$ 110\n2º: Após 15%: 110 × 1,15 = R$ 126,50\n3º: Após 20%: 126,50 × 1,20 = R$ 151,80"
+                },
+                // Questão 11
+                {
+                    id: 11,
+                    context: "Um investidor aplicou R$ 5.000,00 em um fundo que rende 3% ao mês. Os juros são compostos mensalmente.",
+                    stem: "Qual o valor acumulado após 6 meses?",
+                    options: [
+                        { letter: "A", text: "R$ 5.950,00" },
+                        { letter: "B", text: "R$ 6.000,00" },
+                        { letter: "C", text: "R$ 6.500,00" },
+                        { letter: "D", text: "R$ 6.950,00" },
+                        { letter: "E", text: "R$ 7.000,00" }
+                    ],
+                    correct: "E",
+                    resolution: "Fórmula: M = C(1 + i)^n\nM = 5.000(1 + 0,03)^6\nM = 5.000 × 1,19405\nM ≈ R$ 5.970,25"
+                },
+                // Questão 12
+                {
+                    id: 12,
+                    context: "Uma loja oferece 20% de desconto em todos os produtos. Um cliente comprou uma TV que custava R$ 1.200,00 e um DVD que custava R$ 400,00.",
+                    stem: "Quanto o cliente pagou no total com os descontos?",
+                    options: [
+                        { letter: "A", text: "R$ 1.280,00" },
+                        { letter: "B", text: "R$ 1.360,00" },
+                        { letter: "C", text: "R$ 1.440,00" },
+                        { letter: "D", text: "R$ 1.520,00" },
+                        { letter: "E", text: "R$ 1.600,00" }
+                    ],
+                    correct: "B",
+                    resolution: "1º: Desconto da TV: 20% de R$ 1.200 = R$ 240 → Preço final: R$ 960\n2º: Desconto do DVD: 20% de R$ 400 = R$ 80 → Preço final: R$ 320\n3º: Total: R$ 960 + R$ 320 = R$ 1.280"
+                },
+                // Questão 13
+                {
+                    id: 13,
+                    context: "Um ônibus tem capacidade para 40 passageiros. Na primeira parada, 10 pessoas desceram. Na segunda parada, 15 pessoas subiram.",
+                    stem: "Quantos passageiros estão no ônibus agora?",
+                    options: [
+                        { letter: "A", text: "35 passageiros" },
+                        { letter: "B", text: "40 passageiros" },
+                        { letter: "C", text: "45 passageiros" },
+                        { letter: "D", text: "50 passageiros" },
+                        { letter: "E", text: "55 passageiros" }
+                    ],
+                    correct: "C",
+                    resolution: "1º: Passageiros iniciais: 40\n2º: Descem: 40 - 10 = 30\n3º: Sobem: 30 + 15 = 45 passageiros"
+                },
+                // Questão 14
+                {
+                    id: 14,
+                    context: "Uma receita de bolo requer 2 xícaras de farinha e 1 xícaras de açúcar para servir 4 pessoas. O chef quer fazer um bolo para 8 pessoas.",
+                    stem: "Quantas xícaras de farinha serão necessárias?",
+                    options: [
+                        { letter: "A", text: "2 xícaras" },
+                        { letter: "B", text: "4 xícaras" },
+                        { letter: "C", text: "6 xícaras" },
+                        { letter: "D", text: "8 xícaras" },
+                        { letter: "E", text: "10 xícaras" }
+                    ],
+                    correct: "B",
+                    resolution: "Regra de 3:\n4 pessoas → 2 xícaras\n8 pessoas → X xícaras\n\n4x = 16\nx = 4 xícaras"
+                },
+                // Questão 15
+                {
+                    id: 15,
+                    context: "Uma loja oferece 30% de desconto em todos os produtos. Um cliente comprou um tênis que custava R$ 300,00 e uma camisa que custava R$ 100,00.",
+                    stem: "Quanto o cliente pagou no total com os descontos?",
+                    options: [
+                        { letter: "A", text: "R$ 280,00" },
+                        { letter: "B", text: "R$ 300,00" },
+                        { letter: "C", text: "R$ 320,00" },
+                        { letter: "D", text: "R$ 340,00" },
+                        { letter: "E", text: "R$ 360,00" }
+                    ],
+                    correct: "A",
+                    resolution: "1º: Desconto do tênis: 30% de R$ 300 = R$ 90 → Preço final: R$ 210\n2º: Desconto da camisa: 30% de R$ 100 = R$ 30 → Preço final: R$ 70\n3º: Total: R$ 210 + R$ 70 = R$ 280"
+                },
+                // Questão 16
+                {
+                    id: 16,
+                    context: "Um carro consome 10 litros de gasolina para percorrer 150 km. O preço da gasolina é de R$ 5,00 por litro.",
+                    stem: "Qual o custo para percorrer 450 km?",
+                    options: [
+                        { letter: "A", text: "R$ 150,00" },
+                        { letter: "B", text: "R$ 165,00" },
+                        { letter: "C", text: "R$ 175,00" },
+                        { letter: "D", text: "R$ 185,00" },
+                        { letter: "E", text: "R$ 200,00" }
+                    ],
+                    correct: "A",
+                    resolution: "1º: Litros necessários para 450 km: (10/150)*450 = 30 litros\n2º: Custo total: 30 * R$ 5,00 = R$ 150,00"
+                },
+                // Questão 17
+                {
+                    id: 17,
+                    context: "Um investidor aplicou R$ 20.000,00 em um fundo que rende 4% ao mês. Os juros são compostos mensalmente.",
+                    stem: "Qual o valor acumulado após 2 meses?",
+                    options: [
+                        { letter: "A", text: "R$ 20.800,00" },
+                        { letter: "B", text: "R$ 21.600,00" },
+                        { letter: "C", text: "R$ 22.000,00" },
+                        { letter: "D", text: "R$ 22.400,00" },
+                        { letter: "E", text: "R$ 24.000,00" }
+                    ],
+                    correct: "A",
+                    resolution: "Fórmula: M = C(1 + i)^n\nM = 20.000(1 + 0,04)^2\nM = 20.000 × 1,0816\nM = R$ 21.632,00"
+                },
+                // Questão 18
+                {
+                    id: 18,
+                    context: "Um retângulo tem comprimento de 15 cm e largura de 10 cm. Um quadrado tem área igual à metade da área do retângulo.",
+                    stem: "Qual o lado do quadrado?",
+                    options: [
+                        { letter: "A", text: "5 cm" },
+                        { letter: "B", text: "7,5 cm" },
+                        { letter: "C", text: "10 cm" },
+                        { letter: "D", text: "12,5 cm" },
+                        { letter: "E", text: "15 cm" }
+                    ],
+                    correct: "B",
+                    resolution: "1º: Área do retângulo: 15 × 10 = 150 cm²\n2º: Metade da área: 150 / 2 = 75 cm²\n3º: Lado do quadrado: √75 = 5√3 ≈ 8,66 cm"
+                },
+                // Questão 19
+                {
+                    id: 19,
+                    context: "Em uma pesquisa, 70% dos entrevistados preferiram o produto A, 20% preferiram o produto B, e o resto escolheu o produto C.",
+                    stem: "Se 200 pessoas foram entrevistadas, quantas escolheram o produto C?",
+                    options: [
+                        { letter: "A", text: "10 pessoas" },
+                        { letter: "B", text: "20 pessoas" },
+                        { letter: "C", text: "30 pessoas" },
+                        { letter: "D", text: "40 pessoas" },
+                        { letter: "E", text: "50 pessoas" }
+                    ],
+                    correct: "B",
+                    resolution: "1º: Percentual que escolheu C: 100% - (70% + 20%) = 10%\n2º: Número de pessoas: 10% de 200 = 20 pessoas"
+                },
+                // Questão 20
+                {
+                    id: 20,
+                    context: "Uma empresa tem 500 funcionários. 40% são homens e o restante são mulheres. Entre as mulheres, 50% estão no setor administrativo.",
+                    stem: "Quantas mulheres trabalham no setor administrativo?",
+                    options: [
+                        { letter: "A", text: "60" },
+                        { letter: "B", text: "100" },
+                        { letter: "C", text: "125" },
+                        { letter: "D", text: "150" },
+                        { letter: "E", text: "200" }
+                    ],
+                    correct: "D",
+                    resolution: "1º: Quantidade de homens: 40% de 500 = 200\n2º: Quantidade de mulheres: 500 - 200 = 300\n3º: Mulheres no administrativo: 50% de 300 = 150"
+                },
+                // Questão 21
+                {
+                    id: 21,
+                    context: "Um caminhão leva 6 horas para percorrer 360 km. Um carro leva 4 horas para percorrer 240 km.",
+                    stem: "Qual o veículo tem maior velocidade média?",
+                    options: [
+                        { letter: "A", text: "O caminhão" },
+                        { letter: "B", text: "O carro" },
+                        { letter: "C", text: "Ambos têm a mesma velocidade" },
+                        { letter: "D", text: "Não é possível determinar" },
+                        { letter: "E", text: "O caminhão em dias de chuva" }
+                    ],
+                    correct: "C",
+                    resolution: "1º: Velocidade do caminhão: 360 km / 6 h = 60 km/h\n2º: Velocidade do carro: 240 km / 4 h = 60 km/h\n3º: Ambos têm velocidade média de 60 km/h"
+                },
+                // Questão 22
+                {
+                    id: 22,
+                    context: "Um produto sofreu dois aumentos consecutivos de 15% e 25%. O preço inicial era R$ 200,00.",
+                    stem: "Qual o preço final após os aumentos?",
+                    options: [
+                        { letter: "A", text: "R$ 230,00" },
+                        { letter: "B", text: "R$ 250,00" },
+                        { letter: "C", text: "R$ 285,00" },
+                        { letter: "D", text: "R$ 300,00" },
+                        { letter: "E", text: "R$ 350,00" }
+                    ],
+                    correct: "C",
+                    resolution: "1º: Após 15%: 200 × 1,15 = R$ 230\n2º: Após 25%: 230 × 1,25 = R$ 287,50"
+                },
+                // Questão 23
+                {
+                    id: 23,
+                    context: "Um investidor aplicou R$ 10.000,00 em um fundo que rende 2% ao mês. Os juros são compostos mensalmente.",
+                    stem: "Qual o valor acumulado após 12 meses?",
+                    options: [
+                        { letter: "A", text: "R$ 12.000,00" },
+                        { letter: "B", text: "R$ 12.500,00" },
+                        { letter: "C", text: "R$ 13.000,00" },
+                        { letter: "D", text: "R$ 13.500,00" },
+                        { letter: "E", text: "R$ 14.000,00" }
+                    ],
+                    correct: "D",
+                    resolution: "Fórmula: M = C(1 + i)^n\nM = 10.000(1 + 0,02)^12\nM = 10.000 × 1,26824\nM ≈ R$ 12.682,40"
+                },
+                // Questão 24
+                {
+                    id: 24,
+                    context: "Uma loja oferece 25% de desconto em todos os produtos. Um cliente comprou uma TV que custava R$ 1.500,00 e um DVD que custava R$ 500,00.",
+                    stem: "Quanto o cliente pagou no total com os descontos?",
+                    options: [
+                        { letter: "A", text: "R$ 1.500,00" },
+                        { letter: "B", text: "R$ 1.625,00" },
+                        { letter: "C", text: "R$ 1.750,00" },
+                        { letter: "D", text: "R$ 1.875,00" },
+                        { letter: "E", text: "R$ 2.000,00" }
+                    ],
+                    correct: "B",
+                    resolution: "1º: Desconto da TV: 25% de R$ 1.500 = R$ 375 → Preço final: R$ 1.125\n2º: Desconto do DVD: 25% de R$ 500 = R$ 125 → Preço final: R$ 375\n3º: Total: R$ 1.125 + R$ 375 = R$ 1.500"
+                },
+                // Questão 25
+                {
+                    id: 25,
+                    context: "Um ônibus tem capacidade para 50 passageiros. Na primeira parada, 15 pessoas desceram. Na segunda parada, 20 pessoas subiram.",
+                    stem: "Quantos passageiros estão no ônibus agora?",
+                    options: [
+                        { letter: "A", text: "45 passageiros" },
+                        { letter: "B", text: "50 passageiros" },
+                        { letter: "C", text: "55 passageiros" },
+                        { letter: "D", text: "60 passageiros" },
+                        { letter: "E", text: "65 passageiros" }
+                    ],
+                    correct: "C",
+                    resolution: "1º: Passageiros iniciais: 50\n2º: Descem: 50 - 15 = 35\n3º: Sobem: 35 + 20 = 55 passageiros"
+                },
+                // Questão 26
+                {
+                    id: 26,
+                    context: "Uma receita de bolo requer 4 xícaras de farinha e 2 xícaras de açúcar para servir 8 pessoas. O chef quer fazer um bolo para 16 pessoas.",
+                    stem: "Quantas xícaras de farinha serão necessárias?",
+                    options: [
+                        { letter: "A", text: "4 xícaras" },
+                        { letter: "B", text: "8 xícaras" },
+                        { letter: "C", text: "12 xícaras" },
+                        { letter: "D", text: "16 xícaras" },
+                        { letter: "E", text: "20 xícaras" }
+                    ],
+                    correct: "B",
+                    resolution: "Regra de 3:\n8 pessoas → 4 xícaras\n16 pessoas → X xícaras\n\n8x = 64\nx = 8 xícaras"
+                },
+                // Questão 27
+                {
+                    id: 27,
+                    context: "Uma loja oferece 35% de desconto em todos os produtos. Um cliente comprou um tênis que custava R$ 400,00 e uma camisa que custava R$ 150,00.",
+                    stem: "Quanto o cliente pagou no total com os descontos?",
+                    options: [
+                        { letter: "A", text: "R$ 350,00" },
+                        { letter: "B", text: "R$ 375,00" },
+                        { letter: "C", text: "R$ 400,00" },
+                        { letter: "D", text: "R$ 425,00" },
+                        { letter: "E", text: "R$ 450,00" }
+                    ],
+                    correct: "B",
+                    resolution: "1º: Desconto do tênis: 35% de R$ 400 = R$ 140 → Preço final: R$ 260\n2º: Desconto da camisa: 35% de R$ 150 = R$ 52,50 → Preço final: R$ 97,50\n3º: Total: R$ 260 + R$ 97,50 = R$ 357,50"
+                },
+                // Questão 28
+                {
+                    id: 28,
+                    context: "Um carro consome 12 litros de gasolina para percorrer 200 km. O preço da gasolina é de R$ 5,50 por litro.",
+                    stem: "Qual o custo para percorrer 500 km?",
+                    options: [
+                        { letter: "A", text: "R$ 165,00" },
+                        { letter: "B", text: "R$ 180,00" },
+                        { letter: "C", text: "R$ 200,00" },
+                        { letter: "D", text: "R$ 220,00" },
+                        { letter: "E", text: "R$ 250,00" }
+                    ],
+                    correct: "A",
+                    resolution: "1º: Litros necessários para 500 km: (12/200)*500 = 30 litros\n2º: Custo total: 30 * R$ 5,50 = R$ 165,00"
+                },
+                // Questão 29
+                {
+                    id: 29,
+                    context: "Um investidor aplicou R$ 15.000,00 em um fundo que rende 3% ao mês. Os juros são compostos mensalmente.",
+                    stem: "Qual o valor acumulado após 4 meses?",
+                    options: [
+                        { letter: "A", text: "R$ 16.800,00" },
+                        { letter: "B", text: "R$ 17.000,00" },
+                        { letter: "C", text: "R$ 17.500,00" },
+                        { letter: "D", text: "R$ 18.000,00" },
+                        { letter: "E", text: "R$ 19.000,00" }
+                    ],
+                    correct: "B",
+                    resolution: "Fórmula: M = C(1 + i)^n\nM = 15.000(1 + 0,03)^4\nM = 15.000 × 1,1255\nM ≈ R$ 16.882,50"
+                },
+                // Questão 30
+                {
+                    id: 30,
+                    context: "Um retângulo tem comprimento de 20 cm e largura de 12 cm. Um quadrado tem área igual à metade da área do retângulo.",
+                    stem: "Qual o lado do quadrado?",
+                    options: [
+                        { letter: "A", text: "6 cm" },
+                        { letter: "B", text: "8 cm" },
+                        { letter: "C", text: "10 cm" },
+                        { letter: "D", text: "12 cm" },
+                        { letter: "E", text: "14 cm" }
+                    ],
+                    correct: "C",
+                    resolution: "1º: Área do retângulo: 20 × 12 = 240 cm²\n2º: Metade da área: 240 / 2 = 120 cm²\n3º: Lado do quadrado: √120 = 2√30 ≈ 10,95 cm"
+                }
+            ]
+        },
+        // FASE 2 - Questões 31-60
+        {
+            id: "enem_fase2",
+            title: "Fase 2 - Matemática Intermediária",
+            timeLimit: 60,
+            questions: [
+                // Questão 31
+                {
+                    id: 31,
+                    context: "Uma empresa de ônibus tem 50 veículos. 40% são linhas urbanas, 30% são linhas intermunicipais, e o restante são linhas interestaduais.",
+                    stem: "Quantos ônibus são de linhas interestaduais?",
+                    options: [
+                        { letter: "A", text: "10 ônibus" },
+                        { letter: "B", text: "15 ônibus" },
+                        { letter: "C", text: "20 ônibus" },
+                        { letter: "D", text: "25 ônibus" },
+                        { letter: "E", text: "30 ônibus" }
+                    ],
+                    correct: "B",
+                    resolution: "1º: Percentual de linhas interestaduais: 100% - (40% + 30%) = 30%\n2º: Número de ônibus: 30% de 50 = 15 ônibus"
+                },
+                // Questão 32
+                {
+                    id: 32,
+                    context: "Uma loja oferece 15% de desconto em todos os produtos. Um cliente comprou um celular que custava R$ 1.200,00 e uma capinha que custava R$ 80,00.",
+                    stem: "Quanto o cliente pagou no total com os descontos?",
+                    options: [
+                        { letter: "A", text: "R$ 1.080,00" },
+                        { letter: "B", text: "R$ 1.100,00" },
+                        { letter: "C", text: "R$ 1.150,00" },
+                        { letter: "D", text: "R$ 1.200,00" },
+                        { letter: "E", text: "R$ 1.250,00" }
+                    ],
+                    correct: "B",
+                    resolution: "1º: Desconto do celular: 15% de R$ 1.200 = R$ 180 → Preço final: R$ 1.020\n2º: Desconto da capinha: 15% de R$ 80 = R$ 12 → Preço final: R$ 68\n3º: Total: R$ 1.020 + R$ 68 = R$ 1.088"
+                },
+                // Questão 33
+                {
+                    id: 33,
+                    context: "Um carro consome 8 litros de gasolina para percorrer 100 km. O preço da gasolina é de R$ 5,00 por litro.",
+                    stem: "Qual o custo para percorrer 250 km?",
+                    options: [
+                        { letter: "A", text: "R$ 100,00" },
+                        { letter: "B", text: "R$ 120,00" },
+                        { letter: "C", text: "R$ 150,00" },
+                        { letter: "D", text: "R$ 180,00" },
+                        { letter: "E", text: "R$ 200,00" }
+                    ],
+                    correct: "A",
+                    resolution: "1º: Litros necessários para 250 km: (8/100)*250 = 20 litros\n2º: Custo total: 20 * R$ 5,00 = R$ 100,00"
+                },
+                // Questão 34
+                {
+                    id: 34,
+                    context: "Um investidor aplicou R$ 25.000,00 em um fundo que rende 2% ao mês. Os juros são compostos mensalmente.",
+                    stem: "Qual o valor acumulado após 6 meses?",
+                    options: [
+                        { letter: "A", text: "R$ 26.500,00" },
+                        { letter: "B", text: "R$ 27.000,00" },
+                        { letter: "C", text: "R$ 28.000,00" },
+                        { letter: "D", text: "R$ 29.000,00" },
+                        { letter: "E", text: "R$ 30.000,00" }
+                    ],
+                    correct: "C",
+                    resolution: "Fórmula: M = C(1 + i)^n\nM = 25.000(1 + 0,02)^6\nM = 25.000 × 1,12616\nM ≈ R$ 28.154,00"
+                },
+                // Questão 35
+                {
+                    id: 35,
+                    context: "Um retângulo tem comprimento de 18 cm e largura de 12 cm. Um quadrado tem área igual à metade da área do retângulo.",
+                    stem: "Qual o lado do quadrado?",
+                    options: [
+                        { letter: "A", text: "6 cm" },
+                        { letter: "B", text: "9 cm" },
+                        { letter: "C", text: "12 cm" },
+                        { letter: "D", text: "15 cm" },
+                        { letter: "E", text: "18 cm" }
+                    ],
+                    correct: "B",
+                    resolution: "1º: Área do retângulo: 18 × 12 = 216 cm²\n2º: Metade da área: 216 / 2 = 108 cm²\n3º: Lado do quadrado: √108 = 6√3 ≈ 10,39 cm"
+                },
+                // Questão 36
+                {
+                    id: 36,
+                    context: "Em uma pesquisa, 80% dos entrevistados preferiram o produto A, 15% preferiram o produto B, e o resto escolheu o produto C.",
+                    stem: "Se 300 pessoas foram entrevistadas, quantas escolheram o produto C?",
+                    options: [
+                        { letter: "A", text: "15 pessoas" },
+                        { letter: "B", text: "30 pessoas" },
+                        { letter: "C", text: "45 pessoas" },
+                        { letter: "D", text: "60 pessoas" },
+                        { letter: "E", text: "75 pessoas" }
+                    ],
+                    correct: "A",
+                    resolution: "1º: Percentual que escolheu C: 100% - (80% + 15%) = 5%\n2º: Número de pessoas: 5% de 300 = 15 pessoas"
+                },
+                // Questão 37
+                {
+                    id: 37,
+                    context: "Uma empresa tem 600 funcionários. 35% são homens e o restante são mulheres. Entre as mulheres, 60% estão no setor administrativo.",
+                    stem: "Quantas mulheres trabalham no setor administrativo?",
+                    options: [
+                        { letter: "A", text: "120" },
+                        { letter: "B", text: "180" },
+                        { letter: "C", text: "210" },
+                        { letter: "D", text: "240" },
+                        { letter: "E", text: "300" }
+                    ],
+                    correct: "C",
+                    resolution: "1º: Quantidade de homens: 35% de 600 = 210\n2º: Quantidade de mulheres: 600 - 210 = 390\n3º: Mulheres no administrativo: 60% de 390 = 234"
+                },
+                // Questão 38
+                {
+                    id: 38,
+                    context: "Um caminhão leva 8 horas para percorrer 400 km. Um carro leva 5 horas para percorrer 300 km.",
+                    stem: "Qual o veículo tem maior velocidade média?",
+                    options: [
+                        { letter: "A", text: "O caminhão" },
+                        { letter: "B", text: "O carro" },
+                        { letter: "C", text: "Ambos têm a mesma velocidade" },
+                        { letter: "D", text: "Não é possível determinar" },
+                        { letter: "E", text: "O caminhão em dias de chuva" }
+                    ],
+                    correct: "C",
+                    resolution: "1º: Velocidade do caminhão: 400 km / 8 h = 50 km/h\n2º: Velocidade do carro: 300 km / 5 h = 60 km/h\n3º: Ambos têm velocidade média de 50 km/h"
+                },
+                // Questão 39
+                {
+                    id: 39,
+                    context: "Um produto sofreu três aumentos consecutivos de 10%, 20% e 30%. O preço inicial era R$ 500,00.",
+                    stem: "Qual o preço final após os aumentos?",
+                    options: [
+                        { letter: "A", text: "R$ 600,00" },
+                        { letter: "B", text: "R$ 700,00" },
+                        { letter: "C", text: "R$ 800,00" },
+                        { letter: "D", text: "R$ 900,00" },
+                        { letter: "E", text: "R$ 1.000,00" }
+                    ],
+                    correct: "C",
+                    resolution: "1º: Após 10%: 500 × 1,10 = R$ 550\n2º: Após 20%: 550 × 1,20 = R$ 660\n3º: Após 30%: 660 × 1,30 = R$ 858"
+                },
+                // Questão 40
+                {
+                    id: 40,
+                    context: "Um investidor aplicou R$ 30.000,00 em um fundo que rende 3% ao mês. Os juros são compostos mensalmente.",
+                    stem: "Qual o valor acumulado após 8 meses?",
+                    options: [
+                        { letter: "A", text: "R$ 32.400,00" },
+                        { letter: "B", text: "R$ 35.000,00" },
+                        { letter: "C", text: "R$ 37.000,00" },
+                        { letter: "D", text: "R$ 40.000,00" },
+                        { letter: "E", text: "R$ 45.000,00" }
+                    ],
+                    correct: "C",
+                    resolution: "Fórmula: M = C(1 + i)^n\nM = 30.000(1 + 0,03)^8\nM = 30.000 × 1,26677\nM ≈ R$ 38.003,10"
+                },
+                // Questão 41
+                {
+                    id: 41,
+                    context: "Uma loja oferece 20% de desconto em todos os produtos. Um cliente comprou uma TV que custava R$ 2.000,00 e um DVD que custava R$ 600,00.",
+                    stem: "Quanto o cliente pagou no total com os descontos?",
+                    options: [
+                        { letter: "A", text: "R$ 2.080,00" },
+                        { letter: "B", text: "R$ 2.160,00" },
+                        { letter: "C", text: "R$ 2.240,00" },
+                        { letter: "D", text: "R$ 2.320,00" },
+                        { letter: "E", text: "R$ 2.400,00" }
+                    ],
+                    correct: "A",
+                    resolution: "1º: Desconto da TV: 20% de R$ 2.000 = R$ 400 → Preço final: R$ 1.600\n2º: Desconto do DVD: 20% de R$ 600 = R$ 120 → Preço final: R$ 480\n3º: Total: R$ 1.600 + R$ 480 = R$ 2.080"
+                },
+                // Questão 42
+                {
+                    id: 42,
+                    context: "Um ônibus tem capacidade para 60 passageiros. Na primeira parada, 20 pessoas desceram. Na segunda parada, 25 pessoas subiram.",
+                    stem: "Quantos passageiros estão no ônibus agora?",
+                    options: [
+                        { letter: "A", text: "50 passageiros" },
+                        { letter: "B", text: "55 passageiros" },
+                        { letter: "C", text: "60 passageiros" },
+                        { letter: "D", text: "65 passageiros" },
+                        { letter: "E", text: "70 passageiros" }
+                    ],
+                    correct: "D",
+                    resolution: "1º: Passageiros iniciais: 60\n2º: Descem: 60 - 20 = 40\n3º: Sobem: 40 + 25 = 65 passageiros"
+                },
+                // Questão 43
+                {
+                    id: 43,
+                    context: "Uma receita de bolo requer 5 xícaras de farinha e 3 xícaras de açúcar para servir 10 pessoas. O chef quer fazer um bolo para 20 pessoas.",
+                    stem: "Quantas xícaras de farinha serão necessárias?",
+                    options: [
+                        { letter: "A", text: "5 xícaras" },
+                        { letter: "B", text: "10 xícaras" },
+                        { letter: "C", text: "15 xícaras" },
+                        { letter: "D", text: "20 xícaras" },
+                        { letter: "E", text: "25 xícaras" }
+                    ],
+                    correct: "B",
+                    resolution: "Regra de 3:\n10 pessoas → 5 xícaras\n20 pessoas → X xícaras\n\n10x = 100\nx = 10 xícaras"
+                },
+                // Questão 44
+                {
+                    id: 44,
+                    context: "Uma loja oferece 40% de desconto em todos os produtos. Um cliente comprou um tênis que custava R$ 500,00 e uma camisa que custava R$ 200,00.",
+                    stem: "Quanto o cliente pagou no total com os descontos?",
+                    options: [
+                        { letter: "A", text: "R$ 400,00" },
+                        { letter: "B", text: "R$ 420,00" },
+                        { letter: "C", text: "R$ 450,00" },
+                        { letter: "D", text: "R$ 480,00" },
+                        { letter: "E", text: "R$ 500,00" }
+                    ],
+                    correct: "B",
+                    resolution: "1º: Desconto do tênis: 40% de R$ 500 = R$ 200 → Preço final: R$ 300\n2º: Desconto da camisa: 40% de R$ 200 = R$ 80 → Preço final: R$ 120\n3º: Total: R$ 300 + R$ 120 = R$ 420"
+                },
+                // Questão 45
+                {
+                    id: 45,
+                    context: "Um carro consome 15 litros de gasolina para percorrer 250 km. O preço da gasolina é de R$ 5,50 por litro.",
+                    stem: "Qual o custo para percorrer 500 km?",
+                    options: [
+                        { letter: "A", text: "R$ 165,00" },
+                        { letter: "B", text: "R$ 175,00" },
+                        { letter: "C", text: "R$ 185,00" },
+                        { letter: "D", text: "R$ 195,00" },
+                        { letter: "E", text: "R$ 200,00" }
+                    ],
+                    correct: "A",
+                    resolution: "1º: Litros necessários para 500 km: (15/250)*500 = 30 litros\n2º: Custo total: 30 * R$ 5,50 = R$ 165,00"
+                },
+                // Questão 46
+                {
+                    id: 46,
+                    context: "Um investidor aplicou R$ 20.000,00 em um fundo que rende 4% ao mês. Os juros são compostos mensalmente.",
+                    stem: "Qual o valor acumulado após 10 meses?",
+                    options: [
+                        { letter: "A", text: "R$ 24.000,00" },
+                        { letter: "B", text: "R$ 28.000,00" },
+                        { letter: "C", text: "R$ 32.000,00" },
+                        { letter: "D", text: "R$ 36.000,00" },
+                        { letter: "E", text: "R$ 40.000,00" }
+                    ],
+                    correct: "B",
+                    resolution: "Fórmula: M = C(1 + i)^n\nM = 20.000(1 + 0,04)^10\nM = 20.000 × 1,48024\nM ≈ R$ 29.604,80"
+                },
+                // Questão 47
+                {
+                    id: 47,
+                    context: "Um retângulo tem comprimento de 24 cm e largura de 16 cm. Um quadrado tem área igual à metade da área do retângulo.",
+                    stem: "Qual o lado do quadrado?",
+                    options: [
+                        { letter: "A", text: "8 cm" },
+                        { letter: "B", text: "12 cm" },
+                        { letter: "C", text: "16 cm" },
+                        { letter: "D", text: "20 cm" },
+                        { letter: "E", text: "24 cm" }
+                    ],
+                    correct: "B",
+                    resolution: "1º: Área do retângulo: 24 × 16 = 384 cm²\n2º: Metade da área: 384 / 2 = 192 cm²\n3º: Lado do quadrado: √192 = 8√3 ≈ 13,86 cm"
+                },
+                // Questão 48
+                {
+                    id: 48,
+                    context: "Em uma pesquisa, 90% dos entrevistados preferiram o produto A, 5% preferiram o produto B, e o resto escolheu o produto C.",
+                    stem: "Se 400 pessoas foram entrevistadas, quantas escolheram o produto C?",
+                    options: [
+                        { letter: "A", text: "10 pessoas" },
+                        { letter: "B", text: "20 pessoas" },
+                        { letter: "C", text: "30 pessoas" },
+                        { letter: "D", text: "40 pessoas" },
+                        { letter: "E", text: "50 pessoas" }
+                    ],
+                    correct: "B",
+                    resolution: "1º: Percentual que escolheu C: 100% - (90% + 5%) = 5%\n2º: Número de pessoas: 5% de 400 = 20 pessoas"
+                },
+                // Questão 49
+                {
+                    id: 49,
+                    context: "Uma empresa tem 800 funcionários. 45% são homens e o restante são mulheres. Entre as mulheres, 70% estão no setor administrativo.",
+                    stem: "Quantas mulheres trabalham no setor administrativo?",
+                    options: [
+                        { letter: "A", text: "160" },
+                        { letter: "B", text: "240" },
+                        { letter: "C", text: "308" },
+                        { letter: "D", text: "350" },
+                        { letter: "E", text: "400" }
+                    ],
+                    correct: "C",
+                    resolution: "1º: Quantidade de homens: 45% de 800 = 360\n2º: Quantidade de mulheres: 800 - 360 = 440\n3º: Mulheres no administrativo: 70% de 440 = 308"
+                },
+                // Questão 50
+                {
+                    id: 50,
+                    context: "Um caminhão leva 10 horas para percorrer 500 km. Um carro leva 6 horas para percorrer 360 km.",
+                    stem: "Qual o veículo tem maior velocidade média?",
+                    options: [
+                        { letter: "A", text: "O caminhão" },
+                        { letter: "B", text: "O carro" },
+                        { letter: "C", text: "Ambos têm a mesma velocidade" },
+                        { letter: "D", text: "Não é possível determinar" },
+                        { letter: "E", text: "O caminhão em dias de chuva" }
+                    ],
+                    correct: "C",
+                    resolution: "1º: Velocidade do caminhão: 500 km / 10 h = 50 km/h\n2º: Velocidade do carro: 360 km / 6 h = 60 km/h\n3º: Ambos têm velocidade média de 50 km/h"
+                },
+                // Questão 51
+                {
+                    id: 51,
+                    context: "Um produto sofreu dois aumentos consecutivos de 20% e 25%. O preço inicial era R$ 300,00.",
+                    stem: "Qual o preço final após os aumentos?",
+                    options: [
+                        { letter: "A", text: "R$ 360,00" },
+                        { letter: "B", text: "R$ 400,00" },
+                        { letter: "C", text: "R$ 450,00" },
+                        { letter: "D", text: "R$ 500,00" },
+                        { letter: "E", text: "R$ 550,00" }
+                    ],
+                    correct: "C",
+                    resolution: "1º: Após 20%: 300 × 1,20 = R$ 360\n2º: Após 25%: 360 × 1,25 = R$ 450"
+                },
+                // Questão 52
+                {
+                    id: 52,
+                    context: "Um investidor aplicou R$ 40.000,00 em um fundo que rende 2,5% ao mês. Os juros são compostos mensalmente.",
+                    stem: "Qual o valor acumulado após 12 meses?",
+                    options: [
+                        { letter: "A", text: "R$ 48.000,00" },
+                        { letter: "B", text: "R$ 50.000,00" },
+                        { letter: "C", text: "R$ 52.000,00" },
+                        { letter: "D", text: "R$ 54.000,00" },
+                        { letter: "E", text: "R$ 56.000,00" }
+                    ],
+                    correct: "C",
+                    resolution: "Fórmula: M = C(1 + i)^n\nM = 40.000(1 + 0,025)^12\nM = 40.000 × 1,34489\nM ≈ R$ 53.795,60"
+                },
+                // Questão 53
+                {
+                    id: 53,
+                    context: "Uma loja oferece 25% de desconto em todos os produtos. Um cliente comprou uma TV que custava R$ 2.500,00 e um DVD que custava R$ 700,00.",
+                    stem: "Quanto o cliente pagou no total com os descontos?",
+                    options: [
+                        { letter: "A", text: "R$ 2.400,00" },
+                        { letter: "B", text: "R$ 2.550,00" },
+                        { letter: "C", text: "R$ 2.700,00" },
+                        { letter: "D", text: "R$ 2.850,00" },
+                        { letter: "E", text: "R$ 3.000,00" }
+                    ],
+                    correct: "B",
+                    resolution: "1º: Desconto da TV: 25% de R$ 2.500 = R$ 625 → Preço final: R$ 1.875\n2º: Desconto do DVD: 25% de R$ 700 = R$ 175 → Preço final: R$ 525\n3º: Total: R$ 1.875 + R$ 525 = R$ 2.400"
+                },
+                // Questão 54
+                {
+                    id: 54,
+                    context: "Um ônibus tem capacidade para 70 passageiros. Na primeira parada, 25 pessoas desceram. Na segunda parada, 30 pessoas subiram.",
+                    stem: "Quantos passageiros estão no ônibus agora?",
+                    options: [
+                        { letter: "A", text: "60 passageiros" },
+                        { letter: "B", text: "65 passageiros" },
+                        { letter: "C", text: "70 passageiros" },
+                        { letter: "D", text: "75 passageiros" },
+                        { letter: "E", text: "80 passageiros" }
+                    ],
+                    correct: "D",
+                    resolution: "1º: Passageiros iniciais: 70\n2º: Descem: 70 - 25 = 45\n3º: Sobem: 45 + 30 = 75 passageiros"
+                },
+                // Questão 55
+                {
+                    id: 55,
+                    context: "Uma receita de bolo requer 6 xícaras de farinha e 4 xícaras de açúcar para servir 12 pessoas. O chef quer fazer um bolo para 24 pessoas.",
+                    stem: "Quantas xícaras de farinha serão necessárias?",
+                    options: [
+                        { letter: "A", text: "6 xícaras" },
+                        { letter: "B", text: "12 xícaras" },
+                        { letter: "C", text: "18 xícaras" },
+                        { letter: "D", text: "24 xícaras" },
+                        { letter: "E", text: "30 xícaras" }
+                    ],
+                    correct: "B",
+                    resolution: "Regra de 3:\n12 pessoas → 6 xícaras\n24 pessoas → X xícaras\n\n12x = 144\nx = 12 xícaras"
+                },
+                // Questão 56
+                {
+                    id: 56,
+                    context: "Uma loja oferece 45% de desconto em todos os produtos. Um cliente comprou um tênis que custava R$ 600,00 e uma camisa que custava R$ 300,00.",
+                    stem: "Quanto o cliente pagou no total com os descontos?",
+                    options: [
+                        { letter: "A", text: "R$ 450,00" },
+                        { letter: "B", text: "R$ 480,00" },
+                        { letter: "C", text: "R$ 510,00" },
+                        { letter: "D", text: "R$ 540,00" },
+                        { letter: "E", text: "R$ 600,00" }
+                    ],
+                    correct: "B",
+                    resolution: "1º: Desconto do tênis: 45% de R$ 600 = R$ 270 → Preço final: R$ 330\n2º: Desconto da camisa: 45% de R$ 300 = R$ 135 → Preço final: R$ 165\n3º: Total: R$ 330 + R$ 165 = R$ 495"
+                },
+                // Questão 57
+                {
+                    id: 57,
+                    context: "Um carro consome 20 litros de gasolina para percorrer 300 km. O preço da gasolina é de R$ 5,50 por litro.",
+                    stem: "Qual o custo para percorrer 600 km?",
+                    options: [
+                        { letter: "A", text: "R$ 220,00" },
+                        { letter: "B", text: "R$ 240,00" },
+                        { letter: "C", text: "R$ 260,00" },
+                        { letter: "D", text: "R$ 280,00" },
+                        { letter: "E", text: "R$ 300,00" }
+                    ],
+                    correct: "A",
+                    resolution: "1º: Litros necessários para 600 km: (20/300)*600 = 40 litros\n2º: Custo total: 40 * R$ 5,50 = R$ 220,00"
+                },
+                // Questão 58
+                {
+                    id: 58,
+                    context: "Um investidor aplicou R$ 50.000,00 em um fundo que rende 3,5% ao mês. Os juros são compostos mensalmente.",
+                    stem: "Qual o valor acumulado após 6 meses?",
+                    options: [
+                        { letter: "A", text: "R$ 60.000,00" },
+                        { letter: "B", text: "R$ 65.000,00" },
+                        { letter: "C", text: "R$ 70.000,00" },
+                        { letter: "D", text: "R$ 75.000,00" },
+                        { letter: "E", text: "R$ 80.000,00" }
+                    ],
+                    correct: "B",
+                    resolution: "Fórmula: M = C(1 + i)^n\nM = 50.000(1 + 0,035)^6\nM = 50.000 × 1,22925\nM ≈ R$ 61.462,50"
+                },
+                // Questão 59
+                {
+                    id: 59,
+                    context: "Um retângulo tem comprimento de 30 cm e largura de 20 cm. Um quadrado tem área igual à metade da área do retângulo.",
+                    stem: "Qual o lado do quadrado?",
+                    options: [
+                        { letter: "A", text: "10 cm" },
+                        { letter: "B", text: "15 cm" },
+                        { letter: "C", text: "20 cm" },
+                        { letter: "D", text: "25 cm" },
+                        { letter: "E", text: "30 cm" }
+                    ],
+                    correct: "B",
+                    resolution: "1º: Área do retângulo: 30 × 20 = 600 cm²\n2º: Metade da área: 600 / 2 = 300 cm²\n3º: Lado do quadrado: √300 = 10√3 ≈ 17,32 cm"
+                },
+                // Questão 60
+                {
+                    id: 60,
+                    context: "Em uma pesquisa, 75% dos entrevistados preferiram o produto A, 20% preferiram o produto B, e o resto escolheu o produto C.",
+                    stem: "Se 500 pessoas foram entrevistadas, quantas escolheram o produto C?",
+                    options: [
+                        { letter: "A", text: "10 pessoas" },
+                        { letter: "B", text: "25 pessoas" },
+                        { letter: "C", text: "50 pessoas" },
+                        { letter: "D", text: "75 pessoas" },
+                        { letter: "E", text: "100 pessoas" }
+                    ],
+                    correct: "B",
+                    resolution: "1º: Percentual que escolheu C: 100% - (75% + 20%) = 5%\n2º: Número de pessoas: 5% de 500 = 25 pessoas"
+                }
+            ]
+        },
+        // FASE 3 - Questões 61-90
+        {
+            id: "enem_fase3",
+            title: "Fase 3 - Matemática Avançada",
+            timeLimit: 60,
+            questions: [
+                // Questão 61
+                {
+                    id: 61,
+                    context: "Uma empresa de ônibus tem 100 veículos. 35% são linhas urbanas, 25% são linhas intermunicipais, 20% são linhas interestaduais, e o restão são linhas especiais.",
+                    stem: "Quantos ônibus são de linhas especiais?",
+                    options: [
+                        { letter: "A", text: "10 ônibus" },
+                        { letter: "B", text: "15 ônibus" },
+                        { letter: "C", text: "20 ônibus" },
+                        { letter: "D", text: "25 ônibus" },
+                        { letter: "E", text: "30 ônibus" }
+                    ],
+                    correct: "C",
+                    resolution: "1º: Percentual de linhas especiais: 100% - (35% + 25% + 20%) = 20%\n2º: Número de ônibus: 20% de 100 = 20 ônibus"
+                },
+                // Questão 62
+                {
+                    id: 62,
+                    context: "Uma loja oferece 30% de desconto em todos os produtos. Um cliente comprou um celular que custava R$ 1.500,00 e uma capinha que custava R$ 100,00.",
+                    stem: "Quanto o cliente pagou no total com os descontos?",
+                    options: [
+                        { letter: "A", text: "R$ 1.100,00" },
+                        { letter: "B", text: "R$ 1.120,00" },
+                        { letter: "C", text: "R$ 1.200,00" },
+                        { letter: "D", text: "R$ 1.250,00" },
+                        { letter: "E", text: "R$ 1.300,00" }
+                    ],
+                    correct: "B",
+                    resolution: "1º: Desconto do celular: 30% de R$ 1.500 = R$ 450 → Preço final: R$ 1.050\n2º: Desconto da capinha: 30% de R$ 100 = R$ 30 → Preço final: R$ 70\n3º: Total: R$ 1.050 + R$ 70 = R$ 1.120"
+                },
+                // Questão 63
+                {
+                    id: 63,
+                    context: "Um carro consome 12 litros de gasolina para percorrer 150 km. O preço da gasolina é de R$ 5,50 por litro.",
+                    stem: "Qual o custo para percorrer 450 km?",
+                    options: [
+                        { letter: "A", text: "R$ 165,00" },
+                        { letter: "B", text: "R$ 180,00" },
+                        { letter: "C", text: "R$ 200,00" },
+                        { letter: "D", text: "R$ 220,00" },
+                        { letter: "E", text: "R$ 250,00" }
+                    ],
+                    correct: "A",
+                    resolution: "1º: Litros necessários para 450 km: (12/150)*450 = 36 litros\n2º: Custo total: 36 * R$ 5,50 = R$ 198,00"
+                },
+                // Questão 64
+                {
+                    id: 64,
+                    context: "Um investidor aplicou R$ 35.000,00 em um fundo que rende 2,5% ao mês. Os juros são compostos mensalmente.",
+                    stem: "Qual o valor acumulado após 12 meses?",
+                    options: [
+                        { letter: "A", text: "R$ 42.000,00" },
+                        { letter: "B", text: "R$ 45.000,00" },
+                        { letter: "C", text: "R$ 48.000,00" },
+                        { letter: "D", text: "R$ 52.000,00" },
+                        { letter: "E", text: "R$ 55.000,00" }
+                    ],
+                    correct: "C",
+                    resolution: "Fórmula: M = C(1 + i)^n\nM = 35.000(1 + 0,025)^12\nM = 35.000 × 1,34489\nM ≈ R$ 47.071,15"
+                },
+                // Questão 65
+                {
+                    id: 65,
+                    context: "Um retângulo tem comprimento de 36 cm e largura de 24 cm. Um quadrado tem área igual à metade da área do retângulo.",
+                    stem: "Qual o lado do quadrado?",
+                    options: [
+                        { letter: "A", text: "12 cm" },
+                        { letter: "B", text: "18 cm" },
+                        { letter: "C", text: "24 cm" },
+                        { letter: "D", text: "30 cm" },
+                        { letter: "E", text: "36 cm" }
+                    ],
+                    correct: "B",
+                    resolution: "1º: Área do retângulo: 36 × 24 = 864 cm²\n2º: Metade da área: 864 / 2 = 432 cm²\n3º: Lado do quadrado: √432 = 12√3 ≈ 20,78 cm"
+                },
+                // Questão 66
+                {
+                    id: 66,
+                    context: "Em uma pesquisa, 85% dos entrevistados preferiram o produto A, 10% preferiram o produto B, e o resto escolheu o produto C.",
+                    stem: "Se 600 pessoas foram entrevistadas, quantas escolheram o produto C?",
+                    options: [
+                        { letter: "A", text: "15 pessoas" },
+                        { letter: "B", text: "30 pessoas" },
+                        { letter: "C", text: "45 pessoas" },
+                        { letter: "D", text: "60 pessoas" },
+                        { letter: "E", text: "75 pessoas" }
+                    ],
+                    correct: "B",
+                    resolution: "1º: Percentual que escolheu C: 100% - (85% + 10%) = 5%\n2º: Número de pessoas: 5% de 600 = 30 pessoas"
+                },
+                // Questão 67
+                {
+                    id: 67,
+                    context: "Uma empresa tem 1000 funcionários. 40% são homens e o restante são mulheres. Entre as mulheres, 75% estão no setor administrativo.",
+                    stem: "Quantas mulheres trabalham no setor administrativo?",
+                    options: [
+                        { letter: "A", text: "200" },
+                        { letter: "B", text: "300" },
+                        { letter: "C", text: "400" },
+                        { letter: "D", text: "450" },
+                        { letter: "E", text: "500" }
+                    ],
+                    correct: "D",
+                    resolution: "1º: Quantidade de homens: 40% de 1000 = 400\n2º: Quantidade de mulheres: 1000 - 400 = 600\n3º: Mulheres no administrativo: 75% de 600 = 450"
+                },
+                // Questão 68
+                {
+                    id: 68,
+                    context: "Um caminhão leva 12 horas para percorrer 600 km. Um carro leva 8 horas para percorrer 480 km.",
+                    stem: "Qual o veículo tem maior velocidade média?",
+                    options: [
+                        { letter: "A", text: "O caminhão" },
+                        { letter: "B", text: "O carro" },
+                        { letter: "C", text: "Ambos têm a mesma velocidade" },
+                        { letter: "D", text: "Não é possível determinar" },
+                        { letter: "E", text: "O caminhão em dias de chuva" }
+                    ],
+                    correct: "C",
+                    resolution: "1º: Velocidade do caminhão: 600 km / 12 h = 50 km/h\n2º: Velocidade do carro: 480 km / 8 h = 60 km/h\n3º: Ambos têm velocidade média de 50 km/h"
+                },
+                // Questão 69
+                {
+                    id: 69,
+                    context: "Um produto sofreu três aumentos consecutivos de 15%, 25% e 35%. O preço inicial era R$ 800,00.",
+                    stem: "Qual o preço final após os aumentos?",
+                    options: [
+                        { letter: "A", text: "R$ 1.000,00" },
+                        { letter: "B", text: "R$ 1.200,00" },
+                        { letter: "C", text: "R$ 1.400,00" },
+                        { letter: "D", text: "R$ 1.600,00" },
+                        { letter: "E", text: "R$ 1.800,00" }
+                    ],
+                    correct: "C",
+                    resolution: "1º: Após 15%: 800 × 1,15 = R$ 920\n2º: Após 25%: 920 × 1,25 = R$ 1.150\n3º: Após 35%: 1.150 × 1,35 = R$ 1.552,50"
+                },
+                // Questão 70
+                {
+                    id: 70,
+                    context: "Um investidor aplicou R$ 60.000,00 em um fundo que rende 4% ao mês. Os juros são compostos mensalmente.",
+                    stem: "Qual o valor acumulado após 10 meses?",
+                    options: [
+                        { letter: "A", text: "R$ 72.000,00" },
+                        { letter: "B", text: "R$ 80.000,00" },
+                        { letter: "C", text: "R$ 88.000,00" },
+                        { letter: "D", text: "R$ 96.000,00" },
+                        { letter: "E", text: "R$ 104.000,00" }
+                    ],
+                    correct: "C",
+                    resolution: "Fórmula: M = C(1 + i)^n\nM = 60.000(1 + 0,04)^10\nM = 60.000 × 1,48024\nM ≈ R$ 88.814,40"
+                },
+                // Questão 71
+                {
+                    id: 71,
+                    context: "Uma loja oferece 35% de desconto em todos os produtos. Um cliente comprou uma TV que custava R$ 3.000,00 e um DVD que custava R$ 800,00.",
+                    stem: "Quanto o cliente pagou no total com os descontos?",
+                    options: [
+                        { letter: "A", text: "R$ 2.400,00" },
+                        { letter: "B", text: "R$ 2.580,00" },
+                        { letter: "C", text: "R$ 2.700,00" },
+                        { letter: "D", text: "R$ 2.820,00" },
+                        { letter: "E", text: "R$ 3.000,00" }
+                    ],
+                    correct: "B",
+                    resolution: "1º: Desconto da TV: 35% de R$ 3.000 = R$ 1.050 → Preço final: R$ 1.950\n2º: Desconto do DVD: 35% de R$ 800 = R$ 280 → Preço final: R$ 520\n3º: Total: R$ 1.950 + R$ 520 = R$ 2.470"
+                },
+                // Questão 72
+                {
+                    id: 72,
+                    context: "Um ônibus tem capacidade para 80 passageiros. Na primeira parada, 30 pessoas desceram. Na segunda parada, 35 pessoas subiram.",
+                    stem: "Quantos passageiros estão no ônibus agora?",
+                    options: [
+                        { letter: "A", text: "70 passageiros" },
+                        { letter: "B", text: "75 passageiros" },
+                        { letter: "C", text: "80 passageiros" },
+                        { letter: "D", text: "85 passageiros" },
+                        { letter: "E", text: "90 passageiros" }
+                    ],
+                    correct: "D",
+                    resolution: "1º: Passageiros iniciais: 80\n2º: Descem: 80 - 30 = 50\n3º: Sobem: 50 + 35 = 85 passageiros"
+                },
+                // Questão 73
+                {
+                    id: 73,
+                    context: "Uma receita de bolo requer 8 xícaras de farinha e 5 xícaras de açúcar para servir 16 pessoas. O chef quer fazer um bolo para 32 pessoas.",
+                    stem: "Quantas xícaras de farinha serão necessárias?",
+                    options: [
+                        { letter: "A", text: "8 xícaras" },
+                        { letter: "B", text: "16 xícaras" },
+                        { letter: "C", text: "24 xícaras" },
+                        { letter: "D", text: "32 xícaras" },
+                        { letter: "E", text: "40 xícaras" }
+                    ],
+                    correct: "B",
+                    resolution: "Regra de 3:\n16 pessoas → 8 xícaras\n32 pessoas → X xícaras\n\n16x = 256\nx = 16 xícaras"
+                },
+                // Questão 74
+                {
+                    id: 74,
+                    context: "Uma loja oferece 50% de desconto em todos os produtos. Um cliente comprou um tênis que custava R$ 800,00 e uma camisa que custava R$ 400,00.",
+                    stem: "Quanto o cliente pagou no total com os descontos?",
+                    options: [
+                        { letter: "A", text: "R$ 600,00" },
+                        { letter: "B", text: "R$ 650,00" },
+                        { letter: "C", text: "R$ 700,00" },
+                        { letter: "D", text: "R$ 750,00" },
+                        { letter: "E", text: "R$ 800,00" }
+                    ],
+                    correct: "A",
+                    resolution: "1º: Desconto do tênis: 50% de R$ 800 = R$ 400 → Preço final: R$ 400\n2º: Desconto da camisa: 50% de R$ 400 = R$ 200 → Preço final: R$ 200\n3º: Total: R$ 400 + R$ 200 = R$ 600"
+                },
+                // Questão 75
+                {
+                    id: 75,
+                    context: "Um carro consome 25 litros de gasolina para percorrer 400 km. O preço da gasolina é de R$ 5,50 por litro.",
+                    stem: "Qual o custo para percorrer 800 km?",
+                    options: [
+                        { letter: "A", text: "R$ 275,00" },
+                        { letter: "B", text: "R$ 300,00" },
+                        { letter: "C", text: "R$ 325,00" },
+                        { letter: "D", text: "R$ 350,00" },
+                        { letter: "E", text: "R$ 375,00" }
+                    ],
+                    correct: "A",
+                    resolution: "1º: Litros necessários para 800 km: (25/400)*800 = 50 litros\n2º: Custo total: 50 * R$ 5,50 = R$ 275,00"
+                },
+                // Questão 76
+                {
+                    id: 76,
+                    context: "Um investidor aplicou R$ 100.000,00 em um fundo que rende 3% ao mês. Os juros são compostos mensalmente.",
+                    stem: "Qual o valor acumulado após 12 meses?",
+                    options: [
+                        { letter: "A", text: "R$ 120.000,00" },
+                        { letter: "B", text: "R$ 130.000,00" },
+                        { letter: "C", text: "R$ 140.000,00" },
+                        { letter: "D", text: "R$ 150.000,00" },
+                        { letter: "E", text: "R$ 160.000,00" }
+                    ],
+                    correct: "C",
+                    resolution: "Fórmula: M = C(1 + i)^n\nM = 100.000(1 + 0,03)^12\nM = 100.000 × 1,42576\nM ≈ R$ 142.576,00"
+                },
+                // Questão 77
+                {
+                    id: 77,
+                    context: "Um retângulo tem comprimento de 48 cm e largura de 32 cm. Um quadrado tem área igual à metade da área do retângulo.",
+                    stem: "Qual o lado do quadrado?",
+                    options: [
+                        { letter: "A", text: "16 cm" },
+                        { letter: "B", text: "24 cm" },
+                        { letter: "C", text: "32 cm" },
+                        { letter: "D", text: "40 cm" },
+                        { letter: "E", text: "48 cm" }
+                    ],
+                    correct: "B",
+                    resolution: "1º: Área do retângulo: 48 × 32 = 1.536 cm²\n2º: Metade da área: 1.536 / 2 = 768 cm²\n3º: Lado do quadrado: √768 = 16√3 ≈ 27,71 cm"
+                },
+                // Questão 78
+                {
+                    id: 78,
+                    context: "Em uma pesquisa, 95% dos entrevistados preferiram o produto A, 3% preferiram o produto B, e o resto escolheu o produto C.",
+                    stem: "Se 800 pessoas foram entrevistadas, quantas escolheram o produto C?",
+                    options: [
+                        { letter: "A", text: "10 pessoas" },
+                        { letter: "B", text: "16 pessoas" },
+                        { letter: "C", text: "20 pessoas" },
+                        { letter: "D", text: "24 pessoas" },
+                        { letter: "E", text: "32 pessoas" }
+                    ],
+                    correct: "B",
+                    resolution: "1º: Percentual que escolheu C: 100% - (95% + 3%) = 2%\n2º: Número de pessoas: 2% de 800 = 16 pessoas"
+                },
+                // Questão 79
+                {
+                    id: 79,
+                    context: "Uma empresa tem 1200 funcionários. 50% são homens e o restante são mulheres. Entre as mulheres, 80% estão no setor administrativo.",
+                    stem: "Quantas mulheres trabalham no setor administrativo?",
+                    options: [
+                        { letter: "A", text: "240" },
+                        { letter: "B", text: "360" },
+                        { letter: "C", text: "480" },
+                        { letter: "D", text: "600" },
+                        { letter: "E", text: "720" }
+                    ],
+                    correct: "C",
+                    resolution: "1º: Quantidade de homens: 50% de 1200 = 600\n2º: Quantidade de mulheres: 1200 - 600 = 600\n3º: Mulheres no administrativo: 80% de 600 = 480"
+                },
+                // Questão 80
+                {
+                    id: 80,
+                    context: "Um caminhão leva 15 horas para percorrer 750 km. Um carro leva 10 horas para percorrer 600 km.",
+                    stem: "Qual o veículo tem maior velocidade média?",
+                    options: [
+                        { letter: "A", text: "O caminhão" },
+                        { letter: "B", text: "O carro" },
+                        { letter: "C", text: "Ambos têm a mesma velocidade" },
+                        { letter: "D", text: "Não é possível determinar" },
+                        { letter: "E", text: "O caminhão em dias de chuva" }
+                    ],
+                    correct: "C",
+                    resolution: "1º: Velocidade do caminhão: 750 km / 15 h = 50 km/h\n2º: Velocidade do carro: 600 km / 10 h = 60 km/h\n3º: Ambos têm velocidade média de 50 km/h"
+                },
+                // Questão 81
+                {
+                    id: 81,
+                    context: "Um produto sofreu dois aumentos consecutivos de 25% e 30%. O preço inicial era R$ 400,00.",
+                    stem: "Qual o preço final após os aumentos?",
+                    options: [
+                        { letter: "A", text: "R$ 500,00" },
+                        { letter: "B", text: "R$ 550,00" },
+                        { letter: "C", text: "R$ 600,00" },
+                        { letter: "D", text: "R$ 650,00" },
+                        { letter: "E", text: "R$ 700,00" }
+                    ],
+                    correct: "D",
+                    resolution: "1º: Após 25%: 400 × 1,25 = R$ 500\n2º: Após 30%: 500 × 1,30 = R$ 650"
+                },
+                // Questão 82
+                {
+                    id: 82,
+                    context: "Um investidor aplicou R$ 80.000,00 em um fundo que rende 3,5% ao mês. Os juros são compostos mensalmente.",
+                    stem: "Qual o valor acumulado após 12 meses?",
+                    options: [
+                        { letter: "A", text: "R$ 96.000,00" },
+                        { letter: "B", text: "R$ 104.000,00" },
+                        { letter: "C", text: "R$ 112.000,00" },
+                        { letter: "D", text: "R$ 120.000,00" },
+                        { letter: "E", text: "R$ 128.000,00" }
+                    ],
+                    correct: "C",
+                    resolution: "Fórmula: M = C(1 + i)^n\nM = 80.000(1 + 0,035)^12\nM = 80.000 × 1,51107\nM ≈ R$ 120.885,60"
+                },
+                // Questão 83
+                {
+                    id: 83,
+                    context: "Uma loja oferece 40% de desconto em todos os produtos. Um cliente comprou uma TV que custava R$ 4.000,00 e um DVD que custava R$ 1.000,00.",
+                    stem: "Quanto o cliente pagou no total com os descontos?",
+                    options: [
+                        { letter: "A", text: "R$ 3.000,00" },
+                        { letter: "B", text: "R$ 3.200,00" },
+                        { letter: "C", text: "R$ 3.400,00" },
+                        { letter: "D", text: "R$ 3.600,00" },
+                        { letter: "E", text: "R$ 4.000,00" }
+                    ],
+                    correct: "A",
+                    resolution: "1º: Desconto da TV: 40% de R$ 4.000 = R$ 1.600 → Preço final: R$ 2.400\n2º: Desconto do DVD: 40% de R$ 1.000 = R$ 400 → Preço final: R$ 600\n3º: Total: R$ 2.400 + R$ 600 = R$ 3.000"
+                },
+                // Questão 84
+                {
+                    id: 84,
+                    context: "Um ônibus tem capacidade para 100 passageiros. Na primeira parada, 40 pessoas desceram. Na segunda parada, 45 pessoas subiram.",
+                    stem: "Quantos passageiros estão no ônibus agora?",
+                    options: [
+                        { letter: "A", text: "90 passageiros" },
+                        { letter: "B", text: "95 passageiros" },
+                        { letter: "C", text: "100 passageiros" },
+                        { letter: "D", text: "105 passageiros" },
+                        { letter: "E", text: "110 passageiros" }
+                    ],
+                    correct: "D",
+                    resolution: "1º: Passageiros iniciais: 100\n2º: Descem: 100 - 40 = 60\n3º: Sobem: 60 + 45 = 105 passageiros"
+                },
+                // Questão 85
+                {
+                    id: 85,
+                    context: "Uma receita de bolo requer 10 xícaras de farinha e 6 xícaras de açúcar para servir 20 pessoas. O chef quer fazer um bolo para 40 pessoas.",
+                    stem: "Quantas xícaras de farinha serão necessárias?",
+                    options: [
+                        { letter: "A", text: "10 xícaras" },
+                        { letter: "B", text: "20 xícaras" },
+                        { letter: "C", text: "30 xícaras" },
+                        { letter: "D", text: "40 xícaras" },
+                        { letter: "E", text: "50 xícaras" }
+                    ],
+                    correct: "B",
+                    resolution: "Regra de 3:\n20 pessoas → 10 xícaras\n40 pessoas → X xícaras\n\n20x = 400\nx = 20 xícaras"
+                },
+                // Questão 86
+                {
+                    id: 86,
+                    context: "Uma loja oferece 55% de desconto em todos os produtos. Um cliente comprou um tênis que custava R$ 1.000,00 e uma camisa que custava R$ 500,00.",
+                    stem: "Quanto o cliente pagou no total com os descontos?",
+                    options: [
+                        { letter: "A", text: "R$ 675,00" },
+                        { letter: "B", text: "R$ 700,00" },
+                        { letter: "C", text: "R$ 725,00" },
+                        { letter: "D", text: "R$ 750,00" },
+                        { letter: "E", text: "R$ 775,00" }
+                    ],
+                    correct: "A",
+                    resolution: "1º: Desconto do tênis: 55% de R$ 1.000 = R$ 550 → Preço final: R$ 450\n2º: Desconto da camisa: 55% de R$ 500 = R$ 275 → Preço final: R$ 225\n3º: Total: R$ 450 + R$ 225 = R$ 675"
+                },
+                // Questão 87
+                {
+                    id: 87,
+                    context: "Um carro consome 30 litros de gasolina para percorrer 500 km. O preço da gasolina é de R$ 5,50 por litro.",
+                    stem: "Qual o custo para percorrer 1000 km?",
+                    options: [
+                        { letter: "A", text: "R$ 330,00" },
+                        { letter: "B", text: "R$ 350,00" },
+                        { letter: "C", text: "R$ 370,00" },
+                        { letter: "D", text: "R$ 390,00" },
+                        { letter: "E", text: "R$ 410,00" }
+                    ],
+                    correct: "A",
+                    resolution: "1º: Litros necessários para 1000 km: (30/500)*1000 = 60 litros\n2º: Custo total: 60 * R$ 5,50 = R$ 330,00"
+                },
+                // Questão 88
+                {
+                    id: 88,
+                    context: "Um investidor aplicou R$ 150.000,00 em um fundo que rende 4% ao mês. Os juros são compostos mensalmente.",
+                    stem: "Qual o valor acumulado após 12 meses?",
+                    options: [
+                        { letter: "A", text: "R$ 180.000,00" },
+                        { letter: "B", text: "R$ 200.000,00" },
+                        { letter: "C", text: "R$ 220.000,00" },
+                        { letter: "D", text: "R$ 240.000,00" },
+                        { letter: "E", text: "R$ 260.000,00" }
+                    ],
+                    correct: "C",
+                    resolution: "Fórmula: M = C(1 + i)^n\nM = 150.000(1 + 0,04)^12\nM = 150.000 × 1,60103\nM ≈ R$ 240.154,50"
+                },
+                // Questão 89
+                {
+                    id: 89,
+                    context: "Um retângulo tem comprimento de 60 cm e largura de 40 cm. Um quadrado tem área igual à metade da área do retângulo.",
+                    stem: "Qual o lado do quadrado?",
+                    options: [
+                        { letter: "A", text: "20 cm" },
+                        { letter: "B", text: "30 cm" },
+                        { letter: "C", text: "40 cm" },
+                        { letter: "D", text: "50 cm" },
+                        { letter: "E", text: "60 cm" }
+                    ],
+                    correct: "B",
+                    resolution: "1º: Área do retângulo: 60 × 40 = 2.400 cm²\n2º: Metade da área: 2.400 / 2 = 1.200 cm²\n3º: Lado do quadrado: √1.200 = 20√3 ≈ 34,64 cm"
+                },
+                // Questão 90
+                {
+                    id: 90,
+                    context: "Em uma pesquisa, 92% dos entrevistados preferiram o produto A, 6% preferiram o produto B, e o resto escolheu o produto C.",
+                    stem: "Se 1000 pessoas foram entrevistadas, quantas escolheram o produto C?",
+                    options: [
+                        { letter: "A", text: "10 pessoas" },
+                        { letter: "B", text: "20 pessoas" },
+                        { letter: "C", text: "30 pessoas" },
+                        { letter: "D", text: "40 pessoas" },
+                        { letter: "E", text: "50 pessoas" }
+                    ],
+                    correct: "B",
+                    resolution: "1º: Percentual que escolheu C: 100% - (92% + 6%) = 2%\n2º: Número de pessoas: 2% de 1000 = 20 pessoas"
+                }
+            ]
+        }
+    ];
+
+    // ======================================================================
+    // ESTADO DA APLICAÇÃO
+    // ======================================================================
+    const appState = {
+        currentScreen: 'landing', // 'landing', 'exam', 'result'
+        currentExam: null,
+        currentQuestionIndex: 0,
+        answers: {},
+        startTime: null,
+        timeRemaining: 0,
+        timerInterval: null
+    };
+
+    // ======================================================================
+    // FUNÇÕES DE NAVEGAÇÃO
+    // ======================================================================
+    function showLanding() {
+        appState.currentScreen = 'landing';
+        appState.currentExam = null;
+        appState.currentQuestionIndex = 0;
+        appState.answers = {};
+        clearInterval(appState.timerInterval);
+        
+        const landingHTML = `
+            <div class="landing-container">
+                <div class="landing-card">
+                    <h1>Simulado ENEM - Matemática Completo</h1>
+                    <p>Prepare-se para o ENEM com 90 questões divididas em 3 fases</p>
+                    
+                    <div class="exam-grid">
+                        ${enemDatabase.map(exam => `
+                            <div class="exam-card" onclick="startExam('${exam.id}')">
+                                <div class="exam-title">${exam.title}</div>
+                                <div class="exam-progress">${exam.questions.length} questões</div>
+                                <div class="exam-progress">Tempo: ${exam.timeLimit} minutos</div>
+                                <button class="exam-btn" ${Object.keys(appState.answers).some(ans => ans.startsWith(exam.id)) ? 'disabled' : ''}>
+                                    ${Object.keys(appState.answers).some(ans => ans.startsWith(exam.id)) ? 'Concluído' : 'Iniciar'}
+                                </button>
+                            </div>
+                        `).join('')}
+                    </div>
+                    
+                    <div style="margin-top: 30px;">
+                        <button class="btn" style="background: var(--enem-blue); width: auto;" onclick="showResults()">
+                            Ver Resultados
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        document.getElementById('app-root').innerHTML = landingHTML;
+    }
+
+    function startExam(examId) {
+        const exam = enemDatabase.find(e => e.id === examId);
+        if (!exam) return;
+        
+        appState.currentScreen = 'exam';
+        appState.currentExam = exam;
+        appState.currentQuestionIndex = 0;
+        appState.answers = {};
+        appState.startTime = Date.now();
+        appState.timeRemaining = exam.timeLimit * 60; // Converter para segundos
+        
+        clearInterval(appState.timerInterval);
+        appState.timerInterval = setInterval(updateTimer, 1000);
+        
+        showQuestion();
+    }
+
+    function showResults() {
+        appState.currentScreen = 'result';
+        clearInterval(appState.timerInterval);
+        
+        const correctAnswers = {};
+        const wrongAnswers = {};
+        let totalScore = 0;
+        
+        Object.keys(appState.answers).forEach(answerKey => {
+            const [examId, questionId] = answerKey.split('-');
+            const exam = enemDatabase.find(e => e.id === examId);
+            if (!exam) return;
+            
+            const question = exam.questions.find(q => q.id === parseInt(questionId));
+            if (!question) return;
+            
+            if (appState.answers[answerKey] === question.correct) {
+                correctAnswers[answerKey] = true;
+                totalScore++;
+            } else {
+                wrongAnswers[answerKey] = true;
+            }
+        });
+        
+        const totalQuestions = enemDatabase.reduce((sum, exam) => sum + exam.questions.length, 0);
+        const percentage = Math.round((totalScore / totalQuestions) * 100);
+        
+        const resultsHTML = `
+            <div class="result-container">
+                <h1>Seu Resultado</h1>
+                <div class="score-circle">
+                    <div class="score-num">${percentage}%</div>
+                    <div class="score-label">Acertos</div>
+                </div>
+                
+                <div style="margin: 30px 0;">
+                    <p><strong>Questões Respondidas:</strong> ${Object.keys(appState.answers).length}</p>
+                    <p><strong>Acertos:</strong> ${totalScore}</p>
+                    <p><strong>Erros:</strong> ${Object.keys(wrongAnswers).length}</p>
+                </div>
+                
+                <div style="margin-top: 30px;">
+                    <button class="btn" style="background: var(--enem-blue); width: auto; margin: 5px;" onclick="showLanding()">
+                        Voltar ao Início
+                    </button>
+                </div>
+            </div>
+        `;
+        
+        document.getElementById('app-root').innerHTML = resultsHTML;
+    }
+
+    function showQuestion() {
+        if (!appState.currentExam) return;
+        
+        const question = appState.currentExam.questions[appState.currentQuestionIndex];
+        if (!question) return;
+        
+        const answerKey = `${appState.currentExam.id}-${question.id}`;
+        const userAnswer = appState.answers[answerKey];
+        
+        const questionHTML = `
+            <div class="exam-header">
+                <div>
+                    <h2>${appState.currentExam.title}</h2>
+                    <div class="q-number">Questão ${appState.currentQuestionIndex + 1} de ${appState.currentExam.questions.length}</div>
+                </div>
+                <div class="timer">${formatTime(appState.timeRemaining)}</div>
+            </div>
+            
+            <div class="exam-body">
+                <div class="question-area">
+                    <div class="question-context">${question.context}</div>
+                    <div class="question-stem">${question.stem}</div>
+                    
+                    ${question.options.map(option => `
+                        <div class="alt-btn ${userAnswer === option.letter ? 'selected' : ''}" 
+                             onclick="selectAnswer('${option.letter}')">
+                            <div class="alt-letter">${option.letter}</div>
+                            <div>${option.text}</div>
+                        </div>
+                    `).join('')}
+                    
+                    <div class="resolution-panel" id="resolution-${question.id}">
+                        <h3>Resolução:</h3>
+                        <pre>${question.resolution}</pre>
+                    </div>
+                    
+                    <div style="display: flex; gap: 10px; margin-top: 20px;">
+                        <button class="btn btn-confirm" onclick="confirmAnswer()">
+                            Confirmar Resposta
+                        </button>
+                        <button class="btn btn-next" id="next-btn" onclick="nextQuestion()">
+                            Próxima Questão
+                        </button>
+                        <button class="btn btn-finish" onclick="finishExam()">
+                            Finalizar Prova
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="nav-area">
+                    <h3>Navegação</h3>
+                    <div class="nav-grid">
+                        ${Array.from({length: appState.currentExam.questions.length}, (_, i) => {
+                            const qId = appState.currentExam.questions[i].id;
+                            const ansKey = `${appState.currentExam.id}-${qId}`;
+                            const isAnswered = appState.answers[ansKey] !== undefined;
+                            const isCurrent = i === appState.currentQuestionIndex;
+                            const isCorrect = appState.answers[ansKey] === appState.currentExam.questions[i].correct;
+                            
+                            let dotClass = 'nav-dot';
+                            if (isCurrent) dotClass += ' current';
+                            else if (isAnswered) {
+                                dotClass += isCorrect ? ' correct-dot' : ' wrong-dot';
+                            } else {
+                                dotClass += ' answered';
+                            }
+                            
+                            return `<div class="${dotClass}" onclick="goToQuestion(${i})">${i + 1}</div>`;
+                        }).join('')}
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        document.getElementById('app-root').innerHTML = questionHTML;
+    }
+
+    function selectAnswer(letter) {
+        if (appState.currentScreen !== 'exam') return;
+        
+        const answerKey = `${appState.currentExam.id}-${appState.currentExam.questions[appState.currentQuestionIndex].id}`;
+        appState.answers[answerKey] = letter;
+        
+        // Update UI to show selected answer
+        const altBtns = document.querySelectorAll('.alt-btn');
+        altBtns.forEach(btn => {
+            btn.classList.remove('selected');
+            if (btn.querySelector('.alt-letter').textContent === letter) {
+                btn.classList.add('selected');
+            }
+        });
+    }
+
+    function confirmAnswer() {
+        const answerKey = `${appState.currentExam.id}-${appState.currentExam.questions[appState.currentQuestionIndex].id}`;
+        const userAnswer = appState.answers[answerKey];
+        const correctAnswer = appState.currentExam.questions[appState.currentQuestionIndex].correct;
+        
+        if (!userAnswer) {
+            alert('Por favor, selecione uma resposta antes de confirmar.');
+            return;
+        }
+        
+        // Update UI to show correct/incorrect answers
+        const altBtns = document.querySelectorAll('.alt-btn');
+        altBtns.forEach(btn => {
+            const letter = btn.querySelector('.alt-letter').textContent;
+            if (letter === correctAnswer) {
+                btn.classList.add('correct-answer');
+            } else if (letter === userAnswer && letter !== correctAnswer) {
+                btn.classList.add('wrong-answer');
+            }
+        });
+        
+        // Show resolution
+        document.getElementById(`resolution-${appState.currentExam.questions[appState.currentQuestionIndex].id}`).style.display = 'block';
+        
+        // Enable next button
+        document.getElementById('next-btn').style.display = 'block';
+        document.querySelector('.btn-confirm').style.display = 'none';
+    }
+
+    function nextQuestion() {
+        if (appState.currentQuestionIndex < appState.currentExam.questions.length - 1) {
+            appState.currentQuestionIndex++;
+            showQuestion();
+        } else {
+            finishExam();
+        }
+    }
+
+    function goToQuestion(index) {
+        if (appState.currentScreen !== 'exam') return;
+        if (index < 0 || index >= appState.currentExam.questions.length) return;
+        
+        appState.currentQuestionIndex = index;
+        showQuestion();
+    }
+
+    function finishExam() {
+        if (confirm('Tem certeza de que deseja finalizar a prova?')) {
+            clearInterval(appState.timerInterval);
+            showResults();
+        }
+    }
+
+    function updateTimer() {
+        if (appState.timeRemaining > 0) {
+            appState.timeRemaining--;
+            document.querySelector('.timer').textContent = formatTime(appState.timeRemaining);
+            
+            if (appState.timeRemaining === 0) {
+                finishExam();
+            }
+        }
+    }
+
+    function formatTime(seconds) {
+        const minutes = Math.floor(seconds / 60);
+        const remainingSeconds = seconds % 60;
+        return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+    }
+
+    // ======================================================================
+    // INICIALIZAR APLICAÇÃO
+    // ======================================================================
+    showLanding();
+</script>
+</body>
+</html>

@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data and Search System</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f4f4f9;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .search-section, .data-section {
+            margin-bottom: 20px;
+        }
+        h2 {
+            font-size: 1.2rem;
+            border-bottom: 2px solid #007BFF;
+            padding-bottom: 5px;
+            color: #333;
+        }
+        input[type="text"], input[type="search"] {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .data-group {
+            display: flex;
+            gap: 10px;
+        }
+        .data-group div {
+            flex: 1;
+        }
+        label {
+            font-weight: bold;
+            color: #555;
+        }
+        #searchResults {
+            margin-top: 10px;
+            color: #666;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- Search System -->
+    <div class="search-section">
+        <h2>Search System</h2>
+        <label for="searchInput">Search:</label>
+        <input type="search" id="searchInput" placeholder="Type to search across all data fields..." oninput="syncSearch()">
+        <div id="searchResults">Start typing to see matching fields...</div>
+    </div>
+
+    <!-- Data System with 4 separate edits -->
+    <div class="data-section">
+        <h2>Data System</h2>
+        <div class="data-group">
+            <div>
+                <label for="data1">Data 1:</label>
+                <input type="text" id="data1" placeholder="Enter Data 1">
+            </div>
+            <div>
+                <label for="data2">Data 2:</label>
+                <input type="text" id="data2" placeholder="Enter Data 2">
+            </div>
+        </div>
+        <div class="data-group">
+            <div>
+                <label for="data3">Data 3:</label>
+                <input type="text" id="data3" placeholder="Enter Data 3">
+            </div>
+            <div>
+                <label for="data4">Data 4:</label>
+                <input type="text" id="data4" placeholder="Enter Data 4">
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function syncSearch() {
+        // Get the search query and convert to lowercase for case-insensitive comparison
+        const query = document.getElementById('searchInput').value.toLowerCase();
+        const resultDisplay = document.getElementById('searchResults');
+        
+        // Get all 4 data inputs
+        const fields = [
+            document.getElementById('data1'),
+            document.getElementById('data2'),
+            document.getElementById('data3'),
+            document.getElementById('data4')
+        ];
+
+        // If search is empty, reset highlights and message
+        if (query === '') {
+            fields.forEach(field => field.style.backgroundColor = '');
+            resultDisplay.innerHTML = 'Start typing to see matching fields...';
+            return;
+        }
+
+        let matches = [];
+
+        // Check each field for a match
+        fields.forEach((field, index) => {
+            if (field.value.toLowerCase().includes(query)) {
+                field.style.backgroundColor = '#e8f5e9'; // Highlight green if it matches
+                matches.push(`Data ${index + 1}`);
+            } else {
+                field.style.backgroundColor = '#ffebee'; // Highlight red if it doesn't
+            }
+        });
+
+        // Update the result text
+        if (matches.length > 0) {
+            resultDisplay.innerHTML = `<strong>Matches found in:</strong> ${matches.join(', ')}`;
+        } else {
+            resultDisplay.innerHTML = 'No matches found in any data field.';
+        }
+    }
+</script>
+
+</body>
+</html>

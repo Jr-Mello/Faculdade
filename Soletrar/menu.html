@@ -1,0 +1,179 @@
+<h2>Conclusão</h2>  
+        <p>O protocolo MIDI no Arduino Uno é uma ferramenta poderosa para criar projetos musicais interativos. Com a biblioteca MIDI, você pode enviar e receber comandos MIDI de forma fácil e eficiente, permitindo que você controle instrumentos musicais e sintetizadores com o Arduino Uno.</p>
+        <p>Se você tiver alguma dúvida ou precisar de ajuda para configurar seu projeto MIDI, sinta-se à vontade para perguntar!</p>
+    </div>
+
+    <script>
+        let midiAccess = null;
+        let selectedOutput = null;
+        const outputSelect = document.getElementById('midi-output');
+        const statusSpan = document.getElementById('midi-status');
+        const logDiv = document.getElementById('log');
+        const activeNotes = new Map();
+
+        // Web Audio API Synthesizer Setup
+        let audioCtx = null;
+        let masterGain = null;
+        const activeOscillators = new Map();
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                masterGain = audioCtx.createGain();
+                masterGain.gain.value = 0.5;
+                masterGain.connect(audioCtx.destination);
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        }
+
+        function midiNoteToFrequency(note) {
+            return 440 * Math.pow(2, (note - 69) / 12);
+        }
+
+        // Key mapping for computer keyboard
+        const keyMap = {
+            'a': 60, 's': 62, 'd': 64, 'f': 65, 'g': 67, 'h': 69, 'j': 71, 'k': 72,
+            'w': 61, 'e': 63, 't': 66, 'y': 68, 'u': 70
+        };
+
+        function logMessage(msg) {
+            logDiv.innerHTML += msg + '<br>';
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        // Initialize Web MIDI API
+        if (navigator.requestMIDIAccess) {
+            navigator.requestMIDIAccess({ sysex: false }).then(onMIDISuccess, onMIDIFailure);
+        } else {
+            statusSpan.innerText = "Não suportado";
+            logMessage("Seu navegador não suporta Web MIDI API.");
+        }
+
+        function onMIDISuccess(midi) {
+            midiAccess = midi;
+            statusSpan.innerText = "Conectado";
+            statusSpan.classList.add('active');
+            populateOutputs();
+            midiAccess.onstatechange = populateOutputs;
+            logMessage("Web MIDI API inicializada com sucesso.");
+        }
+
+        function onMIDIFailure() {
+            statusSpan.innerText = "Falha";
+            logMessage("Falha ao acessar a Web MIDI API.");
+        }
+
+        function populateOutputs() {
+            const outputs = midiAccess.outputs;
+            outputSelect.innerHTML = '';
+            let first = true;
+            outputs.forEach(function(output) {
+                const opt = document.createElement("option");
+                opt.value = output.id;
+                opt.text = output.name;
+                outputSelect.appendChild(opt);
+                if (first) {
+                    selectedOutput = output;
+                    first = false;
+                }
+            });
+            if (outputs.size === 0) {
+                const opt = document.createElement("option");
+                opt.text = "Nenhuma saída encontrada";
+                outputSelect.appendChild(opt);
+            }
+        }
+
+        outputSelect.addEventListener('change', function() {
+            const outputs = midiAccess.outputs;
+            selectedOutput = outputs.get(this.value);
+        });
+
+        function sendMidiNote(note, isNoteOn) {
+            initAudio(); // Ensure AudioContext is started on user interaction
+            const velocity = isNoteOn ? 100 : 0;
+            const command = isNoteOn ? 0x90 : 0x80; // Note On: 144, Note Off: 128
+            
+            if (selectedOutput) {
+                selectedOutput.send([command, note, velocity]);
+                logMessage(`Enviado: ${isNoteOn ? 'Note On' : 'Note Off'} - Nota: ${note} - Velocidade: ${velocity}`);
+            } else {
+                logMessage(`Sem saída MIDI. Comando local: ${isNoteOn ? 'Note On' : 'Note Off'} - Nota: ${note}`);
+            }
+
+            // JavaScript Synthesizer Audio Playback
+            if (isNoteOn) {
+                if (!activeOscillators.has(note)) {
+                    const osc = audioCtx.createOscillator();
+                    const noteGain = audioCtx.createGain();
+                    
+                    osc.type = 'sawtooth'; // You can change this to 'sine', 'square', 'triangle'
+                    osc.frequency.value = midiNoteToFrequency(note);
+                    
+                    noteGain.gain.setValueAtTime(0, audioCtx.currentTime);
+                    noteGain.gain.linearRampToValueAtTime(0.5, audioCtx.currentTime + 0.05); // Attack
+                    
+                    osc.connect(noteGain);
+                    noteGain.connect(masterGain);
+                    osc.start();
+                    
+                    activeOscillators.set(note, { osc, noteGain });
+                }
+            } else {
+                if (activeOscillators.has(note)) {
+                    const { osc, noteGain } = activeOscillators.get(note);
+                    const releaseTime = audioCtx.currentTime;
+                    noteGain.gain.cancelScheduledValues(releaseTime);
+                    noteGain.gain.setValueAtTime(noteGain.gain.value, releaseTime);
+                    noteGain.gain.linearRampToValueAtTime(0, releaseTime + 0.1); // Release
+                    
+                    osc.stop(releaseTime + 0.1);
+                    activeOscillators.delete(note);
+                }
+            }
+
+            // Visual feedback
+            const keyElement = document.querySelector(`.key[data-note="${note}"]`);
+            if (keyElement) {
+                if (isNoteOn) keyElement.classList.add('active');
+                else keyElement.classList.remove('active');
+            }
+        }
+
+        // Mouse/Touch events for Piano UI
+        const keys = document.querySelectorAll('.key');
+        keys.forEach(key => {
+            const note = parseInt(key.getAttribute('data-note'));
+            
+            const startNote = () => { sendMidiNote(note, true); };
+            const stopNote = () => { sendMidiNote(note, false); };
+
+            key.addEventListener('mousedown', startNote);
+            key.addEventListener('mouseup', stopNote);
+            key.addEventListener('mouseleave', stopNote);
+            key.addEventListener('touchstart', (e) => { e.preventDefault(); startNote(); });
+            key.addEventListener('touchend', (e) => { e.preventDefault(); stopNote(); });
+        });
+
+        // Computer Keyboard events
+        window.addEventListener('keydown', (e) => {
+            if (e.repeat) return;
+            const note = keyMap[e.key.toLowerCase()];
+            if (note && !activeNotes.has(e.key)) {
+                activeNotes.set(e.key, note);
+                sendMidiNote(note, true);
+            }
+        });
+
+        window.addEventListener('keyup', (e) => {
+            const note = activeNotes.get(e.key.toLowerCase());
+            if (note) {
+                sendMidiNote(note, false);
+                activeNotes.delete(e.key);
+            }
+        });
+    </script>
+</body>
+</html>
