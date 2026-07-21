@@ -1,0 +1,1193 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Controle - InterAPP</title>
+    <style>
+        :root {
+            --bg-app: #f8fafc;
+            --bg-card: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+            
+            --primary: #2563eb;
+            --primary-light: #eff6ff;
+            --success: #10b981;
+            --success-light: #ecfdf5;
+            --danger: #ef4444;
+            --danger-light: #fef2f2;
+            --warning: #f59e0b;
+            --warning-light: #fef3c7;
+            
+            --radius-lg: 12px;
+            --radius-md: 8px;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-app: #0f172a;
+                --bg-card: #1e293b;
+                --text-main: #f8fafc;
+                --text-muted: #94a3b8;
+                --border-color: #334155;
+                --primary-light: rgba(37, 99, 235, 0.15);
+                --success-light: rgba(16, 185, 129, 0.15);
+                --danger-light: rgba(239, 68, 68, 0.15);
+                --warning-light: rgba(245, 158, 11, 0.15);
+            }
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-app);
+            color: var(--text-main);
+            padding: 24px;
+            transition: var(--transition);
+            min-height: 100vh;
+        }
+
+        .app-container {
+            max-width: 1440px;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .brand h1 {
+            font-size: 1.75rem;
+            font-weight: 800;
+            letter-spacing: -0.025em;
+            background: linear-gradient(to right, var(--primary), #3b82f6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .brand p {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-top: 4px;
+        }
+
+        /* Top Control Bar */
+        .top-bar {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            padding: 16px 24px;
+            border-radius: var(--radius-lg);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+            box-shadow: var(--shadow-sm);
+            margin-bottom: 24px;
+        }
+
+        .selectors-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+            flex-wrap: wrap;
+        }
+
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .control-group label {
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            white-space: nowrap;
+        }
+
+        .input-date, .select-turn {
+            padding: 10px 16px;
+            border: 1px solid var(--border-color);
+            background: var(--bg-app);
+            color: var(--text-main);
+            border-radius: var(--radius-md);
+            font-weight: 700;
+            outline: none;
+            transition: var(--transition);
+        }
+
+        .input-date:focus, .select-turn:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px var(--primary-light);
+        }
+
+        .actions-group {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        /* Buttons Standard */
+        .btn {
+            padding: 10px 16px;
+            border-radius: var(--radius-md);
+            font-weight: 600;
+            font-size: 0.875rem;
+            cursor: pointer;
+            border: 1px solid transparent;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: var(--transition);
+        }
+
+        .btn-primary { background: var(--primary); color: #fff; }
+        .btn-primary:hover { background: #1d4ed8; }
+        .btn-secondary { background: var(--bg-app); color: var(--text-main); border-color: var(--border-color); }
+        .btn-secondary:hover { background: var(--border-color); }
+        .btn-danger { background: var(--danger-light); color: var(--danger); }
+        .btn-danger:hover { background: var(--danger); color: #fff; }
+
+        /* Dashboard Layout */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 360px 1fr;
+            gap: 24px;
+        }
+
+        @media (max-width: 1024px) {
+            .dashboard-grid { grid-template-columns: 1fr; }
+        }
+
+        /* Cards */
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            box-shadow: var(--shadow-sm);
+            height: fit-content;
+        }
+
+        .card-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.825rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 10px 14px;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border-color);
+            background: var(--bg-app);
+            color: var(--text-main);
+            outline: none;
+            font-size: 0.9rem;
+            transition: var(--transition);
+        }
+
+        .form-control:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px var(--primary-light);
+        }
+
+        /* Lists and Management */
+        .item-badge-list {
+            max-height: 140px;
+            overflow-y: auto;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 8px;
+            background: var(--bg-app);
+            margin-top: 12px;
+        }
+
+        .list-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin: 3px;
+        }
+
+        .list-pill button {
+            background: transparent;
+            border: none;
+            color: var(--danger);
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.85rem;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        @media (max-width: 640px) {
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            padding: 20px;
+            border-radius: var(--radius-lg);
+            display: flex;
+            flex-direction: column;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .stat-card .label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+
+        .stat-card .value {
+            font-size: 1.75rem;
+            font-weight: 800;
+            margin-top: 8px;
+        }
+
+        .stat-card.primary { border-left: 4px solid var(--primary); }
+        .stat-card.success { border-left: 4px solid var(--success); }
+        .stat-card.danger { border-left: 4px solid var(--danger); }
+        .stat-card.warning { border-left: 4px solid var(--warning); }
+
+        /* Main Workspace Filters */
+        .table-toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .search-input-wrapper {
+            flex-grow: 1;
+            max-width: 400px;
+        }
+
+        /* Modern Table design */
+        .table-container {
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--bg-card);
+            text-align: left;
+        }
+
+        th {
+            background: var(--bg-app);
+            padding: 14px 18px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        td {
+            padding: 14px 18px;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 0.9rem;
+            color: var(--text-main);
+        }
+
+        tr:last-child td { border: none; }
+        tr:hover td { background: var(--primary-light); }
+
+        /* Modern Badges */
+        .badge {
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.775rem;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .badge-student { background: var(--primary-light); color: var(--primary); }
+        .badge-monitor { background: #faf5ff; color: #a855f7; }
+        .badge-present { background: var(--success-light); color: var(--success); }
+        .badge-absent { background: var(--danger-light); color: var(--danger); }
+        .badge-active { background: var(--warning-light); color: var(--warning); }
+        .badge-inactive { background: var(--bg-app); color: var(--text-muted); border: 1px solid var(--border-color); }
+
+        /* Action Buttons Grid Inside Rows */
+        .action-cluster {
+            display: flex;
+            gap: 6px;
+        }
+
+        .action-cluster .btn-table {
+            padding: 6px 10px;
+            font-size: 0.75rem;
+            border-radius: 6px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        
+        .btn-t-success { background: var(--success-light); color: var(--success); }
+        .btn-t-success:hover { background: var(--success); color: #fff; }
+        .btn-t-warning { background: var(--warning-light); color: var(--warning); }
+        .btn-t-warning:hover { background: var(--warning); color: #fff; }
+        .btn-t-danger { background: var(--danger-light); color: var(--danger); }
+        .btn-t-danger:hover { background: var(--danger); color: #fff; }
+
+        /* Logs console styling */
+        .log-terminal {
+            background: #0f172a;
+            color: #38bdf8;
+            font-family: monospace;
+            font-size: 0.8rem;
+            padding: 12px;
+            border-radius: var(--radius-md);
+            max-height: 120px;
+            overflow-y: auto;
+            border: 1px solid #1e293b;
+        }
+
+        .log-line { margin-bottom: 4px; border-bottom: 1px solid #1e293b; padding-bottom: 2px;}
+
+        /* Floating Toast Notification System */
+        #toastContainer {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .toast {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 12px 20px;
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-md);
+            font-weight: 600;
+            font-size: 0.875rem;
+            animation: slideIn 0.3s ease-out forwards;
+            border-left: 4px solid var(--primary);
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        /* Print Media queries optimization - Aprimorado */
+        @media print {
+            .top-bar, 
+            #formAddMachine, 
+            #machineBadgeContainer, 
+            #formAddUser, 
+            .table-toolbar, 
+            #toastContainer,
+            .log-terminal,
+            .card-title,
+            header p,
+            td:last-child, 
+            th:last-child {
+                display: none !important;
+            }
+
+            @page {
+                size: A4 portrait;
+                margin: 15mm 10mm 15mm 10mm;
+            }
+
+            body { 
+                background: #fff !important; 
+                color: #000 !important; 
+                padding: 0 !important;
+                min-height: auto !important;
+            }
+
+            .app-container {
+                max-width: 100% !important;
+                margin: 0 !important;
+            }
+
+            header {
+                margin-bottom: 20px !important;
+                border-bottom: 2px solid #0f172a;
+                padding-bottom: 10px;
+            }
+
+            header h1 {
+                font-size: 1.5rem !important;
+                background: none !important;
+                -webkit-text-fill-color: #000 !important;
+                color: #000 !important;
+            }
+
+            header::after {
+                content: "Relatório de Frequência - " attr(data-print-info);
+                font-size: 0.85rem;
+                color: #64748b;
+                font-weight: 600;
+                display: block;
+                margin-top: 4px;
+            }
+
+            .dashboard-grid { 
+                display: flex !important; 
+                flex-direction: column !important;
+                gap: 16px !important;
+            }
+
+            .stats-grid {
+                display: grid !important;
+                grid-template-columns: repeat(4, 1fr) !important;
+                gap: 10px !important;
+                margin-bottom: 16px !important;
+            }
+
+            .stat-card {
+                padding: 10px !important;
+                background: #fff !important;
+                border: 1px solid #cbd5e1 !important;
+                border-left: 4px solid #0f172a !important;
+            }
+
+            .stat-card .value {
+                font-size: 1.3rem !important;
+                margin-top: 4px !important;
+            }
+
+            .card {
+                border: none !important;
+                padding: 0 !important;
+                box-shadow: none !important;
+                background: transparent !important;
+            }
+
+            .table-container { 
+                border: none !important; 
+                box-shadow: none !important;
+            }
+
+            table {
+                width: 100% !important;
+                border-collapse: collapse !important;
+            }
+
+            th { 
+                background: #f1f5f9 !important; 
+                color: #0f172a !important; 
+                border-bottom: 2px solid #cbd5e1 !important;
+                padding: 8px 10px !important;
+            }
+
+            td {
+                padding: 8px 10px !important;
+                border-bottom: 1px solid #e2e8f0 !important;
+                background: transparent !important;
+            }
+
+            .badge {
+                border: 1px solid #cbd5e1 !important;
+                background: #f8fafc !important;
+                color: #0f172a !important;
+                padding: 2px 6px !important;
+                font-size: 0.75rem !important;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div id="toastContainer"></div>
+
+<div class="app-container">
+    <header>
+        <div class="brand">
+            <h1>Controle InterApp</h1>
+            <p>Gerenciamento de Frequência, Infraestrutura de Hardware & Controle InterAPP</p>
+        </div>
+    </header>
+
+    <!-- Top Management Interface -->
+    <div class="top-bar">
+        <div class="selectors-wrapper">
+            <div class="control-group">
+                <label for="currentDate">DATA DE TRABALHO:</label>
+                <input type="date" id="currentDate" class="input-date" onchange="handleContextSwitch()">
+            </div>
+            <div class="control-group">
+                <label for="currentTurn">PERÍODO:</label>
+                <select id="currentTurn" class="select-turn" onchange="handleContextSwitch()">
+                    <option value="Dia">Dia (17:00 às 19:00)</option>
+                    <option value="Noite">Noite (19:30 às 21:30)</option>
+                </select>
+            </div>
+            <div class="control-group">
+                <label for="yearSelector">ANO:</label>
+                <input type="number" id="yearSelector" class="input-date" min="2020" max="2035" onchange="handleYearSwitch()">
+            </div>
+        </div>
+        <div class="actions-group">
+            <button class="btn btn-secondary" onclick="exportDatabase()">📥 Exportar JSON</button>
+            <button class="btn btn-secondary" onclick="document.getElementById('uploadFile').click()">📤 Importar JSON</button>
+            <button class="btn btn-secondary" onclick="window.print()">🖨️ Imprimir / PDF</button>
+            <button class="btn btn-danger" onclick="purgeSystemData()">🗑️ Reset Geral</button>
+            <input type="file" id="uploadFile" accept=".json" style="display: none;" onchange="importDatabase(event)">
+        </div>
+    </div>
+
+    <!-- Core Layout Section -->
+    <div class="dashboard-grid">
+        
+        <!-- Left sidebar: Registries and setups -->
+        <div style="display: flex; flex-direction: column; gap: 24px;">
+            <!-- Machine Config Space -->
+            <div class="card">
+                <div class="card-title">1. Infraestrutura (Máquinas)</div>
+                <form id="formAddMachine" onsubmit="registerNewMachine(event)">
+                    <div class="form-group" style="display: flex; gap: 8px; margin-bottom: 0;">
+                        <input type="text" id="inputMachineName" class="form-control" placeholder="Ex: LAB-A01" required style="text-transform: uppercase;">
+                        <button type="submit" class="btn btn-primary" style="padding: 10px 20px;">+</button>
+                    </div>
+                </form>
+                <div class="item-badge-list" id="machineBadgeContainer"></div>
+            </div>
+
+            <!-- Global Users Creator Workspace -->
+            <div class="card">
+                <div class="card-title">2. Cadastro Geral de Pessoas</div>
+                <form id="formAddUser" onsubmit="handleUserFormSubmit(event)">
+                    <input type="hidden" id="editUserId" value="">
+                    <div class="form-group">
+                        <label>Tipo de Conta</label>
+                        <select id="selectUserType" class="form-control">
+                            <option value="Aluno">Aluno</option>
+                            <option value="Pessoa Monitora">Pessoa Monitora</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Nome Completo</label>
+                        <input type="text" id="inputUserName" class="form-control" placeholder="Ex: Bruno Silveira" required list="namesDataset">
+                        <datalist id="namesDataset"></datalist>
+                    </div>
+                    <div class="form-group">
+                        <label>Alocação de Hardware</label>
+                        <select id="selectUserMachine" class="form-control" required>
+                            <option value="">-- Selecionar Máquina --</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Turno de Cadastro</label>
+                        <select id="selectUserTurn" class="form-control">
+                            <option value="Dia">Dia</option>
+                            <option value="Noite">Noite</option>
+                        </select>
+                    </div>
+                    <button type="submit" id="submitUserButton" class="btn btn-primary" style="width: 100%; justify-content: center;">Salvar Perfil Permanente</button>
+                    <button type="button" id="cancelEditButton" class="btn btn-secondary" style="display: none; width: 100%; justify-content: center; margin-top: 8px;" onclick="cancelUserEdit()">Cancelar edição</button>
+                </form>
+            </div>
+
+            <!-- Annual Calendar Control -->
+            <div class="card">
+                <div class="card-title">3. Controle Anual</div>
+                <div class="form-group">
+                    <label for="yearSelectorCard">Seleção de ano</label>
+                    <input type="number" id="yearSelectorCard" class="form-control" min="2020" max="2035" onchange="handleYearSwitchCard()">
+                </div>
+                <div id="yearlySummary"></div>
+            </div>
+
+            <!-- Activity Logging Section -->
+            <div class="card">
+                <div class="card-title">Histórico Logs Internos</div>
+                <div class="log-terminal" id="logTerminal"></div>
+            </div>
+        </div>
+
+        <!-- Right Mainboard: Realtime Matrix Table and trackers -->
+        <div>
+            <!-- Stats Blocks -->
+            <div class="stats-grid">
+                <div class="stat-card primary"><span class="label">BASE TOTAL</span><span class="value" id="statTotal">0</span></div>
+                <div class="stat-card success"><span class="label">PRESENTES</span><span class="value" id="statPresents">0</span></div>
+                <div class="stat-card danger"><span class="label">AUSENTES</span><span class="value" id="statAbsents">0</span></div>
+                <div class="stat-card warning"><span class="label">INTERAPP ATIVO</span><span class="value" id="statInterapp">0</span></div>
+            </div>
+
+            <!-- Table Matrix Frame -->
+            <div class="card">
+                <div class="table-toolbar">
+                    <div class="search-input-wrapper">
+                        <input type="text" id="tableSearchFilter" class="form-control" placeholder="🔍 Filtrar por nome, máquina ou perfil..." oninput="renderPresenceMatrix()">
+                    </div>
+                    <div class="actions-group">
+                        <button class="btn btn-secondary" style="font-size: 0.75rem;" onclick="bulkAttendanceUpdate('Presente')">✔️ Todos Presentes</button>
+                        <button class="btn btn-secondary" style="font-size: 0.75rem;" onclick="bulkAttendanceUpdate('Ausente')">❌ Todos Ausentes</button>
+                    </div>
+                </div>
+
+                <div class="table-container" style="overflow-x: auto;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Categoria</th>
+                                <th>Nome Colaborador/Aluno</th>
+                                <th>Estação Trabalho</th>
+                                <th>Chamada</th>
+                                <th>Status InterAPP</th>
+                                <th style="text-align: right;">Ações de Controle</th>
+                            </tr>
+                        </thead>
+                        <tbody id="presenceTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    const STORAGE_VERSION_KEY = 'enterprise_presence_v5';
+
+    // Estrutura de dados centralizada adaptada para múltiplos turnos
+    let coreEngineData = JSON.parse(localStorage.getItem(STORAGE_VERSION_KEY)) || {
+        machines: ["MQA-01", "MQA-02", "MQA-03", "LAB-01"],
+        users: [
+            { id: 101, type: "Aluno", name: "Ana Beatriz", machine: "MQA-01" },
+            { id: 102, type: "Pessoa Monitora", name: "Carlos Eduardo", machine: "MQA-02" },
+            { id: 103, type: "Aluno", name: "Mariana Souza", machine: "MQA-03" }
+        ],
+        attendanceMatrix: {} 
+    };
+
+    let activeGlobalDate = "";
+    let activeGlobalTurn = "Dia";
+
+    function triggerToast(message) {
+        const container = document.getElementById('toastContainer');
+        const toast = document.createElement('div');
+        toast.className = 'toast';
+        toast.innerText = message;
+        container.appendChild(toast);
+        setTimeout(() => toast.remove(), 3500);
+    }
+
+    function pushSystemLog(msg) {
+        const term = document.getElementById('logTerminal');
+        const timestamp = new Date().toLocaleTimeString('pt-BR');
+        term.innerHTML = `<div class="log-line"><span>[${timestamp}]</span> ${msg}</div>` + term.innerHTML;
+    }
+
+    function commitState() {
+        localStorage.setItem(STORAGE_VERSION_KEY, JSON.stringify(coreEngineData));
+    }
+
+    function initApplication() {
+        const today = new Date();
+        activeGlobalDate = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+        activeGlobalYear = today.getFullYear();
+        document.getElementById('currentDate').value = activeGlobalDate;
+        document.getElementById('yearSelector').value = activeGlobalYear;
+        document.getElementById('yearSelectorCard').value = activeGlobalYear;
+        
+        // Define o turno padrão com base no horário atual do computador (se depois das 19h30, assume noite)
+        const currentMinutes = (today.getHours() * 60) + today.getMinutes();
+        if (currentMinutes >= 1170) { // 19:30 em minutos
+            activeGlobalTurn = "Noite";
+        } else {
+            activeGlobalTurn = "Dia";
+        }
+        document.getElementById('currentTurn').value = activeGlobalTurn;
+        
+        updatePrintMetadata();
+        syncWorkspaceDate(activeGlobalDate, activeGlobalTurn);
+        renderAnnualSummary(activeGlobalYear);
+    }
+
+    function syncWorkspaceDate(targetDate, targetTurn) {
+        // Chave composta unificada: "AAAA-MM-DD_Turno" (ex: "2026-07-19_Dia")
+        const matrixKey = `${targetDate}_${targetTurn}`;
+
+        if (!coreEngineData.attendanceMatrix[matrixKey]) {
+            coreEngineData.attendanceMatrix[matrixKey] = {};
+        }
+
+        // Garante nós de presença isolados para cada usuário no turno/data específico
+        coreEngineData.users.forEach(u => {
+            if (!coreEngineData.attendanceMatrix[matrixKey][u.id]) {
+                coreEngineData.attendanceMatrix[matrixKey][u.id] = { status: "Ausente", interapp: "Inativo" };
+            }
+        });
+
+        commitState();
+        refreshDynamicUIComponents();
+        renderPresenceMatrix();
+        pushSystemLog(`Sincronizado: ${targetDate} no turno da ${targetTurn}.`);
+    }
+
+    function handleContextSwitch() {
+        activeGlobalDate = document.getElementById('currentDate').value;
+        activeGlobalTurn = document.getElementById('currentTurn').value;
+        if (activeGlobalDate && activeGlobalTurn) {
+            updatePrintMetadata();
+            syncWorkspaceDate(activeGlobalDate, activeGlobalTurn);
+            renderAnnualSummary(activeGlobalYear);
+        }
+    }
+
+    function handleYearSwitch() {
+        const year = Number(document.getElementById('yearSelector').value);
+        if (!year) return;
+        activeGlobalYear = year;
+        document.getElementById('yearSelectorCard').value = year;
+        renderAnnualSummary(year);
+    }
+
+    function handleYearSwitchCard() {
+        const year = Number(document.getElementById('yearSelectorCard').value);
+        if (!year) return;
+        activeGlobalYear = year;
+        document.getElementById('yearSelector').value = year;
+        renderAnnualSummary(year);
+    }
+
+    function updatePrintMetadata() {
+        if (!activeGlobalDate) return;
+        const [year, month, day] = activeGlobalDate.split('-');
+        const turnText = activeGlobalTurn === 'Dia' ? 'Dia (17h às 19h)' : 'Noite (19h30 às 21h30)';
+        document.querySelector('header').setAttribute('data-print-info', `Data: ${day}/${month}/${year} | Período: ${turnText}`);
+    }
+
+    function getMonthName(monthIndex) {
+        return [
+            'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+            'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
+        ][monthIndex - 1];
+    }
+
+    function computeAnnualSummary(year) {
+        const summary = Array.from({ length: 12 }, () => ({ present: 0, absent: 0, interapp: 0, records: 0 }));
+
+        Object.keys(coreEngineData.attendanceMatrix).forEach(key => {
+            const [datePart] = key.split('_');
+            const [recordYear, recordMonth] = datePart.split('-').map(Number);
+            if (recordYear !== year) return;
+            const monthIndex = recordMonth;
+            const record = coreEngineData.attendanceMatrix[key];
+            Object.values(record).forEach(entry => {
+                summary[monthIndex - 1].records += 1;
+                if (entry.status === 'Presente') summary[monthIndex - 1].present += 1;
+                if (entry.status === 'Ausente') summary[monthIndex - 1].absent += 1;
+                if (entry.interapp === 'Ativo') summary[monthIndex - 1].interapp += 1;
+            });
+        });
+
+        return summary;
+    }
+
+    function renderAnnualSummary(year) {
+        const container = document.getElementById('yearlySummary');
+        if (!container) return;
+        const summary = computeAnnualSummary(year);
+        const total = summary.reduce((acc, month) => ({
+            present: acc.present + month.present,
+            absent: acc.absent + month.absent,
+            interapp: acc.interapp + month.interapp,
+            records: acc.records + month.records
+        }), { present: 0, absent: 0, interapp: 0, records: 0 });
+
+        const rows = summary.map((month, index) => `
+            <tr>
+                <td>${getMonthName(index + 1)}</td>
+                <td>${month.present}</td>
+                <td>${month.absent}</td>
+                <td>${month.interapp}</td>
+                <td>${month.records}</td>
+            </tr>
+        `).join('');
+
+        container.innerHTML = `
+            <div class="table-container" style="overflow-x: auto; margin-top: 12px;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Mês</th>
+                            <th>Presentes</th>
+                            <th>Ausentes</th>
+                            <th>InterAPP Ativo</th>
+                            <th>Registros</th>
+                        </tr>
+                    </thead>
+                    <tbody>${rows}</tbody>
+                    <tfoot>
+                        <tr>
+                            <th>Total</th>
+                            <th>${total.present}</th>
+                            <th>${total.absent}</th>
+                            <th>${total.interapp}</th>
+                            <th>${total.records}</th>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        `;
+    }
+
+    function refreshDynamicUIComponents() {
+        const selectElement = document.getElementById('selectUserMachine');
+        selectElement.innerHTML = '<option value="">-- Selecionar Máquina --</option>';
+        coreEngineData.machines.sort().forEach(m => {
+            selectElement.innerHTML += `<option value="${m}">${m}</option>`;
+        });
+
+        const container = document.getElementById('machineBadgeContainer');
+        container.innerHTML = '';
+        coreEngineData.machines.forEach(m => {
+            container.innerHTML += `<span class="list-pill">🖥️ ${m} <button onclick="deleteMachine('${m}')">&times;</button></span>`;
+        });
+
+        const datalist = document.getElementById('namesDataset');
+        datalist.innerHTML = '';
+        coreEngineData.users.forEach(u => {
+            datalist.innerHTML += `<option value="${u.name}">`;
+        });
+    }
+
+    function registerNewMachine(e) {
+        e.preventDefault();
+        const input = document.getElementById('inputMachineName');
+        const macName = input.value.trim().toUpperCase();
+
+        if (coreEngineData.machines.includes(macName)) {
+            triggerToast(`⚠️ Alerta: A máquina ${macName} já existe.`);
+            return;
+        }
+
+        coreEngineData.machines.push(macName);
+        commitState();
+        refreshDynamicUIComponents();
+        pushSystemLog(`Máquina [${macName}] inserida na infraestrutura.`);
+        triggerToast(`Estação de trabalho registrada!`);
+        input.value = '';
+    }
+
+    function deleteMachine(macName) {
+        coreEngineData.machines = coreEngineData.machines.filter(m => m !== macName);
+        commitState();
+        refreshDynamicUIComponents();
+        pushSystemLog(`Máquina [${macName}] removida da infraestrutura.`);
+    }
+
+    function createUser(type, name, machine) {
+        if (coreEngineData.users.some(u => u.name.toLowerCase() === name.toLowerCase())) {
+            triggerToast(`Aviso: Este nome de usuário já está cadastrado.`);
+            return null;
+        }
+
+        const uid = Date.now();
+        coreEngineData.users.push({ id: uid, type, name, machine });
+        commitState();
+        refreshDynamicUIComponents();
+        pushSystemLog(`Usuário [${name}] cadastrado como ${type}.`);
+        return uid;
+    }
+
+    function handleUserFormSubmit(e) {
+        e.preventDefault();
+        const editUserId = document.getElementById('editUserId').value;
+        if (editUserId) {
+            updateUser(Number(editUserId));
+            return;
+        }
+        registerNewStudentByTurn(e);
+    }
+
+    function startUserEdit(uid) {
+        const user = coreEngineData.users.find(u => u.id === uid);
+        if (!user) return;
+
+        document.getElementById('editUserId').value = uid;
+        document.getElementById('selectUserType').value = user.type;
+        document.getElementById('inputUserName').value = user.name;
+        document.getElementById('selectUserMachine').value = user.machine;
+        document.getElementById('selectUserTurn').value = activeGlobalTurn;
+        document.getElementById('submitUserButton').innerText = 'Salvar alterações';
+        document.getElementById('cancelEditButton').style.display = 'inline-flex';
+    }
+
+    function cancelUserEdit() {
+        document.getElementById('editUserId').value = '';
+        document.getElementById('formAddUser').reset();
+        document.getElementById('submitUserButton').innerText = 'Salvar Perfil Permanente';
+        document.getElementById('cancelEditButton').style.display = 'none';
+    }
+
+    function updateUser(uid) {
+        const type = document.getElementById('selectUserType').value;
+        const name = document.getElementById('inputUserName').value.trim();
+        const machine = document.getElementById('selectUserMachine').value;
+
+        const duplicate = coreEngineData.users.some(u => u.id !== uid && u.name.toLowerCase() === name.toLowerCase());
+        if (duplicate) {
+            triggerToast(`Aviso: Este nome de usuário já está cadastrado.`);
+            return;
+        }
+
+        const user = coreEngineData.users.find(u => u.id === uid);
+        if (!user) return;
+
+        user.type = type;
+        user.name = name;
+        user.machine = machine;
+        commitState();
+        refreshDynamicUIComponents();
+        renderPresenceMatrix();
+        cancelUserEdit();
+        pushSystemLog(`Usuário [${name}] atualizado.`);
+        triggerToast(`Perfil atualizado com sucesso!`);
+    }
+
+    function registerNewUser(e) {
+        e.preventDefault();
+        const type = document.getElementById('selectUserType').value;
+        const name = document.getElementById('inputUserName').value.trim();
+        const machine = document.getElementById('selectUserMachine').value;
+
+        const uid = createUser(type, name, machine);
+        if (!uid) return;
+
+        const matrixKey = `${activeGlobalDate}_${activeGlobalTurn}`;
+        if (!coreEngineData.attendanceMatrix[matrixKey]) {
+            coreEngineData.attendanceMatrix[matrixKey] = {};
+        }
+        coreEngineData.attendanceMatrix[matrixKey][uid] = { status: 'Presente', interapp: 'Ativo' };
+        commitState();
+        renderPresenceMatrix();
+        document.getElementById('formAddUser').reset();
+        triggerToast(`Perfil criado e adicionado à listagem diária!`);
+    }
+
+    function registerNewStudentByTurn(e) {
+        e.preventDefault();
+        const type = document.getElementById('selectUserType').value;
+        const name = document.getElementById('inputUserName').value.trim();
+        const machine = document.getElementById('selectUserMachine').value;
+        const turn = document.getElementById('selectUserTurn').value;
+
+        if (type !== 'Aluno') {
+            triggerToast(`Cadastro por turno só está disponível para alunos.`);
+            return;
+        }
+
+        const uid = createUser(type, name, machine);
+        if (!uid) return;
+
+        const matrixKey = `${activeGlobalDate}_${turn}`;
+        if (!coreEngineData.attendanceMatrix[matrixKey]) {
+            coreEngineData.attendanceMatrix[matrixKey] = {};
+        }
+        coreEngineData.attendanceMatrix[matrixKey][uid] = { status: 'Presente', interapp: 'Ativo' };
+        commitState();
+        renderPresenceMatrix();
+        document.getElementById('formAddUser').reset();
+        pushSystemLog(`Aluno [${name}] cadastrado para o turno ${turn}.`);
+        triggerToast(`Aluno cadastrado e marcado presente no turno ${turn}.`);
+    }
+
+    function renderPresenceMatrix() {
+        const tbody = document.getElementById('presenceTableBody');
+        tbody.innerHTML = '';
+        
+        const filterText = document.getElementById('tableSearchFilter').value.toLowerCase();
+        const matrixKey = `${activeGlobalDate}_${activeGlobalTurn}`;
+        const dailySet = coreEngineData.attendanceMatrix[matrixKey] || {};
+
+        let total = coreEngineData.users.length;
+        let presentCount = 0, absentCount = 0, interappCount = 0;
+
+        coreEngineData.users.forEach(u => {
+            const rowRecord = dailySet[u.id] || { status: "Ausente", interapp: "Inativo" };
+
+            if (rowRecord.status === 'Presente') presentCount++;
+            if (rowRecord.status === 'Ausente') absentCount++;
+            if (rowRecord.interapp === 'Ativo') interappCount++;
+
+            if (u.name.toLowerCase().includes(filterText) || u.machine.toLowerCase().includes(filterText) || u.type.toLowerCase().includes(filterText)) {
+                const tr = document.createElement('tr');
+                
+                tr.innerHTML = `
+                    <td><span class="badge ${u.type === 'Aluno' ? 'badge-student' : 'badge-monitor'}">${u.type}</span></td>
+                    <td><strong>${u.name}</strong></td>
+                    <td><code>${u.machine}</code></td>
+                    <td><span class="badge ${rowRecord.status === 'Presente' ? 'badge-present' : 'badge-absent'}">${rowRecord.status}</span></td>
+                    <td><span class="badge ${rowRecord.interapp === 'Ativo' ? 'badge-active' : 'badge-inactive'}">${rowRecord.interapp}</span></td>
+                    <td style="text-align: right;">
+                        <div class="action-cluster" style="justify-content: flex-end;">
+                            <button class="btn-table btn-t-success" onclick="modifyAttendance(${u.id})">Chamada</button>
+                            <button class="btn-table btn-t-warning" onclick="modifyInterapp(${u.id})">InterAPP</button>
+                            <button class="btn-table btn-t-secondary" onclick="startUserEdit(${u.id})">Editar</button>
+                            <button class="btn-table btn-t-danger" onclick="purgeUser(${u.id})">Remover</button>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            }
+        });
+
+        document.getElementById('statTotal').innerText = total;
+        document.getElementById('statPresents').innerText = presentCount;
+        document.getElementById('statAbsents').innerText = absentCount;
+        document.getElementById('statInterapp').innerText = interappCount;
+    }
+
+    function modifyAttendance(uid) {
+        const matrixKey = `${activeGlobalDate}_${activeGlobalTurn}`;
+        const record = coreEngineData.attendanceMatrix[matrixKey][uid];
+        if (record) {
+            record.status = record.status === 'Presente' ? 'Ausente' : 'Presente';
+            if(record.status === 'Ausente') record.interapp = 'Inativo'; 
+            commitState();
+            renderPresenceMatrix();
+        }
+    }
+
+    function modifyInterapp(uid) {
+        const matrixKey = `${activeGlobalDate}_${activeGlobalTurn}`;
+        const record = coreEngineData.attendanceMatrix[matrixKey][uid];
+        if (record) {
+            record.interapp = record.interapp === 'Ativo' ? 'Inativo' : 'Ativo';
+            commitState();
+            renderPresenceMatrix();
+        }
+    }
+
+    function bulkAttendanceUpdate(targetStatus) {
+        const filterText = document.getElementById('tableSearchFilter').value.toLowerCase();
+        const matrixKey = `${activeGlobalDate}_${activeGlobalTurn}`;
+        
+        coreEngineData.users.forEach(u => {
+            if (u.name.toLowerCase().includes(filterText) || u.machine.toLowerCase().includes(filterText) || u.type.toLowerCase().includes(filterText)) {
+                coreEngineData.attendanceMatrix[matrixKey][u.id].status = targetStatus;
+                if (targetStatus === 'Ausente') {
+                    coreEngineData.attendanceMatrix[matrixKey][u.id].interapp = 'Inativo';
+                }
+            }
+        });
+        commitState();
+        renderPresenceMatrix();
+        triggerToast(`Status em lote (${activeGlobalTurn}) atualizado para: ${targetStatus}`);
+    }
+
+    function purgeUser(uid) {
+        const userObj = coreEngineData.users.find(u => u.id === uid);
+        if (userObj && confirm(`Deseja remover permanentemente ${userObj.name} do ecossistema?`)) {
+            coreEngineData.users = coreEngineData.users.filter(u => u.id !== uid);
+            Object.keys(coreEngineData.attendanceMatrix).forEach(matrixKey => {
+                delete coreEngineData.attendanceMatrix[matrixKey][uid];
+            });
+            commitState();
+            syncWorkspaceDate(activeGlobalDate, activeGlobalTurn);
+            triggerToast(`Perfil deletado.`);
+        }
+    }
+
+    function exportDatabase() {
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(coreEngineData, null, 2));
+        const dlAnchor = document.createElement('a');
+        dlAnchor.setAttribute("href", dataStr);
+        dlAnchor.setAttribute("download", `presence_backup_${activeGlobalDate}_${activeGlobalTurn}.json`);
+        document.body.appendChild(dlAnchor);
+        dlAnchor.click();
+        dlAnchor.remove();
+    }
+
+    function importDatabase(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const parsed = JSON.parse(e.target.result);
+                if (parsed.users && parsed.attendanceMatrix) {
+                    if (!parsed.machines) parsed.machines = [];
+                    coreEngineData = parsed;
+                    commitState();
+                    syncWorkspaceDate(activeGlobalDate, activeGlobalTurn);
+                    triggerToast(`Backup restaurado com sucesso!`);
+                }
+            } catch (err) { triggerToast(`❌ Formato de arquivo corrompido.`); }
+        };
+        reader.readAsText(file);
+    }
+
+    function purgeSystemData() {
+        if(confirm("ATENÇÃO: Deseja deletar todas as configurações, turnos e dados do localStorage de forma irreversível?")) {
+            localStorage.removeItem(STORAGE_VERSION_KEY);
+            coreEngineData = { machines: [], users: [], attendanceMatrix: {} };
+            initApplication();
+        }
+    }
+
+    initApplication();
+</script>
+</body>
+</html>
